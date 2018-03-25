@@ -1,0 +1,36 @@
+<meta> 
+<info author="AriosJentu" name="GUI Interfaces System" version="0" type="script"/>
+
+	<!-- Libraries -->
+	<script src="win.lua" type="client"/>
+
+	<file src="images/pane.png"/>
+	<file src="images/cross.png"/>
+	<file src="images/point.png"/>
+	<file src="images/next.png"/>
+	<file src="images/prev.png"/>
+	<file src="images/down.png"/>
+	<file src="images/check.png"/>
+	<file src="images/round.png"/>
+
+	<!-- Library Fonts -->
+	<file src="fonts/thin.ttf"/>
+	<file src="fonts/OSB.ttf"/>
+	<file src="fonts/OSBI.ttf"/>
+	<file src="fonts/OSEB.ttf"/>
+	<file src="fonts/OSEBI.ttf"/>
+	<file src="fonts/OSI.ttf"/>
+	<file src="fonts/OSL.ttf"/>
+	<file src="fonts/OSLI.ttf"/>
+	<file src="fonts/OSR.ttf"/>
+	<file src="fonts/OSSB.ttf"/>
+	<file src="fonts/OSSBI.ttf"/>  
+
+	<file src="fonts/SUIL.ttf"/>
+	<file src="fonts/SUIR.ttf"/>  
+  
+	<file src="fonts/HT.ttf"/>
+	<file src="fonts/HR.ttf"/> 
+
+	<oop>true</oop>
+</meta>
