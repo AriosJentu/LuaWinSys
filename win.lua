@@ -2730,6 +2730,36 @@ local function ctbSetMasked(textbox, boolean)
 	return textbox.TextBox:setMasked(boolean)
 end
 
+local function ctbSetMinimal(textbox, minimal)
+	
+	if textbox.Maximal < textbox.Minimal then
+		maximal = minimal
+		minimal = textbox.Maximal
+		textbox.Minimal = maximal
+	end
+
+	textbox.Minimal = minimal
+end
+
+local function ctbSetMaximal(textbox, maximal)
+
+	if textbox.Maximal < textbox.Minimal then
+		minimal = maximal
+		maximal = textbox.Minimal
+		textbox.Minimal = minimal
+	end
+
+	textbox.Maximal = maximal
+end
+
+local function ctbSetScrollStep(textbox, stepsize)
+
+	if stepsize <= 0 then
+		stepsize = 1
+	end
+	textbox.ScrollSpeed = stepsize
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -2778,6 +2808,18 @@ end
 
 local function ctbGetMasked(textbox)
 	return textbox.TextBox:getMasked()
+end
+
+local function ctbGetMinimal(textbox)
+	return textbox.Minimal
+end
+
+local function ctbGetMaximal(textbox)
+	return textbox.Maximal
+end
+
+local function ctbGetScrollStep(textbox)
+	return textbox.ScrollSpeed
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -2914,6 +2956,10 @@ function CustomNumberScroller.setReadOnly(self, ...) return ctbSetReadOnly(self.
 function CustomNumberScroller.setText(self, ...) return ctbSetText(self.Box, ...) end
 function CustomNumberScroller.setCaretIndex(self, ...) return ctbSetCaretIndex(self.Box, ...) end
 
+function CustomNumberScroller.setMinimal(self, ...) return ctbSetMinimal(self.Box, ...) end
+function CustomNumberScroller.setMaximal(self, ...) return ctbSetMaximal(self.Box, ...) end
+function CustomNumberScroller.setStepSize(self, ...) return ctbSetScrollStep(self.Box, ...) end
+
 function CustomNumberScroller.bringToFront(self) return ctbBringToFront(self.Box) end
 function CustomNumberScroller.moveToBack(self) return ctbMoveToBack(self.Box) end
 
@@ -2924,6 +2970,10 @@ function CustomNumberScroller.getEnabled(self, ...) return ctbGetEnabled(self.Bo
 function CustomNumberScroller.getReadOnly(self, ...) return ctbGetReadOnly(self.Box, ...) end
 function CustomNumberScroller.getText(self, ...) return ctbGetText(self.Box, ...) end
 function CustomNumberScroller.getCaretIndex(self, ...) return ctbGetCaretIndex(self.Box, ...) end
+
+function CustomNumberScroller.getMinimal(self, ...) return ctbGetMinimal(self.Box, ...) end
+function CustomNumberScroller.getMaximal(self, ...) return ctbGetMaximal(self.Box, ...) end
+function CustomNumberScroller.getStepSize(self, ...) return ctbGetScrollStep(self.Box, ...) end
 
 function CustomNumberScroller.setColorScheme(self, ...) return ctbSetColorScheme(self.Box, ...) end
 
