@@ -1,4 +1,4 @@
-CONTENT = "wfiles" --Resource name with files
+CONTENT = "LuaWinSys" --Resource name with files
 
 EventList = {
 	"onClientGUIClick",
@@ -17,7 +17,7 @@ function fromHEXToRGB(color)
     end
 end
 
-local function proceedColor(main, red, green, dark)
+function proceedColor(main, red, green, dark)
 
 	if not dark then dark = false end
 
@@ -124,7 +124,6 @@ RedColors = proceedColor("f94f4f", "ef2d2d", "46c169", false) --Red Theme
 BlueColors = proceedColor("5278e2", "4667d0", "46c169", false) --Blue Theme
 
 DefaultColors = BlueColors
-
 
 --------------------------
 
@@ -883,6 +882,16 @@ local function cwGetMovable(window, bool)
 	return window.Movable
 end
 
+---
+
+local function cwGetFrame(window)
+	return window.Frame
+end
+
+local function cwGetHeader(window)
+	return window.Top
+end
+
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Animated functions
@@ -983,6 +992,9 @@ function CustomWindow.getPosition(self, ...) return cwGetPosition(self.Window, .
 function CustomWindow.getText(self, ...) return cwGetTitle(self.Window, ...) end
 function CustomWindow.getTitle(self, ...) return cwGetTitle(self.Window, ...) end
 function CustomWindow.getMovable(self, ...) return cwGetMovable(self.Window, ...) end
+
+function CustomWindow.getFrame(self, ...) return cwGetFrame(self.Window, ...) end
+function CustomWindow.getHeader(self, ...) return cwGetHeader(self.Window, ...) end
 
 function CustomWindow.open(self) return cwOpen(self.Window) end
 function CustomWindow.close(self) return cwClose(self.Window) end
@@ -1911,7 +1923,7 @@ local function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 
 			ScrollBars[id].Edges:setPosition(sx, sy, false)
 
-			triggerEvent("onCustomScrollBarScrolled", localPlayer, ScrollBars[id].Canvas)
+			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Canvas)
 
 		end
 
@@ -1927,7 +1939,7 @@ local function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			end
 
 			csbSetScrollPosition(ScrollBars[id], ScrollBars[id].Scroll + x*upper*ScrollBars[id].ScrollSpeed)
-			triggerEvent("onCustomScrollBarScrolled", localPlayer, ScrollBars[id].Canvas)
+			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Canvas)
 
 		end
 
@@ -1982,17 +1994,25 @@ end
 
 local function csbSetScrollLength(scroll, len)
 	local w, h = scroll.Main:getSize(false)
-	scroll.ScrollLength = len
-	local slen = len
+	if len < 5 then len = 5 end
 
 	if not scroll.IsVertical then
-		scroll.Edges:setPosition(scroll.Scroll * (w-slen) / 100, 0, false)
-		scroll.Edges:setSize(slen, h, false)
-		scroll.Entrail:setSize(slen-2, h, false)
+
+		if len >= w then len = w end
+
+		scroll.ScrollLength = len
+
+		scroll.Edges:setPosition(scroll.Scroll * (w-len) / 100, 0, false)
+		scroll.Edges:setSize(len, h, false)
+		scroll.Entrail:setSize(len-2, h, false)
 	else
-		scroll.Edges:setPosition(0, scroll.Scroll * (h-slen) / 100, false)
-		scroll.Edges:setSize(w, slen, false)
-		scroll.Entrail:setSize(w, slen-2, false)
+
+		if len >= h then len = h end
+		scroll.ScrollLength = len
+
+		scroll.Edges:setPosition(0, scroll.Scroll * (h-len) / 100, false)
+		scroll.Edges:setSize(w, len, false)
+		scroll.Entrail:setSize(w, len-2, false)
 	end
 end
 
@@ -2195,7 +2215,7 @@ end
 
 local function csbAddEvent(sbar, event, func)
 	addEventHandler(event, root, function(...)
-		if source == sbar.Main or source == sbar.Edges then
+		if source == sbar.Main or source == sbar.Edges or source == sbar.Canvas then
 			func(...)
 		end
 	end)
@@ -2209,7 +2229,21 @@ CustomScrollBar.__index = CustomScrollBar
 function CustomScrollBar.create(...)
 	local self = setmetatable({}, CustomScrollBar)
 	self.ScrollBar = guiCreateCustomScrollBar(...)
+
+	--[[addEventHandler("onClientCursorMove", root, function()
+		if self.ScrollBar.ScrollEnabled then
+			triggerEvent("onCustomScrollBarScrolled", localPlayer, self)
+		end
+	end)
+
+	addEventHandler("onClientMouseWheel", root, function()
+		if source == self.ScrollBar.Edges or source == self.ScrollBar.Main then
+			triggerEvent("onCustomScrollBarScrolled", localPlayer, self)
+		end
+	end)]]
+
 	return self
+
 end
 
 function CustomScrollBar.setScrollPosition(self, ...) return csbSetScrollPosition(self.ScrollBar, ...) end
@@ -4354,6 +4388,7 @@ local function ctpSetTabText(tabpan, tab, text)
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == tab or v.Entrail == tab then
 			v.Label:setText(text)
+			v.Text = text
 		end
 	end
 
@@ -4504,6 +4539,14 @@ local function ctpGetTabFromText(tabpan, text)
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == text then
 			return v.Entrail
+		end
+	end
+end
+
+local function ctpGetTabHeader(tabpan, tab)
+	for _, v in pairs(tabpan.Tabs) do
+		if v.Text == tab or v.Entrail == tab then
+			return v.Canvas
 		end
 	end
 end

@@ -110,7 +110,7 @@ test_scver_l = CustomScrollBar.create(140, 30, 20, 490, false, demo_window.Windo
 test_schor = CustomScrollBar.create(10, 530, 150, 10, false, demo_window.Window.Frame)
 test_schor_l = CustomScrollBar.create(10, 550, 150, 20, false, demo_window.Window.Frame)
 
-test_scver:setScrollPosition(10)
+test_scver:setScrollPosition(50)
 test_scver:setScrollLength(90)
 
 test_scver_l:setScrollPosition(40)
@@ -129,18 +129,14 @@ test_schor_l:setEnabled(false)
 --test_schor:setColorScheme(BlueColorsDark)
 
 addEvent("onCustomScrollBarScrolled", true)
-addEventHandler("onCustomScrollBarScrolled", root, function(element)
-	if element == test_scver.ScrollBar.Canvas then
-		test_pbar5:setProgress(test_scver:getScrollPosition())
-	end
+test_scver:addEvent("onCustomScrollBarScrolled", function()
+	test_pbar5:setProgress(test_scver:getScrollPosition())
 end)
 
-addEvent("onCustomScrollBarScrolled", true)
-addEventHandler("onCustomScrollBarScrolled", root, function(element)
-	if element == test_schor.ScrollBar.Canvas then
-		test_pbar2:setProgress(test_schor:getScrollPosition())
-	end
+test_schor:addEvent("onCustomScrollBarScrolled", function()
+	test_pbar2:setProgress(test_schor:getScrollPosition())
 end)
+
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Edit/Memo/Number boxes
