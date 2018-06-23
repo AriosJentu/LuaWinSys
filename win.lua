@@ -4620,6 +4620,7 @@ function CustomTabPanel.getTabText(self, ...) return ctpGetTabText(self.TabPanel
 function CustomTabPanel.getTabFromText(self, ...) return ctpGetTabFromText(self.TabPanel, ...) end
 function CustomTabPanel.getSelectedTab(self, ...) return ctpGetSelectedTab(self.TabPanel, ...) end
 function CustomTabPanel.getTabsMinLength(self, ...) return ctpGetTabsMinLength(self.TabPanel, ...) end
+function CustomTabPanel.getTabHeader(self, ...) return ctpGetTabHeader(self.TabPanel, ...) end
 
 function CustomTabPanel.setColorScheme(self, ...) return ctpSetColorScheme(self.TabPanel, ...) end
 
