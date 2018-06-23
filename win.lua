@@ -4625,3 +4625,362 @@ function CustomTabPanel.getTabHeader(self, ...) return ctpGetTabHeader(self.TabP
 function CustomTabPanel.setColorScheme(self, ...) return ctpSetColorScheme(self.TabPanel, ...) end
 
 function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self.TabPanel, ...) end
+
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+-----------------------------Labels--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+
+Labels = {}
+local function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
+
+	------------------------------------------------------------------------------------------------------------------------------------------
+	--Counting IDs and coordinates
+	local id = #Labels+1
+
+	if relative then
+
+		local sw, sh = Width, Height
+		if parent and parent.type:find("gui") then
+			sw, sh = parent:getSize(false)
+		else
+			parent = nil
+		end
+
+		x = x*sw
+		y = y*sh
+		w = w*sw
+		h = h*sh
+
+	else
+
+		x = math.floor(x)
+		y = math.floor(y)
+		w = math.floor(w)
+		h = math.floor(h)
+
+	end
+
+	Labels[id] = {}
+
+	Labels[id].ColorScheme = DefaultColors
+	Labels[id].IsHoverable = false
+	Labels[id].IsSchematical = false
+
+	Labels[id].Label = GuiLabel.create(x, y, w, h, text, false, parent)
+
+	TextColor = "444444"
+	if Labels[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
+
+	Labels[id].Label:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
+	Labels[id].Label:setColor(fromHEXToRGB(TextColor))
+
+	addEventHandler("onClientMouseEnter", root, function()
+		if source == Labels[id].Label and Labels[id].IsHoverable then
+			
+			Labels[id].Label:setColor(fromHEXToRGB(Labels[id].ColorScheme.Main))
+
+		end
+	end)
+
+	addEventHandler("onClientMouseLeave", root, function()
+
+		if source == Labels[id].Label and Labels[id].IsHoverable then
+			
+			TextColor = "444444"
+			if Labels[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
+			Labels[id].Label:setColor(fromHEXToRGB(TextColor))
+
+		end
+	end)
+
+
+	addEventHandler("onClientResourceStop", root, function(res)
+		if res == getThisResource() then
+
+			for i in pairs(Labels[id]) do
+				if isElement(Labels[id][i]) then
+					destroyElement(Labels[id][i])
+				end
+				Labels[id][i] = nil
+			end
+		end
+	end)
+
+	return Labels[id]
+
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Set functions
+
+local function clSetText(label, text)
+	label.Label:setText(text)
+end
+
+local function clSetPosition(label, x, y, rel)
+	
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = label.Label.parent or nil
+
+		if parent and parent.type:find("gui") then
+			sw, sh = parent:getSize(false)
+		end
+
+		x = x*sw
+		y = y*sh
+
+	end
+
+	label.Label:setPosition(x, y, false)
+
+end
+
+local function clSetSize(label, w, h, rel)
+	
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = label.Label.parent or nil
+
+		if parent and parent.type:find("gui") then
+			sw, sh = parent:getSize(false)
+		end
+
+		w = w*sw
+		h = h*sh
+
+	end
+
+	label.Label:setSize(w, h, false)
+end
+
+local function clSetEnabled(label, bool)
+	label.Label:setEnabled(bool)
+end
+
+local function clSetVisible(label, bool)
+	label.Label:setVisible(bool)
+end
+
+local function clSetColor(label, r, g, b)
+
+	if r == tostring(r) and r:len() == 6 then
+	
+		r, g, b = fromHEXToRGB(r)
+
+	elseif not (r and g and b and tonumber(r) and tonumber(g) and tonumber(b)) then
+	
+		if (r < 0 or r > 255 or g < 0 or g > 255 or b < 0 or b > 255) then
+
+			TextColor = "444444"
+			if label.ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
+		
+			r, g, b = fromHEXToRGB(TextColor)
+		end
+	end
+
+	label.IsHoverable = false
+	label.IsSchematical = false
+
+	label.Label:setColor(r, g, b)
+end
+
+local function clSetSchematicalColor(label, bool)
+
+	label.IsSchematical = bool
+
+	if bool then
+		label.IsHoverable = false
+
+		label.Label:setColor(fromHEXToRGB(label.ColorScheme.Main))
+	end
+end
+
+local function clSetHoverable(label, bool)
+
+	label.IsHoverable = bool
+
+	if bool then
+		label.IsSchematical = false
+
+		TextColor = "444444"
+		if label.ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
+
+		label.Label:setColor(fromHEXToRGB(TextColor))		
+	end
+end
+
+local function clSetVerticalAlign(label, align)
+	label.Label:setVerticalAlign(align)
+end
+
+local function clSetHorizontalAlign(label, align)
+	label.Label:setHorizontalAlign(align)
+end
+
+local function clSetAlign(label, vertical, horizontal)
+
+	if not vertical then vertical = "top" end
+	if not horizontal then horizontal = "left" end
+
+	clSetVerticalAlign(label, vertical)
+	clSetHorizontalAlign(label, horizontal)
+end
+
+local function clSetFont(label, font, size)
+
+	if (font ~= tostring(font)) then
+		label.Label:setFont(font)
+	else
+		if not size or not tonumber(size) then size = 9 end
+		label.Label:setFont(GuiFont.create(font, size))
+	end
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Layering functions
+
+local function clBringToFront(label)
+	label.Label:bringToFront()
+end
+
+local function clMoveToBack(label)
+	label.Label:moveToBack()
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Get functions
+
+local function clGetText(label)
+	return label.Label:getText()
+end
+
+local function clGetPosition(label, rel)
+
+	local x, y = label.Label:getPosition(false)
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = label.Label.parent or nil
+
+		if parent and parent.type:find("gui") then
+			sw, sh = parent:getSize(false)
+		end
+		
+
+		return x/sw, y/sh
+	
+	else
+
+		return x, y
+	end
+end
+
+local function clGetSize(label, rel)
+	
+	local w, h = label.Label:getSize(false)
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = label.Label.parent or nil
+
+		if parent and parent.type:find("gui") then
+			sw, sh = parent:getSize(false)
+		end
+
+		return w/sw, h/sh
+	
+	else
+
+		return w, h
+	end
+
+end
+
+local function clGetEnabled(label)
+	return label.Label:getEnabled()
+end
+
+local function clGetVisible(label)
+	return label.Label:getVisible()
+end
+
+local function clGetColor(label)
+	return label.Label:getColor()
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Theme editor
+
+local function clSetColorScheme(label, scheme)
+
+	label.ColorScheme = scheme
+
+	TextColor = "444444"
+	if label.ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
+
+	issch = label.IsSchematical
+	ishov = label.IsHoverable
+
+	clSetColor(label, fromHEXToRGB(TextColor))
+
+	label.IsSchematical = issch
+	label.IsHoverable = ishov
+
+	if label.IsSchematical then
+		clSetSchematicalColor(label, true)
+	end
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Event Functions
+
+local function clAddEvent(label, event, func)
+	addEventHandler(event, root, function(...)
+		if source == label.Label then
+			func(...)
+		end
+	end)
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--OOP functions
+CustomLabel = {}
+CustomLabel.__index = CustomLabel
+
+function CustomLabel.create(...)
+	local self = setmetatable({}, CustomLabel)
+	self.Label = guiCreateCustomLabel(...)
+	return self
+end
+
+function CustomLabel.setEnabled(self, ...) return clSetEnabled(self.Label, ...) end
+function CustomLabel.setVisible(self, ...) return clSetVisible(self.Label, ...) end
+function CustomLabel.setSize(self, ...) return clSetSize(self.Label, ...) end
+function CustomLabel.setPosition(self, ...) return clSetPosition(self.Label, ...) end
+function CustomLabel.setText(self, ...) return clSetText(self.Label, ...) end
+function CustomLabel.setColor(self, ...) return clSetColor(self.Label, ...) end
+function CustomLabel.setSchematicalColor(self, ...) return clSetSchematicalColor(self.Label, ...) end
+function CustomLabel.setHoverable(self, ...) return clSetHoverable(self.Label, ...) end
+function CustomLabel.setVerticalAlign(self, ...) return clSetVerticalAlign(self.Label, ...) end
+function CustomLabel.setHorizontalAlign(self, ...) return clSetHorizontalAlign(self.Label, ...) end
+function CustomLabel.setAlign(self, ...) return clSetAlign(self.Label, ...) end
+function CustomLabel.setFont(self, ...) return clSetFont(self.Label, ...) end
+
+function CustomLabel.bringToFront(self) return clBringToFront(self.Label) end
+function CustomLabel.moveToBack(self) return clMoveToBack(self.Label) end
+
+function CustomLabel.getEnabled(self, ...) return clGetEnabled(self.Label, ...) end
+function CustomLabel.getVisible(self, ...) return clGetVisible(self.Label, ...) end
+function CustomLabel.getSize(self, ...) return clGetSize(self.Label, ...) end
+function CustomLabel.getPosition(self, ...) return clGetPosition(self.Label, ...) end
+function CustomLabel.getText(self, ...) return clGetText(self.Label, ...) end
+function CustomLabel.getColor(self, ...) return clGetColor(self.Label, ...) end
+
+function CustomLabel.setColorScheme(self, ...) return clSetColorScheme(self.Label, ...) end
+
+function CustomLabel.addEvent(self, ...) return clAddEvent(self.Label, ...) end

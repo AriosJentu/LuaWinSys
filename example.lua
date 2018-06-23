@@ -52,9 +52,9 @@ end)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Buttons
-test_button = CustomButton.create(10, 30, 100, 40, "Texted", false, demo_window.Window.Frame)
-test_imgs = CustomButton.create(10, 80, 100, 40, "Removed Text", false, demo_window.Window.Frame)
-test_imgtxt = CustomButton.create(10, 130, 100, 40, "Imaged", false, demo_window.Window.Frame)
+test_button = CustomButton.create(10, 30, 100, 40, "Texted", false, demo_window:getFrame())
+test_imgs = CustomButton.create(10, 80, 100, 40, "Removed Text", false, demo_window:getFrame())
+test_imgtxt = CustomButton.create(10, 130, 100, 40, "Imaged", false, demo_window:getFrame())
 
 test_imgs:setText("")
 test_imgs:setImage(Images.Point)
@@ -65,50 +65,50 @@ test_imgtxt:setImage(Images.Cross)
 test_imgtxt.Button.Image:setProperty("ImageColours", "tl:FF62D262 tr:FF62D262 bl:FF62D262 br:FF62D262")
 --test_imgtxt:setColorScheme(BlueColors)
 
-test_but_locked = CustomButton.create(10, 180, 100, 40, "Disabled", false, demo_window.Window.Frame)
+test_but_locked = CustomButton.create(10, 180, 100, 40, "Disabled", false, demo_window:getFrame())
 --test_but_locked:setColorScheme(BlueColors)
 test_but_locked:setEnabled(false)
 
-test_but_locked2 = CustomButton.create(100, 60, 100, 40, "Disabled", false, demo_window_l.Window.Frame)
+test_but_locked2 = CustomButton.create(100, 60, 100, 40, "Disabled", false, demo_window_l:getFrame())
 test_but_locked2:setEnabled(false)
 --test_but_locked2:setColorScheme(BlueColors)
 
-test_but_clicked2 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_l.Window.Frame)
+test_but_clicked2 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_l:getFrame())
 
-test_but_locked3 = CustomButton.create(100, 60, 100, 40, "Disabled", false, demo_window_m.Window.Frame)
+test_but_locked3 = CustomButton.create(100, 60, 100, 40, "Disabled", false, demo_window_m:getFrame())
 test_but_locked3:setEnabled(false)
 
-test_but_clicked3 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_m.Window.Frame)
+test_but_clicked3 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_m:getFrame())
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Progress bars
-test_pbar = CustomProgressBar.create(10, 230, 100, 20, false, demo_window.Window.Frame)
+test_pbar = CustomProgressBar.create(10, 230, 100, 20, false, demo_window:getFrame())
 test_pbar:setProgress(0)
 --test_pbar:setColorScheme(BlueColors)
 
-test_pbar2 = CustomProgressBar.create(10, 265, 100, 10, false, demo_window.Window.Frame)
+test_pbar2 = CustomProgressBar.create(10, 265, 100, 10, false, demo_window:getFrame())
 test_pbar2:setProgress(50)
 --test_pbar2:setColorScheme(BlueColorsDark)
 
-test_pbar3 = CustomProgressBar.create(10, 290, 100, 20, false, demo_window.Window.Frame)
+test_pbar3 = CustomProgressBar.create(10, 290, 100, 20, false, demo_window:getFrame())
 test_pbar3:setProgress(100)
 
-test_pbar4 = CustomProgressBar.create(20, 320, 20, 200, false, demo_window.Window.Frame)
+test_pbar4 = CustomProgressBar.create(20, 320, 20, 200, false, demo_window:getFrame())
 test_pbar4:setProgress(0)
 
-test_pbar5 = CustomProgressBar.create(55, 320, 10, 200, false, demo_window.Window.Frame)
+test_pbar5 = CustomProgressBar.create(55, 320, 10, 200, false, demo_window:getFrame())
 test_pbar5:setProgress(50)
 --test_pbar5:setColorScheme(RedColors)
 
-test_pbar6 = CustomProgressBar.create(80, 320, 20, 200, false, demo_window.Window.Frame)
+test_pbar6 = CustomProgressBar.create(80, 320, 20, 200, false, demo_window:getFrame())
 test_pbar6:setProgress(100)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Scroll bars
-test_scver = CustomScrollBar.create(120, 30, 10, 490, false, demo_window.Window.Frame)
-test_scver_l = CustomScrollBar.create(140, 30, 20, 490, false, demo_window.Window.Frame)
-test_schor = CustomScrollBar.create(10, 530, 150, 10, false, demo_window.Window.Frame)
-test_schor_l = CustomScrollBar.create(10, 550, 150, 20, false, demo_window.Window.Frame)
+test_scver = CustomScrollBar.create(120, 30, 10, 490, false, demo_window:getFrame())
+test_scver_l = CustomScrollBar.create(140, 30, 20, 490, false, demo_window:getFrame())
+test_schor = CustomScrollBar.create(10, 530, 150, 10, false, demo_window:getFrame())
+test_schor_l = CustomScrollBar.create(10, 550, 150, 20, false, demo_window:getFrame())
 
 test_scver:setScrollPosition(50)
 test_scver:setScrollLength(90)
@@ -140,18 +140,18 @@ end)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Edit/Memo/Number boxes
-test_edit = CustomEdit.create(170, 30, 250, 30, "EditBox", false, demo_window.Window.Frame)
-test_edit_l = CustomEdit.create(170, 70, 250, 30, "EditBox Disabled", false, demo_window.Window.Frame)
-test_edit_m = CustomEdit.create(170, 110, 250, 30, "EditBox Masked", false, demo_window.Window.Frame)
-test_edit_r = CustomEdit.create(170, 150, 250, 30, "EditBox ReadOnly", false, demo_window.Window.Frame)
+test_edit = CustomEdit.create(170, 30, 250, 30, "EditBox", false, demo_window:getFrame())
+test_edit_l = CustomEdit.create(170, 70, 250, 30, "EditBox Disabled", false, demo_window:getFrame())
+test_edit_m = CustomEdit.create(170, 110, 250, 30, "EditBox Masked", false, demo_window:getFrame())
+test_edit_r = CustomEdit.create(170, 150, 250, 30, "EditBox ReadOnly", false, demo_window:getFrame())
 
-test_memo = CustomMemo.create(170, 190, 250, 200, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", false, demo_window.Window.Frame)
-test_memo_l = CustomMemo.create(170, 400, 250, 80, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ", false, demo_window.Window.Frame)
-test_memo_r = CustomMemo.create(170, 490, 250, 83, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ", false, demo_window.Window.Frame)
+test_memo = CustomMemo.create(170, 190, 250, 200, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", false, demo_window:getFrame())
+test_memo_l = CustomMemo.create(170, 400, 250, 80, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ", false, demo_window:getFrame())
+test_memo_r = CustomMemo.create(170, 490, 250, 83, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ", false, demo_window:getFrame())
 
-test_numscroll = CustomNumberScroller.create(430, 30, 150, 30, false, demo_window.Window.Frame)
-test_numscroll_l = CustomNumberScroller.create(430, 70, 150, 30, false, demo_window.Window.Frame)
-test_numscroll_r = CustomNumberScroller.create(590, 30, 30, 30, false, demo_window.Window.Frame)
+test_numscroll = CustomNumberScroller.create(430, 30, 150, 30, false, demo_window:getFrame())
+test_numscroll_l = CustomNumberScroller.create(430, 70, 150, 30, false, demo_window:getFrame())
+test_numscroll_r = CustomNumberScroller.create(590, 30, 30, 30, false, demo_window:getFrame())
 
 test_numscroll_r:setSize(150, 70, false)
 
@@ -174,10 +174,10 @@ test_numscroll_r:setText(49)
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Check boxes
 
-test_checkbox = CustomCheckBox.create(430, 120, 150, 30, "Dark", false, demo_window.Window.Frame)
-test_checkbox_e = CustomCheckBox.create(430, 160, 150, 30, "Blue", false, demo_window.Window.Frame)
-test_checkbox_d = CustomCheckBox.create(590, 120, 150, 30, "Disabled", false, demo_window.Window.Frame)
-test_checkbox_d_e = CustomCheckBox.create(590, 160, 150, 30, "Disabled Activated", false, demo_window.Window.Frame)
+test_checkbox = CustomCheckBox.create(430, 120, 150, 30, "Dark", false, demo_window:getFrame())
+test_checkbox_e = CustomCheckBox.create(430, 160, 150, 30, "Blue", false, demo_window:getFrame())
+test_checkbox_d = CustomCheckBox.create(590, 120, 150, 30, "Disabled", false, demo_window:getFrame())
+test_checkbox_d_e = CustomCheckBox.create(590, 160, 150, 30, "Disabled Activated", false, demo_window:getFrame())
 
 test_checkbox_e:setChecked(true)
 test_checkbox_d:setEnabled(false)
@@ -190,9 +190,9 @@ test_checkbox_d_e:setEnabled(false)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Combo boxes
-test_combo = CustomComboBox.create(430, 200, 150, 30, "Select...", false, demo_window.Window.Frame)
-test_combo_d = CustomComboBox.create(430, 240, 150, 30, "Disabled", false, demo_window.Window.Frame)
-test_combo_s = CustomComboBox.create(590, 200, 50, 20, "Sized", false, demo_window.Window.Frame)
+test_combo = CustomComboBox.create(430, 200, 150, 30, "Select...", false, demo_window:getFrame())
+test_combo_d = CustomComboBox.create(430, 240, 150, 30, "Disabled", false, demo_window:getFrame())
+test_combo_s = CustomComboBox.create(590, 200, 50, 20, "Sized", false, demo_window:getFrame())
 
 for i = 1, 20 do
 	test_combo:addItem("Test"..i)
@@ -209,8 +209,8 @@ test_combo_s:setSize(150, 70, false)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Tab panels
-test_tab = CustomTabPanel.create(430, 280, 40, 40, false, demo_window.Window.Frame)
-test_tab_d = CustomTabPanel.create(430, 430, 310, 140, false, demo_window.Window.Frame)
+test_tab = CustomTabPanel.create(430, 280, 40, 40, false, demo_window:getFrame())
+test_tab_d = CustomTabPanel.create(430, 430, 310, 110, false, demo_window:getFrame())
 
 --test_tab:setColorScheme(BlueColors)
 --test_tab_d:setColorScheme(RedColors)
@@ -253,6 +253,20 @@ image7:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%
 image8:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain)) 
 image9:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain)) 
 
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Labels
+
+test_label = 	 CustomLabel.create(435, 545, 95, 25, "Theme Col Label", false, demo_window:getFrame())
+test_label_hov = CustomLabel.create(535, 545, 95, 25, "Hoverable Label", false, demo_window:getFrame())
+test_label_sch = CustomLabel.create(635, 545, 95, 25, "Schematic Label", false, demo_window:getFrame())
+
+test_label_hov:setHoverable(true)
+test_label_sch:setSchematicalColor(true)
+
+test_label:setAlign("center")
+test_label_hov:setAlign("center", "center")
+test_label_sch:setAlign("center", "right")
+
 ---------------------------------------
 
 demo_window:addElements({test_button, test_imgs, test_imgtxt, test_but_locked})
@@ -262,6 +276,7 @@ demo_window:addElements({test_edit, test_edit_l, test_edit_m, test_edit_r, test_
 demo_window:addElements({test_checkbox, test_checkbox_e, test_checkbox_d, test_checkbox_d_e})
 demo_window:addElements({test_combo, test_combo_d, test_combo_s})
 demo_window:addElements({test_tab, test_tab_d})
+demo_window:addElements({test_label, test_label_hov, test_label_sch})
 demo_window:setColorScheme(BlueColorsDark)
 
 themes = {RedColorsDark, BlueColorsDark, RedColors, BlueColors}
