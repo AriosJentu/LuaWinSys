@@ -256,7 +256,7 @@ image9:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Labels
 
-test_label = 	 CustomLabel.create(435, 545, 95, 25, "Theme Col Label", false, demo_window:getFrame())
+test_label = CustomLabel.create(435, 545, 95, 25, "Theme Col Label", false, demo_window:getFrame())
 test_label_hov = CustomLabel.create(535, 545, 95, 25, "Hoverable Label", false, demo_window:getFrame())
 test_label_sch = CustomLabel.create(635, 545, 95, 25, "Schematic Label", false, demo_window:getFrame())
 
@@ -266,6 +266,20 @@ test_label_sch:setSchematicalColor(true)
 test_label:setAlign("center")
 test_label_hov:setAlign("center", "center")
 test_label_sch:setAlign("center", "right")
+
+local ntest_timer
+test_label_hov:addEvent("onClientGUIClick", function()
+
+	test_label:setText("Hello World")
+	test_label_hov:setText("Clicked")
+
+	if isTimer(ntest_timer) then killTimer(ntest_timer) end
+	setTimer(function()
+		test_label:setText("Theme Col Label")
+		test_label_hov:setText("Hoverable Label")
+	end, 1000, 1)
+
+end)
 
 ---------------------------------------
 
