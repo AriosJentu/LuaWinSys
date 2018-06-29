@@ -13,6 +13,7 @@
 	<file src="images/down.png"/>
 	<file src="images/check.png"/>
 	<file src="images/round.png"/>
+	<file src="images/loading.png"/>
 
 	<!-- Library Fonts -->
 	<file src="fonts/thin.ttf"/>

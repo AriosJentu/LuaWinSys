@@ -165,6 +165,7 @@ Images = {
 	Next = ":"..CONTENT.."/images/next.png",
 	Prev = ":"..CONTENT.."/images/prev.png",
 	Round = ":"..CONTENT.."/images/round.png",
+	Loading = ":"..CONTENT.."/images/loading.png",
 }
 
 addEventHandler("onClientResourceStart", root, function()
@@ -2544,7 +2545,7 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 		EditBoxes[id].IsMouseDowned = false
 	end)
 
-	function click(positive)
+	local function click(positive)
 		if positive then
 			
 			if EditBoxes[id].Current+EditBoxes[id].ScrollSpeed <= EditBoxes[id].Maximal then
@@ -5286,7 +5287,7 @@ function CustomDialog.setColorScheme(self, ...)
 	return self.Dialog:setColorScheme(...)
 end
 
-function CustomDialog.setColorScheme(self)
+function CustomDialog.getColorScheme(self)
 	return self.Dialog.Window.ColorScheme
 end
 
@@ -5408,6 +5409,138 @@ function CustomTooltip.create(text, element, timetoshow)
 
 	end)
 end
+
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+---------------------------Loadings---------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+
+CustomLoading = {}
+CustomLoading.__index = CustomLoading
+
+function CustomLoading.create(x, y, relative, parent)
+
+	self = setmetatable({}, CustomLoading)
+
+	if relative then
+
+		w, h = Width, Height
+
+		if parent then
+			w, h = parent:getSize(false)
+		end
+
+		x, y = x*w, y*h
+	end
+
+	self.Back = GuiStaticImage.create(x, y, 30, 30, pane, false, parent)
+	self.ColorScheme = DefaultColors
+	self.Progress = 0
+	self.Animated = true
+
+	self.Circles = {}
+
+	local color = "tl:FF666666 tr:FF666666 bl:FF666666 br:FF666666"
+	if self.ColorScheme.DarkTheme then
+		color = "tl:FFEEEEEE tr:FFEEEEEE bl:FFEEEEEE br:FFEEEEEE"
+	end
+	
+	for i = 0, 330, 30 do	
+		self.Circles[#self.Circles+1] = GuiStaticImage.create(15 + 10*math.cos(math.rad(i)) - 1, 15 + 10*math.sin(math.rad(i)) - 1, 3, 3, Images.Loading, false, self.Back)
+		self.Circles[#self.Circles]:setProperty("ImageColours", color)
+	end
+
+	local angle = 0
+	addEventHandler("onClientRender", root, function()
+
+		if self.Back :getVisible() and self.Animated then
+			angle = angle+4
+			if angle >= 360 then angle = 0 end
+
+			for i, v in pairs(self.Circles) do
+
+				v:setPosition(15 + 10*math.cos(math.rad( (i-1)*30 - angle )) - 1, 15 + 10*math.sin(math.rad( (i-1)*30 - angle )) - 1, false)
+			end
+		end
+	end)
+
+	self.Back:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+
+	return self
+end
+
+function CustomLoading.setProgress(self, percentage)
+
+	if percentage < 0 then 
+		percentage = 0
+	elseif percentage > 100 then 
+		percentage = 100 
+	end
+
+	self.Progress = percentage
+
+	for i = 0, 330, 30 do
+
+		local color = "tl:FF666666 tr:FF666666 bl:FF666666 br:FF666666"
+		if self.ColorScheme.DarkTheme then
+			color = "tl:FFEEEEEE tr:FFEEEEEE bl:FFEEEEEE br:FFEEEEEE"
+		end
+		
+		if 360-(i+1) <= percentage*3.6 then
+			color = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", self.ColorScheme.Main, self.ColorScheme.Main, self.ColorScheme.Main, self.ColorScheme.Main)
+		end
+
+		self.Circles[math.floor(i/30)+1]:setProperty("ImageColours", color)
+	end
+
+end
+
+function CustomLoading.setPosition(self, x, y, relative)
+	self.Back:setPosition(x, y, relative)
+end
+
+function CustomLoading.setEnabled(self, bool)
+	self.Back:setEnabled(bool)
+end
+
+function CustomLoading.setAnimated(self, bool)
+	self.Animated = bool
+
+	for i = 1, 12 do	
+		self.Circles[i]:setPosition(15 + 10*math.cos(math.rad( (i-1)*30 )) - 1, 15 + 10*math.sin(math.rad( (i-1)*30 )) - 1, false)
+	end
+end
+
+function CustomLoading.setVisible(self, bool)
+	self.Back:setVisible(bool)
+end
+
+
+
+function CustomLoading.getProgress(self)
+	return self.Progress
+end
+
+function CustomLoading.getPosition(self, relative)
+	return self.Back:getPosition(relative or false)
+end
+
+function CustomLoading.bringToFront(self) self.Back:bringToFront() end
+function CustomLoading.moveToBack(self) self.Back:moveToBack()end
+
+
+function CustomLoading.setColorScheme(self, scheme)
+	self.ColorScheme = scheme
+	self:setProgress(self:getProgress())
+end
+
+function CustomLoading.getColorScheme(self)
+	return self.ColorScheme
+end
+
+
+
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------

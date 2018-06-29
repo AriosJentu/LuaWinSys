@@ -152,9 +152,9 @@ test_memo_r = CustomMemo.create(170, 490, 250, 83, "Lorem ipsum dolor sit amet, 
 
 test_numscroll = CustomNumberScroller.create(430, 30, 150, 30, false, demo_window:getFrame())
 test_numscroll_l = CustomNumberScroller.create(430, 70, 150, 30, false, demo_window:getFrame())
-test_numscroll_r = CustomNumberScroller.create(590, 30, 30, 30, false, demo_window:getFrame())
+test_numscroll_r = CustomNumberScroller.create(630, 30, 30, 30, false, demo_window:getFrame())
 
-test_numscroll_r:setSize(150, 70, false)
+test_numscroll_r:setSize(110, 70, false)
 
 test_edit_l:setEnabled(false)
 test_memo_l:setEnabled(false)
@@ -276,6 +276,12 @@ test_label_hov:addEvent("onClientGUIClick", function()
 
 end)
 
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Loading
+
+test_loading = CustomLoading.create(590, 50, false, demo_window:getFrame())
+
+
 ---------------------------------------
 
 demo_dialog = CustomDialog.create(100, "Dialog, what attached\nto Demo Window Frame\nMultiline Automatic", {"OK", "Cancel", "Buttons", "Three", "Another"}, demo_window)
@@ -289,6 +295,7 @@ demo_window:addElements({test_checkbox, test_checkbox_e, test_checkbox_d, test_c
 demo_window:addElements({test_combo, test_combo_d, test_combo_s})
 demo_window:addElements({test_tab, test_tab_d})
 demo_window:addElements({test_label, test_label_hov, test_label_sch})
+demo_window:addElement(test_loading)
 demo_window:setColorScheme(BlueColorsDark)
 
 demo_window_l:addElements({test_but_locked2, test_but_clicked2})
@@ -310,8 +317,10 @@ test_checkbox_e:addEvent("onClientGUIClick", function()
 
 	if test_checkbox_e:getChecked() then
 		test_checkbox_e:setText("Activated")
+		test_loading:setAnimated(true)
 	else
 		test_checkbox_e:setText("Deactivated")
+		test_loading:setAnimated(false)
 	end
 
 end)
@@ -390,3 +399,10 @@ test_combo:addEvent("onCustomComboBoxSelectItem", function()
 
 	test_edit:setText("Selected theme: "..tostring(test_combo:getSelectedItem()))
 end)
+
+test_numscroll:addEvent("onClientGUIChanged", function()
+
+	test_loading:setProgress(tonumber(test_numscroll:getText()))
+
+end)
+
