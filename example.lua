@@ -86,6 +86,8 @@ test_but_locked3:setEnabled(false)
 
 test_but_clicked3 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_m:getFrame())
 
+CustomTooltip.create("Custom Tooltip", test_button, 0)
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Progress bars
 test_pbar = CustomProgressBar.create(10, 230, 100, 20, false, demo_window:getFrame())
@@ -178,6 +180,8 @@ test_checkbox_d:setEnabled(false)
 
 test_checkbox_d_e:setChecked(true)
 test_checkbox_d_e:setEnabled(false)
+
+CustomTooltip.create("Multiline Tooltip\nTesting on another object\nWith different text sizes\nLast Line", test_checkbox, 1)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Combo boxes
@@ -386,8 +390,3 @@ test_combo:addEvent("onCustomComboBoxSelectItem", function()
 
 	test_edit:setText("Selected theme: "..tostring(test_combo:getSelectedItem()))
 end)
-
-
---[[addEventHandler("onClientGUIClick", test_checkbox.CheckBox.Entrail, function()
-	outputDebugString("Check changed")
-end)]]

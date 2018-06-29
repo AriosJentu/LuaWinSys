@@ -238,7 +238,7 @@ BackForMouse = GuiStaticImage.create(0, 0, 1, 1, pane, true)
 BackForMouse:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 BackForMouse:setVisible(false)
 
-local function createCustomScrollPane(xz, yz, wz, hz, rel, par)
+function createCustomScrollPane(xz, yz, wz, hz, rel, par)
 
 	ScrollPaneNumber = ScrollPaneNumber+1 --Count of scroll panes
 	local id = ScrollPaneNumber
@@ -375,7 +375,7 @@ local function createCustomScrollPane(xz, yz, wz, hz, rel, par)
 	return ScrollPaneSettings[id]["Scroll"], ScrollPaneSettings[id]["Back"] 
 end
 
-local function getScrollPaneID(element)
+function getScrollPaneID(element)
 	local id = false
 	for i in pairs(ScrollPaneSettings) do
 		if element == ScrollPaneSettings[i]["Scroll"] then id = i end
@@ -852,11 +852,11 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Set functions
 
-local function cwSetCloseEnabled(window, boolean)
+function cwSetCloseEnabled(window, boolean)
 	return window.Close:setVisible(boolean or false)
 end
 
-local function cwSetEnabled(window, boolean)
+function cwSetEnabled(window, boolean)
 	if boolean then
 		window.Frame:bringToFront()
 	else
@@ -866,11 +866,11 @@ local function cwSetEnabled(window, boolean)
 	return window.Canvas:setEnabled(boolean or false)
 end
 
-local function cwSetVisible(window, boolean)
+function cwSetVisible(window, boolean)
 	return window.Canvas:setVisible(boolean or false)
 end
 
-local function cwSetSize(window, w, h, relative)
+function cwSetSize(window, w, h, relative)
 	
 	if relative then
 
@@ -893,7 +893,7 @@ local function cwSetSize(window, w, h, relative)
 	window.Close:setPosition(w-21, 0, false)
 end
 
-local function cwSetPosition(window, x, y, rel, replace)
+function cwSetPosition(window, x, y, rel, replace)
 	if replace ~= true and replace ~= false then
 		replace = true
 	end
@@ -913,29 +913,29 @@ local function cwSetPosition(window, x, y, rel, replace)
 
 end
 
-local function cwSetTitle(window, text)
+function cwSetTitle(window, text)
 	window.Title:setText(text)
 end
 
-local function cwSetMovable(window, bool)
+function cwSetMovable(window, bool)
 	window.Movable = bool or false
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
-local function cwBringToFront(window)
+function cwBringToFront(window)
 	window.Canvas:bringToFront()
 end
 
-local function cwMoveToBack(window)
+function cwMoveToBack(window)
 	window.Canvas:moveToBack()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
 
-local function cwGetSize(window, rel)
+function cwGetSize(window, rel)
 
 	if rel then
 
@@ -947,7 +947,7 @@ local function cwGetSize(window, rel)
 	end
 end
 
-local function cwGetPosition(window, rel)
+function cwGetPosition(window, rel)
 	x, y = window.Canvas:getPosition(false)
 	x, y = x+2, y+2
 
@@ -959,40 +959,40 @@ local function cwGetPosition(window, rel)
 	return x, y
 end
 
-local function cwGetTitle(window)
+function cwGetTitle(window)
 	return window.Title:getText()
 end
 
-local function cwGetVisible(window)
+function cwGetVisible(window)
 	return window.Canvas:getVisible()
 end
 
-local function cwGetEnabled(window)
+function cwGetEnabled(window)
 	return window.Canvas:getEnabled()
 end
 
-local function cwGetCloseEnabled(window)
+function cwGetCloseEnabled(window)
 	return window.Close:getVisible()
 end
 
-local function cwGetMovable(window, bool)
+function cwGetMovable(window, bool)
 	return window.Movable
 end
 
 ---
 
-local function cwGetFrame(window)
+function cwGetFrame(window)
 	return window.Frame
 end
 
-local function cwGetHeader(window)
+function cwGetHeader(window)
 	return window.Top
 end
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Animated functions
-local function cwOpen(window)
+function cwOpen(window)
 
 	local x = window.Positions.X
 	cwSetPosition(window, x, Height, false, false)
@@ -1003,20 +1003,20 @@ local function cwOpen(window)
 	--window.Frame:bringToFront()
 end
 
-local function cwClose(window)
+function cwClose(window)
 	if cwGetVisible(window) then
 		window.Animation = "close"
 	end
 end
 
-local function cwShowDialog(window, bool)
+function cwShowDialog(window, bool)
 	window.ShowDialog(bool)
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme Functions
 
-local function cwSetColorScheme(window, scheme)
+function cwSetColorScheme(window, scheme)
 
 	window.ColorScheme = scheme
 
@@ -1041,7 +1041,11 @@ local function cwSetColorScheme(window, scheme)
 
 end
 
-local function cwAddSchemeElement(window, element)
+function cwGetColorScheme(window)
+	return window.ColorScheme
+end
+
+function cwAddSchemeElement(window, element)
 
 	cnt = #window.SchemeElements
 	window.SchemeElements[cnt+1] = element
@@ -1049,7 +1053,7 @@ local function cwAddSchemeElement(window, element)
 
 end
 
-local function cwAddSchemeElements(window, elements)
+function cwAddSchemeElements(window, elements)
 
 	for _, v in ipairs(elements) do
 
@@ -1060,7 +1064,7 @@ local function cwAddSchemeElements(window, elements)
 	end
 end
 
-local function cwAddEvent(window, event, func)
+function cwAddEvent(window, event, func)
 	addEventHandler(event, root, function(...)
 		if source == window.Frame or source == window.Canvas then
 			func(...)
@@ -1108,6 +1112,7 @@ function CustomWindow.open(self) return cwOpen(self.Window) end
 function CustomWindow.close(self) return cwClose(self.Window) end
 
 function CustomWindow.setColorScheme(self, ...) return cwSetColorScheme(self.Window, ...) end
+function CustomWindow.getColorScheme(self, ...) return cwGetColorScheme(self.Window, ...) end
 function CustomWindow.addElement(self, ...) return cwAddSchemeElement(self.Window, ...) end
 function CustomWindow.addElements(self, ...) return cwAddSchemeElements(self.Window, ...) end
 
@@ -1122,7 +1127,7 @@ function CustomWindow.showDialog(self, ...) return cwShowDialog(self.Window, ...
 --------------------------------------------------------------------------------------------------------------------
 
 Buttons = {}
-local function guiCreateCustomButton(x, y, w, h, text, relative, parent)
+function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -1259,10 +1264,10 @@ local function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	end)
 
 	--Mouse Up
-	addEventHandler("onClientGUIMouseUp", root, function()
+	addEventHandler("onClientGUIMouseUp", root, function(_, ...)
 		if source == Buttons[id].Main then
 	
-			triggerEvent("onClientMouseEnter", source)
+			triggerEvent("onClientMouseEnter", source, ...)
 
 		end
 	end)
@@ -1279,17 +1284,12 @@ local function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 		end
 	end)
 
-	--[[addEventHandler("onClientChangeStandartColor", Buttons[id], function(colorscheme)
-		Buttons[id].ColorScheme = colorscheme
-
-	end)]]
-
 	return Buttons[id]
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Set functions
-local function cbSetImage(button, image)
+function cbSetImage(button, image)
 
 	local w, h = button.Canvas:getSize(false)
 	w, h = w-2, h-2
@@ -1328,7 +1328,7 @@ local function cbSetImage(button, image)
 	end
 end
 
-local function cbSetText(button, text)
+function cbSetText(button, text)
 
 	button.Text:setText(text or "")
 	button.Text:setVisible(text and text ~= "")
@@ -1336,7 +1336,7 @@ local function cbSetText(button, text)
 
 end
 
-local function cbSetPosition(button, x, y, rel)
+function cbSetPosition(button, x, y, rel)
 	
 	if relative then
 
@@ -1355,7 +1355,7 @@ local function cbSetPosition(button, x, y, rel)
 	button.Canvas:setPosition(x-1, y-1, false)
 end
 
-local function cbSetSize(button, w, h, rel)
+function cbSetSize(button, w, h, rel)
 
 	if relative then
 
@@ -1378,7 +1378,7 @@ local function cbSetSize(button, w, h, rel)
 	cbSetImage(button, button.Image:getVisible() and button.Image:getText() or nil)
 end
 
-local function cbSetEnabled(button, bool)
+function cbSetEnabled(button, bool)
 	
 	button.Canvas:setEnabled(bool)
 
@@ -1408,28 +1408,28 @@ local function cbSetEnabled(button, bool)
 
 end
 
-local function cbSetVisible(button, bool)
+function cbSetVisible(button, bool)
 	button.Canvas:setVisible(bool)
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
-local function cbBringToFront(button)
+function cbBringToFront(button)
 	button.Canvas:bringToFront()
 end
 
-local function cbMoveToBack(button)
+function cbMoveToBack(button)
 	button.Canvas:moveToBack()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
-local function cbGetText(button)
+function cbGetText(button)
 	return button.Text:getText()
 end
 
-local function cbGetPosition(button, rel)
+function cbGetPosition(button, rel)
 
 	local x, y = button.Canvas:getPosition(false)
 	if rel then
@@ -1450,7 +1450,7 @@ local function cbGetPosition(button, rel)
 	end
 end
 
-local function cbGetSize(button, rel)
+function cbGetSize(button, rel)
 	
 	local w, h = button.Canvas:getSize(false)
 	if rel then
@@ -1471,18 +1471,18 @@ local function cbGetSize(button, rel)
 
 end
 
-local function cbGetEnabled(button)
+function cbGetEnabled(button)
 	return button.Canvas:getEnabled()
 end
 
-local function cbGetVisible(button)
+function cbGetVisible(button)
 	return button.Canvas:getVisible()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme editor
 
-local function cbSetColorScheme(button, scheme)
+function cbSetColorScheme(button, scheme)
 
 	button.ColorScheme = scheme
 
@@ -1491,10 +1491,14 @@ local function cbSetColorScheme(button, scheme)
 
 end
 
+function cbGetColorScheme(button)
+	return button.ColorScheme
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event Functions
 
-local function cbAddEvent(button, event, func)
+function cbAddEvent(button, event, func)
 	addEventHandler(event, root, function(...)
 		if source == button.Main then
 			func(...)
@@ -1530,6 +1534,7 @@ function CustomButton.getPosition(self, ...) return cbGetPosition(self.Button, .
 function CustomButton.getText(self, ...) return cbGetText(self.Button, ...) end
 
 function CustomButton.setColorScheme(self, ...) return cbSetColorScheme(self.Button, ...) end
+function CustomButton.getColorScheme(self, ...) return cbGetColorScheme(self.Button, ...) end
 
 function CustomButton.addEvent(self, ...) return cbAddEvent(self.Button, ...) end
 
@@ -1540,7 +1545,7 @@ function CustomButton.addEvent(self, ...) return cbAddEvent(self.Button, ...) en
 --------------------------------------------------------------------------------------------------------------------
 
 ProgressBars = {}
-local function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
+function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 	
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -1629,7 +1634,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Set Functions
 
-local function cpbSetProgress(bar, percentage)
+function cpbSetProgress(bar, percentage)
 	
 	if not tonumber(percentage) or percentage < 0 then percentage = 0
 	elseif percentage > 100 then percentage = 100 end
@@ -1645,7 +1650,7 @@ local function cpbSetProgress(bar, percentage)
 	bar.Progress:setSize(w, h, true)
 end
 
-local function cpbSetPosition(bar, x, y, rel)
+function cpbSetPosition(bar, x, y, rel)
 	
 	if rel then
 
@@ -1664,7 +1669,7 @@ local function cpbSetPosition(bar, x, y, rel)
 	bar.Canvas:setPosition(x, y, false)
 end
 
-local function cpbSetSize(bar, w, h, rel)
+function cpbSetSize(bar, w, h, rel)
 	
 	if rel then
 
@@ -1701,30 +1706,30 @@ local function cpbSetSize(bar, w, h, rel)
 
 end
 
-local function cpbSetVisible(bar, bool)
+function cpbSetVisible(bar, bool)
 	return bar.Canvas:setVisible(bool)
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
-local function cpbBringToFront(bar)
+function cpbBringToFront(bar)
 	return bar.Canvas:bringToFront()
 end
 
-local function cpbMoveToBack(bar)
+function cpbMoveToBack(bar)
 	return bar.Canvas:moveToBack()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get Functions
 
-local function cpbGetProgress(bar)
+function cpbGetProgress(bar)
 	local w = bar.Progress:getSize(true)
 	return w*100
 end
 
-local function cpbGetPosition(bar, rel)
+function cpbGetPosition(bar, rel)
 	
 	local x, y = bar.Canvas:getPosition(false)
 	if rel then
@@ -1745,7 +1750,7 @@ local function cpbGetPosition(bar, rel)
 	end
 end
 
-local function cpbGetSize(bar, rel)
+function cpbGetSize(bar, rel)
 	
 	local x, y = bar.Canvas:getPosition(false)
 	if rel then
@@ -1766,13 +1771,14 @@ local function cpbGetSize(bar, rel)
 	end
 end
 
-local function cpbGetVisible(bar)
+function cpbGetVisible(bar)
 	return bar.Canvas:getVisible()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme Functions
-local function cpbSetColorScheme(bar, scheme)
+
+function cpbSetColorScheme(bar, scheme)
 
 	bar.ColorScheme = scheme
 
@@ -1789,10 +1795,14 @@ local function cpbSetColorScheme(bar, scheme)
 	bar.Progress:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", bar.ColorScheme.LightMain, bar.ColorScheme.LightMain, bar.ColorScheme.Main, bar.ColorScheme.Main))
 end
 
+function cpbGetColorScheme(bar)
+	return bar.ColorScheme
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event Functions
 
-local function cpbAddEvent(bar, event, func)
+function cpbAddEvent(bar, event, func)
 	addEventHandler(event, root, function(...)
 		if source == bar.Main then
 			func(...)
@@ -1825,6 +1835,7 @@ function CustomProgressBar.getSize(self, ...) return cpbGetSize(self.ProgressBar
 function CustomProgressBar.getVisible(self, ...) return cpbGetVisible(self.ProgressBar, ...) end
 
 function CustomProgressBar.setColorScheme(self, ...) return cpbSetColorScheme(self.ProgressBar, ...) end
+function CustomProgressBar.getColorScheme(self, ...) return cpbGetColorScheme(self.ProgressBar, ...) end
 
 function CustomProgressBar.addEvent(self, ...) return cpbAddEvent(self.ProgressBar, ...) end
 
@@ -1835,7 +1846,7 @@ function CustomProgressBar.addEvent(self, ...) return cpbAddEvent(self.ProgressB
 --------------------------------------------------------------------------------------------------------------------
 ScrollBars = {}
 
-local function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
+function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -2095,7 +2106,7 @@ function csbSetScrollPosition(scroll, pos)
 
 end
 
-local function csbSetScrollSpeed(scroll, speed)
+function csbSetScrollSpeed(scroll, speed)
 
 	if speed < -100 then speed = -100 end
 	if speed > 100 then speed = 100 end
@@ -2104,7 +2115,7 @@ local function csbSetScrollSpeed(scroll, speed)
 
 end
 
-local function csbSetScrollLength(scroll, len)
+function csbSetScrollLength(scroll, len)
 	local w, h = scroll.Main:getSize(false)
 	if len < 5 then len = 5 end
 
@@ -2128,7 +2139,7 @@ local function csbSetScrollLength(scroll, len)
 	end
 end
 
-local function csbSetPosition(scroll, x, y, rel)
+function csbSetPosition(scroll, x, y, rel)
 	
 	if rel then
 
@@ -2147,7 +2158,7 @@ local function csbSetPosition(scroll, x, y, rel)
 	scroll.Canvas:setPosition(x, y, false)
 end
 
-local function csbSetSize(scroll, w, h, rel)
+function csbSetSize(scroll, w, h, rel)
 	
 	if rel then
 
@@ -2192,11 +2203,11 @@ local function csbSetSize(scroll, w, h, rel)
 
 end
 
-local function csbSetVisible(scroll, bool)
+function csbSetVisible(scroll, bool)
 	return scroll.Canvas:setVisible(scroll)
 end
 
-local function csbSetEnabled(scroll, bool)
+function csbSetEnabled(scroll, bool)
 	scroll.Canvas:setEnabled(bool)
 	
 	TopCol, BotCol, BackCol, EdgesCol, MainCol = "F6F6F6", "EAEAEA", "AAAAAA", "BBBBBB", "E7E7E7"
@@ -2238,18 +2249,18 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
-local function csbBringToFront(scroll)
+function csbBringToFront(scroll)
 	return scroll.Canvas:bringToFront()
 end
 
-local function csbMoveToBack(scroll)
+function csbMoveToBack(scroll)
 	return scroll.Canvas:moveToBack()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
 
-local function csbGetPosition(scroll, rel)
+function csbGetPosition(scroll, rel)
 
 	local x, y = scroll.Canvas:getPosition(false)
 	if rel then
@@ -2270,7 +2281,7 @@ local function csbGetPosition(scroll, rel)
 	end
 end
 
-local function csbGetSize(scroll, rel)
+function csbGetSize(scroll, rel)
 	
 	local w, h = scroll.Canvas:getSize(false)
 	if rel then
@@ -2291,30 +2302,30 @@ local function csbGetSize(scroll, rel)
 
 end
 
-local function csbGetScrollPosition(scroll)
+function csbGetScrollPosition(scroll)
 	return scroll.Scroll
 end
 
-local function csbGetScrollLength(scroll)
+function csbGetScrollLength(scroll)
 	return scroll.ScrollLength
 end
 
-local function csbGetEnabled(scroll)
+function csbGetEnabled(scroll)
 	return scroll.Canvas:getEnabled()
 end
 
-local function csbGetVisible(scroll)
+function csbGetVisible(scroll)
 	return scroll.Canvas:getVisible()
 end
 
-local function csbGetScrollSpeed(scroll)
+function csbGetScrollSpeed(scroll)
 	return scroll.ScrollSpeed
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme Functions
 
-local function csbSetColorScheme(sbar, scheme)
+function csbSetColorScheme(sbar, scheme)
 
 	sbar.ColorScheme = scheme
 
@@ -2322,10 +2333,14 @@ local function csbSetColorScheme(sbar, scheme)
 
 end
 
+function csbGetColorScheme(sbar)
+	return sbar.ColorScheme
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event Functions
 
-local function csbAddEvent(sbar, event, func)
+function csbAddEvent(sbar, event, func)
 	addEventHandler(event, root, function(...)
 		if source == sbar.Main or source == sbar.Edges or source == sbar.Canvas then
 			func(...)
@@ -2341,18 +2356,6 @@ CustomScrollBar.__index = CustomScrollBar
 function CustomScrollBar.create(...)
 	local self = setmetatable({}, CustomScrollBar)
 	self.ScrollBar = guiCreateCustomScrollBar(...)
-
-	--[[addEventHandler("onClientCursorMove", root, function()
-		if self.ScrollBar.ScrollEnabled then
-			triggerEvent("onCustomScrollBarScrolled", localPlayer, self)
-		end
-	end)
-
-	addEventHandler("onClientMouseWheel", root, function()
-		if source == self.ScrollBar.Edges or source == self.ScrollBar.Main then
-			triggerEvent("onCustomScrollBarScrolled", localPlayer, self)
-		end
-	end)]]
 
 	return self
 
@@ -2378,6 +2381,7 @@ function CustomScrollBar.getEnabled(self, ...) return csbGetEnabled(self.ScrollB
 function CustomScrollBar.getScrollSpeed(self, ...) return csbGetScrollSpeed(self.ScrollBar, ...) end
 
 function CustomScrollBar.setColorScheme(self, ...) return csbSetColorScheme(self.ScrollBar, ...) end
+function CustomScrollBar.getColorScheme(self, ...) return csbGetColorScheme(self.ScrollBar, ...) end
 
 function CustomScrollBar.addEvent(self, ...) return csbAddEvent(self.ScrollBar, ...) end
 
@@ -2389,7 +2393,7 @@ function CustomScrollBar.addEvent(self, ...) return csbAddEvent(self.ScrollBar, 
 --------------------------------------------------------------------------------------------------------------------
 local EditBoxes = {}
 
-local function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
+function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -2540,7 +2544,7 @@ local function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 		EditBoxes[id].IsMouseDowned = false
 	end)
 
-	local function click(positive)
+	function click(positive)
 		if positive then
 			
 			if EditBoxes[id].Current+EditBoxes[id].ScrollSpeed <= EditBoxes[id].Maximal then
@@ -2681,18 +2685,18 @@ local function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 
 end
 
-local function guiCreateCustomMemo(x, y, w, h, text, relative, parent)
+function guiCreateCustomMemo(x, y, w, h, text, relative, parent)
 	return guiCreateCustomEdit(x, y, w, h, text, relative, parent, "memo")
 end
 
-local function guiCreateCustomNumberScroller(x, y, w, h, relative, parent)
+function guiCreateCustomNumberScroller(x, y, w, h, relative, parent)
 	return guiCreateCustomEdit(x, y, w, h, "0", relative, parent, "number")
 end
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Set functions
-local function ctbSetSize(textbox, w, h, rel)
+function ctbSetSize(textbox, w, h, rel)
 	
 	if rel then
 
@@ -2744,15 +2748,15 @@ local function ctbSetSize(textbox, w, h, rel)
 
 end
 
-local function ctbSetPosition(textbox, x, y, rel)
+function ctbSetPosition(textbox, x, y, rel)
 	textbox.Canvas:setPosition(x, y, rel or false)
 end
 
-local function ctbSetVisible(textbox, boolean)
+function ctbSetVisible(textbox, boolean)
 	return textbox.Canvas:setVisible(boolean)
 end
 
-local function ctbSetReadOnly(textbox, boolean)
+function ctbSetReadOnly(textbox, boolean)
 
 	if textbox.Enabled then
 
@@ -2803,7 +2807,7 @@ local function ctbSetReadOnly(textbox, boolean)
 
 end
 
-local function ctbSetEnabled(textbox, boolean)
+function ctbSetEnabled(textbox, boolean)
 	
 	if not boolean then
 
@@ -2853,11 +2857,11 @@ local function ctbSetEnabled(textbox, boolean)
 	end
 end
 
-local function ctbSetMaxLength(textbox, len)
+function ctbSetMaxLength(textbox, len)
 	return textbox.TextBox:setProperty("MaxTextLength", len)
 end
 
-local function ctbSetText(textbox, text)
+function ctbSetText(textbox, text)
 	if textbox.Type == "number" then
 		if not tonumber(text) or tonumber(text) < textbox.Minimal then
 			text = tostring(textbox.Minimal)
@@ -2868,15 +2872,15 @@ local function ctbSetText(textbox, text)
 	return textbox.TextBox:setText(text)
 end
 
-local function ctbSetCaretIndex(textbox, index)
+function ctbSetCaretIndex(textbox, index)
 	return textbox.TextBox:setCaretIndex(index)
 end
 
-local function ctbSetMasked(textbox, boolean)
+function ctbSetMasked(textbox, boolean)
 	return textbox.TextBox:setMasked(boolean)
 end
 
-local function ctbSetMinimal(textbox, minimal)
+function ctbSetMinimal(textbox, minimal)
 	
 	if textbox.Maximal < textbox.Minimal then
 		maximal = minimal
@@ -2887,7 +2891,7 @@ local function ctbSetMinimal(textbox, minimal)
 	textbox.Minimal = minimal
 end
 
-local function ctbSetMaximal(textbox, maximal)
+function ctbSetMaximal(textbox, maximal)
 
 	if textbox.Maximal < textbox.Minimal then
 		minimal = maximal
@@ -2898,7 +2902,7 @@ local function ctbSetMaximal(textbox, maximal)
 	textbox.Maximal = maximal
 end
 
-local function ctbSetScrollStep(textbox, stepsize)
+function ctbSetScrollStep(textbox, stepsize)
 
 	if stepsize <= 0 then
 		stepsize = 1
@@ -2909,69 +2913,69 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
-local function ctbBringToFront(textbox)
+function ctbBringToFront(textbox)
 	return textbox.Canvas:bringToFront()
 end
 
-local function ctbMoveToBack(textbox)
+function ctbMoveToBack(textbox)
 	return textbox.Canvas:moveToBack()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get Functions
 
-local function ctbGetSize(textbox, rel)
+function ctbGetSize(textbox, rel)
 	return textbox.Canvas:getSize(rel or false)
 end
 
-local function ctbGetPosition(textbox, rel)
+function ctbGetPosition(textbox, rel)
 	return textbox.Canvas:getPosition(rel or false)
 end
 
-local function ctbGetVisible(textbox)
+function ctbGetVisible(textbox)
 	return textbox.Canvas:getVisible()
 end
 
-local function ctbGetEnabled(textbox)
+function ctbGetEnabled(textbox)
 	return textbox.Enabled
 end
 
-local function ctbGetReadOnly(textbox)
+function ctbGetReadOnly(textbox)
 	return textbox.IsReadOnly
 end
 
-local function ctbGetMaxLength(textbox)
+function ctbGetMaxLength(textbox)
 	return textbox.TextBox:getProperty("MaxTextLength")
 end
 
-local function ctbGetText(textbox)
+function ctbGetText(textbox)
 	return textbox.TextBox:getText()
 end
 
-local function ctbGetCaretIndex(textbox)
+function ctbGetCaretIndex(textbox)
 	return textbox.TextBox:getCaretIndex()
 end
 
-local function ctbGetMasked(textbox)
+function ctbGetMasked(textbox)
 	return textbox.TextBox:getMasked()
 end
 
-local function ctbGetMinimal(textbox)
+function ctbGetMinimal(textbox)
 	return textbox.Minimal
 end
 
-local function ctbGetMaximal(textbox)
+function ctbGetMaximal(textbox)
 	return textbox.Maximal
 end
 
-local function ctbGetScrollStep(textbox)
+function ctbGetScrollStep(textbox)
 	return textbox.ScrollSpeed
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme Functions
 
-local function ctbSetColorScheme(textbox, scheme)
+function ctbSetColorScheme(textbox, scheme)
 
 	textbox.ColorScheme = scheme
 
@@ -3002,10 +3006,15 @@ local function ctbSetColorScheme(textbox, scheme)
 
 end
 
+function ctbGetColorScheme(textbox)
+	return textbox.ColorScheme
+end
+
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event Functions
 
-local function ctbAddEvent(textbox, event, func)
+function ctbAddEvent(textbox, event, func)
 	addEventHandler(event, root, function(...)
 		if source == textbox.TextBox or source == textbox.Up or source == textbox.Down or source == textbox.Edges then
 			func(...)
@@ -3048,6 +3057,7 @@ function CustomEdit.getCaretIndex(self, ...) return ctbGetCaretIndex(self.Box, .
 function CustomEdit.getMasked(self, ...) return ctbGetMasked(self.Box, ...) end
 
 function CustomEdit.setColorScheme(self, ...) return ctbSetColorScheme(self.Box, ...) end
+function CustomEdit.getColorScheme(self, ...) return ctbGetColorScheme(self.Box, ...) end
 
 function CustomEdit.addEvent(self, ...) return ctbAddEvent(self.Box, ...) end
 
@@ -3081,6 +3091,7 @@ function CustomMemo.getText(self, ...) return ctbGetText(self.Box, ...) end
 function CustomMemo.getCaretIndex(self, ...) return ctbGetCaretIndex(self.Box, ...) end
 
 function CustomMemo.setColorScheme(self, ...) return ctbSetColorScheme(self.Box, ...) end
+function CustomMemo.getColorScheme(self, ...) return ctbGetColorScheme(self.Box, ...) end
 
 function CustomMemo.addEvent(self, ...) return ctbAddEvent(self.Box, ...) end
 
@@ -3122,6 +3133,7 @@ function CustomNumberScroller.getMaximal(self, ...) return ctbGetMaximal(self.Bo
 function CustomNumberScroller.getStepSize(self, ...) return ctbGetScrollStep(self.Box, ...) end
 
 function CustomNumberScroller.setColorScheme(self, ...) return ctbSetColorScheme(self.Box, ...) end
+function CustomNumberScroller.getColorScheme(self, ...) return ctbGetColorScheme(self.Box, ...) end
 
 function CustomNumberScroller.addEvent(self, ...) return ctbAddEvent(self.Box, ...) end
 
@@ -3133,7 +3145,7 @@ function CustomNumberScroller.addEvent(self, ...) return ctbAddEvent(self.Box, .
 
 local CheckBoxes = {}
 
-local function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
+function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -3449,15 +3461,15 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Set functions
 
-local function ccbSetText(checkbox, text)
+function ccbSetText(checkbox, text)
 	checkbox.Label:setText(text)
 end
 
-local function ccbSetPosition(checkbox, x, y, rel)
+function ccbSetPosition(checkbox, x, y, rel)
 	checkbox.Canvas:setPosition(x, y, rel or false)
 end
 
-local function ccbSetSize(checkbox, w, h, rel)
+function ccbSetSize(checkbox, w, h, rel)
 		
 	if rel then
 
@@ -3479,11 +3491,11 @@ local function ccbSetSize(checkbox, w, h, rel)
 
 end
 
-local function ccbSetVisible(checkbox, bool)
+function ccbSetVisible(checkbox, bool)
 	checkbox.Canvas:setVisible(bool or false)
 end
 
-local function ccbSetEnabled(checkbox, bool)
+function ccbSetEnabled(checkbox, bool)
 	checkbox.Canvas:setEnabled(bool or false)
 
 	if bool then
@@ -3507,52 +3519,52 @@ local function ccbSetEnabled(checkbox, bool)
 	end
 end
 
-local function ccbSetChecked(checkbox, bool)
+function ccbSetChecked(checkbox, bool)
 	if not bool then checkbox.moveLeft()
 	else checkbox.moveRight() end
 end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
-local function ccbBringToFront(checkbox)
+function ccbBringToFront(checkbox)
 	return checkbox.Canvas:bringToFront()
 end
 
-local function ccbMoveToBack(checkbox)
+function ccbMoveToBack(checkbox)
 	return checkbox.Canvas:moveToBack()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
 
-local function ccbGetText(checkbox)
+function ccbGetText(checkbox)
 	return checkbox.Label:getText()
 end
 
-local function ccbGetPosition(checkbox, rel)
+function ccbGetPosition(checkbox, rel)
 	return checkbox.Canvas:getPosition(rel or false)
 end
 
-local function ccbGetSize(checkbox, rel)
+function ccbGetSize(checkbox, rel)
 	return checkbox.Canvas:getSize(rel or false)
 end
 
-local function ccbGetVisible(checkbox)
+function ccbGetVisible(checkbox)
 	return checkbox.Canvas:getVisible()
 end
 
-local function ccbGetEnabled(checkbox)
+function ccbGetEnabled(checkbox)
 	return checkbox.Canvas:getEnabled()
 end
 
-local function ccbGetChecked(checkbox)
+function ccbGetChecked(checkbox)
 	return checkbox.State
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme function
 
-local function ccbSetColorScheme(checkbox, scheme)
+function ccbSetColorScheme(checkbox, scheme)
 
 	checkbox.ColorScheme = scheme
 
@@ -3560,10 +3572,14 @@ local function ccbSetColorScheme(checkbox, scheme)
 
 end
 
+function ccbGetColorScheme(checkbox)
+	return checkbox.ColorScheme
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event Functions
 
-local function ccbAddEvent(checkbox, event, func)
+function ccbAddEvent(checkbox, event, func)
 	addEventHandler(event, root, function(...)
 		if source == checkbox.Entrail or source == checkbox.Main or source == checkbox.Label then
 			func(...)
@@ -3601,6 +3617,7 @@ function CustomCheckBox.getEnabled(self, ...) return ccbGetEnabled(self.CheckBox
 function CustomCheckBox.getChecked(self, ...) return ccbGetChecked(self.CheckBox, ...) end
 
 function CustomCheckBox.setColorScheme(self, ...) return ccbSetColorScheme(self.CheckBox, ...) end
+function CustomCheckBox.getColorScheme(self, ...) return ccbGetColorScheme(self.CheckBox, ...) end
 
 function CustomCheckBox.addEvent(self, ...) return ccbAddEvent(self.CheckBox, ...) end
 
@@ -3611,7 +3628,7 @@ function CustomCheckBox.addEvent(self, ...) return ccbAddEvent(self.CheckBox, ..
 --------------------------------------------------------------------------------------------------------------------
 
 ComboBoxes = {}
-local function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
+function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -3866,14 +3883,14 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Set functions
 
-local function clbSetMaxHeight(combo, h)
+function clbSetMaxHeight(combo, h)
 	combo.Height = h
 	local w = combo.Main:getSize(false)
 
 	combo.Entrail:setSize(w, combo.Height)
 end
 
-local function clbAddItem(combo, text)
+function clbAddItem(combo, text)
 
 	local w = combo.Main:getSize(false)
 
@@ -3909,30 +3926,36 @@ local function clbAddItem(combo, text)
 	return combo.List.Items[id]
 end
 
-local function clbRemoveItem(combo, item)
+function clbRemoveItem(combo, item)
 
 	local visited = false
 	for i = #combo.List.Items, 1, -1 do
 	--for i, v in ipairs(combo.List.Items) do
+	
 		local v = combo.List.Items[i]
 		if item == v or item == v.Text then
+	
 			destroyElement(v.Label)
 			destroyElement(v.Mark)
 			destroyElement(v.Canvas)
 			table.remove(combo.List.Items, i)
+	
 		end
 	end
+
 	local w = combo.Entrail.Menu:getSize(false)
 	combo.Entrail.Menu:setSize(w, 1, false)
 
 	for i, v in pairs(combo.List.Items) do
+		
 		v.Canvas:setPosition(0, 30*(i-1), false)
 		combo.Entrail:addElement(v.Canvas)
 		--combo.Entrail:addScrollElement(v.Canvas, "y")
+
 	end
 end
 
-local function clbSetSelectedItem(combo, item)
+function clbSetSelectedItem(combo, item)
 
 	local visited = false
 	for _, v in pairs(combo.List.Items) do
@@ -3959,11 +3982,11 @@ local function clbSetSelectedItem(combo, item)
 	end
 end
 
-local function clbSetPosition(combo, x, y, rel)
+function clbSetPosition(combo, x, y, rel)
 	return combo.Canvas:setPosition(x, y, rel)
 end
 
-local function clbSetSize(combo, w, h, rel)
+function clbSetSize(combo, w, h, rel)
 		
 	if rel then
 
@@ -4001,11 +4024,11 @@ local function clbSetSize(combo, w, h, rel)
 	end
 end
 
-local function clbSetVisible(combo, bool)
+function clbSetVisible(combo, bool)
 	combo.Canvas:setVisible(bool or false)
 end
 
-local function clbSetEnabled(combo, bool)
+function clbSetEnabled(combo, bool)
 	combo.Canvas:setEnabled(bool or false)
 	combo.Animation = 2
 
@@ -4035,22 +4058,22 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
-local function clbBringToFront(combo)
+function clbBringToFront(combo)
 	return combo.Canvas:bringToFront()
 end
 
-local function clbMoveToBack(combo)
+function clbMoveToBack(combo)
 	return combo.Canvas:moveToBack()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
 
-local function clbGetMaxHeight(combo)
+function clbGetMaxHeight(combo)
 	return combo.Height
 end
 
-local function clbGetSelectedItem(combo)
+function clbGetSelectedItem(combo)
 	local result = nil
 	for _, v in pairs(combo.List.Items) do
 		if v.Selected then
@@ -4061,11 +4084,11 @@ local function clbGetSelectedItem(combo)
 	return result
 end
 
-local function clbGetPosition(combo, rel)
+function clbGetPosition(combo, rel)
 	return combo.Canvas:getPosition(rel or false)
 end
 
-local function clbGetSize(combo, rel)
+function clbGetSize(combo, rel)
 	if rel then
 		return combo.Canvas:getSize(true)
 	else
@@ -4073,18 +4096,18 @@ local function clbGetSize(combo, rel)
 	end
 end
 
-local function clbGetVisible(combo)
+function clbGetVisible(combo)
 	return combo.Canvas:getVisible()
 end
 
-local function clbGetEnabled(combo)
+function clbGetEnabled(combo)
 	return combo.Canvas:getEnabled()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme Functions
 
-local function clbSetColorScheme(combo, scheme)
+function clbSetColorScheme(combo, scheme)
 
 	local objtocol = nil
 	for _, v in pairs(combo.List.Items) do
@@ -4123,10 +4146,14 @@ local function clbSetColorScheme(combo, scheme)
 	end
 end
 
+function clbGetColorScheme(combo)
+	return combo.ColorScheme
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event Functions
 
-local function clbAddEvent(combo, event, func)
+function clbAddEvent(combo, event, func)
 	addEventHandler(event, root, function(...)
 
 		local visited = false
@@ -4175,6 +4202,7 @@ function CustomComboBox.getSelectedItem(self, ...) return clbGetSelectedItem(sel
 function CustomComboBox.getMaxHeight(self, ...) return clbGetMaxHeight(self.ComboBox, ...) end
 
 function CustomComboBox.setColorScheme(self, ...) return clbSetColorScheme(self.ComboBox, ...) end
+function CustomComboBox.getColorScheme(self, ...) return clbGetColorScheme(self.ComboBox, ...) end
 
 function CustomComboBox.addEvent(self, ...) return clbAddEvent(self.ComboBox, ...) end
 
@@ -4186,7 +4214,7 @@ function CustomComboBox.addEvent(self, ...) return clbAddEvent(self.ComboBox, ..
 
 TabPanels = {}
 
-local function guiCreateCustomTabPanel(x, y, w, h, relative, parent)	
+function guiCreateCustomTabPanel(x, y, w, h, relative, parent)	
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -4385,7 +4413,7 @@ end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Set functions
-local function compareTabs(tabpan)
+function compareTabs(tabpan)
 	local count = 0
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Visible then
@@ -4447,7 +4475,7 @@ local function compareTabs(tabpan)
 
 end
 
-local function ctpAddTab(tabpan, text)
+function ctpAddTab(tabpan, text)
 
 	local id = #tabpan.Tabs+1
 
@@ -4487,7 +4515,7 @@ local function ctpAddTab(tabpan, text)
 
 end
 
-local function ctpSetTabEnabled(tabpan, tab, bool)
+function ctpSetTabEnabled(tabpan, tab, bool)
 
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == tab or v.Entrail == tab then
@@ -4498,7 +4526,7 @@ local function ctpSetTabEnabled(tabpan, tab, bool)
 	compareTabs(tabpan)
 end
 
-local function ctpSetTabVisible(tabpan, tab, bool)
+function ctpSetTabVisible(tabpan, tab, bool)
 
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == tab or v.Entrail == tab then
@@ -4509,7 +4537,7 @@ local function ctpSetTabVisible(tabpan, tab, bool)
 	compareTabs(tabpan)
 end
 
-local function ctpSetTabText(tabpan, tab, text)
+function ctpSetTabText(tabpan, tab, text)
 
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == tab or v.Entrail == tab then
@@ -4521,7 +4549,7 @@ local function ctpSetTabText(tabpan, tab, text)
 	compareTabs(tabpan)
 end
 
-local function ctpSetEnabled(tabpan, bool)
+function ctpSetEnabled(tabpan, bool)
 	tabpan.Canvas:setEnabled(bool or false)
 
 	if bool then
@@ -4532,15 +4560,15 @@ local function ctpSetEnabled(tabpan, bool)
 	end
 end
 
-local function ctpSetVisible(tabpan, bool)
+function ctpSetVisible(tabpan, bool)
 	return tabpan.Canvas:setVisible(bool or false)
 end
 
-local function ctpSetPosition(tabpan, x, y, rel)
+function ctpSetPosition(tabpan, x, y, rel)
 	tabpan.Canvas:setPosition(x, y, rel or false)
 end
 
-local function ctpSetSize(tabpan, w, h, rel)
+function ctpSetSize(tabpan, w, h, rel)
 		
 	if rel then
 
@@ -4573,12 +4601,12 @@ local function ctpSetSize(tabpan, w, h, rel)
 	compareTabs(tabpan)
 end
 
-local function ctpSetTabsMinLength(tabpan, len)
+function ctpSetTabsMinLength(tabpan, len)
 	tabpan.MinLen = tonumber(len) or 100
 	compareTabs(tabpan)
 end
 
-local function ctpSetSelectedTab(tabpan, tab)
+function ctpSetSelectedTab(tabpan, tab)
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == tab or v.Entrail == tab then
 			triggerEvent("onClientGUIClick", v.Canvas)
@@ -4589,18 +4617,18 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
-local function ctpBringToFront(tabpan)
+function ctpBringToFront(tabpan)
 	return tabpan.Canvas:bringToFront()
 end
 
-local function ctpMoveToBack(tabpan)
+function ctpMoveToBack(tabpan)
 	return tabpan.Canvas:moveToBack()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
 
-local function ctpGetTabEnabled(tabpan, tab)
+function ctpGetTabEnabled(tabpan, tab)
 
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == tab or v.Entrail == tab then
@@ -4611,7 +4639,7 @@ local function ctpGetTabEnabled(tabpan, tab)
 	return nil
 end
 
-local function ctpGetTabVisible(tabpan, tab)
+function ctpGetTabVisible(tabpan, tab)
 
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == tab or v.Entrail == tab then
@@ -4622,7 +4650,7 @@ local function ctpGetTabVisible(tabpan, tab)
 	return nil
 end
 
-local function ctpGetTabText(tabpan, tab)
+function ctpGetTabText(tabpan, tab)
 
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Entrail == tab then
@@ -4633,19 +4661,19 @@ local function ctpGetTabText(tabpan, tab)
 	return nil
 end
 
-local function ctpGetEnabled(tabpan)
+function ctpGetEnabled(tabpan)
 	return tabpan.Canvas:getEnabled()
 end
 
-local function ctpGetVisible(tabpan)
+function ctpGetVisible(tabpan)
 	return tabpan.Canvas:getVisible()
 end
 
-local function ctpGetPosition(tabpan, rel)
+function ctpGetPosition(tabpan, rel)
 	return tabpan.Canvas:getPosition(rel or false)
 end
 
-local function ctpGetSize(tabpan, rel)
+function ctpGetSize(tabpan, rel)
 	if rel then
 		return tabpan.Canvas:getSize(true)
 	else
@@ -4653,15 +4681,15 @@ local function ctpGetSize(tabpan, rel)
 	end
 end
 
-local function ctpGetTabsMinLength(tabpan)
+function ctpGetTabsMinLength(tabpan)
 	return tabpan.MinLen
 end
 
-local function ctpGetSelectedTab(tabpan)
+function ctpGetSelectedTab(tabpan)
 	return tabpan.CurrentTab
 end
 
-local function ctpGetTabFromText(tabpan, text)
+function ctpGetTabFromText(tabpan, text)
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == text then
 			return v.Entrail
@@ -4669,7 +4697,7 @@ local function ctpGetTabFromText(tabpan, text)
 	end
 end
 
-local function ctpGetTabHeader(tabpan, tab)
+function ctpGetTabHeader(tabpan, tab)
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Text == tab or v.Entrail == tab then
 			return v.Canvas
@@ -4680,7 +4708,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme Functions
 
-local function ctpSetColorScheme(tabpan, scheme)
+function ctpSetColorScheme(tabpan, scheme)
 
 	tabpan.ColorScheme = scheme
 	compareTabs(tabpan)
@@ -4699,10 +4727,14 @@ local function ctpSetColorScheme(tabpan, scheme)
 
 end
 
+function ctpGetColorScheme(tabpan)
+	return tabpan.ColorScheme
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event Functions
 
-local function ctpAddEvent(tabpan, event, func)
+function ctpAddEvent(tabpan, event, func)
 	addEventHandler(event, root, function(...)
 		if source == tabpan.Main then
 			func(...)
@@ -4749,6 +4781,7 @@ function CustomTabPanel.getTabsMinLength(self, ...) return ctpGetTabsMinLength(s
 function CustomTabPanel.getTabHeader(self, ...) return ctpGetTabHeader(self.TabPanel, ...) end
 
 function CustomTabPanel.setColorScheme(self, ...) return ctpSetColorScheme(self.TabPanel, ...) end
+function CustomTabPanel.getColorScheme(self, ...) return ctpGetColorScheme(self.TabPanel, ...) end
 
 function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self.TabPanel, ...) end
 
@@ -4759,7 +4792,7 @@ function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self.TabPanel, ..
 --------------------------------------------------------------------------------------------------------------------
 
 Labels = {}
-local function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
+function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -4841,11 +4874,11 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Set functions
 
-local function clSetText(label, text)
+function clSetText(label, text)
 	label.Label:setText(text)
 end
 
-local function clSetPosition(label, x, y, rel)
+function clSetPosition(label, x, y, rel)
 	
 	if rel then
 
@@ -4865,7 +4898,7 @@ local function clSetPosition(label, x, y, rel)
 
 end
 
-local function clSetSize(label, w, h, rel)
+function clSetSize(label, w, h, rel)
 	
 	if rel then
 
@@ -4884,15 +4917,15 @@ local function clSetSize(label, w, h, rel)
 	label.Label:setSize(w, h, false)
 end
 
-local function clSetEnabled(label, bool)
+function clSetEnabled(label, bool)
 	label.Label:setEnabled(bool)
 end
 
-local function clSetVisible(label, bool)
+function clSetVisible(label, bool)
 	label.Label:setVisible(bool)
 end
 
-local function clSetColor(label, r, g, b)
+function clSetColor(label, r, g, b)
 
 	if r == tostring(r) and r:len() == 6 then
 	
@@ -4915,7 +4948,7 @@ local function clSetColor(label, r, g, b)
 	label.Label:setColor(r, g, b)
 end
 
-local function clSetSchematicalColor(label, bool)
+function clSetSchematicalColor(label, bool)
 
 	label.IsSchematical = bool
 
@@ -4926,7 +4959,7 @@ local function clSetSchematicalColor(label, bool)
 	end
 end
 
-local function clSetHoverable(label, bool)
+function clSetHoverable(label, bool)
 
 	label.IsHoverable = bool
 
@@ -4940,15 +4973,15 @@ local function clSetHoverable(label, bool)
 	end
 end
 
-local function clSetVerticalAlign(label, align)
+function clSetVerticalAlign(label, align)
 	label.Label:setVerticalAlign(align)
 end
 
-local function clSetHorizontalAlign(label, align)
+function clSetHorizontalAlign(label, align)
 	label.Label:setHorizontalAlign(align)
 end
 
-local function clSetAlign(label, vertical, horizontal)
+function clSetAlign(label, vertical, horizontal)
 
 	if not vertical then vertical = "top" end
 	if not horizontal then horizontal = "left" end
@@ -4957,7 +4990,7 @@ local function clSetAlign(label, vertical, horizontal)
 	clSetHorizontalAlign(label, horizontal)
 end
 
-local function clSetFont(label, font, size)
+function clSetFont(label, font, size)
 
 	if (font ~= tostring(font)) then
 		label.Label:setFont(font)
@@ -4970,22 +5003,22 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
-local function clBringToFront(label)
+function clBringToFront(label)
 	label.Label:bringToFront()
 end
 
-local function clMoveToBack(label)
+function clMoveToBack(label)
 	label.Label:moveToBack()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
 
-local function clGetText(label)
+function clGetText(label)
 	return label.Label:getText()
 end
 
-local function clGetPosition(label, rel)
+function clGetPosition(label, rel)
 
 	local x, y = label.Label:getPosition(false)
 	if rel then
@@ -5006,7 +5039,7 @@ local function clGetPosition(label, rel)
 	end
 end
 
-local function clGetSize(label, rel)
+function clGetSize(label, rel)
 	
 	local w, h = label.Label:getSize(false)
 	if rel then
@@ -5027,22 +5060,22 @@ local function clGetSize(label, rel)
 
 end
 
-local function clGetEnabled(label)
+function clGetEnabled(label)
 	return label.Label:getEnabled()
 end
 
-local function clGetVisible(label)
+function clGetVisible(label)
 	return label.Label:getVisible()
 end
 
-local function clGetColor(label)
+function clGetColor(label)
 	return label.Label:getColor()
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme editor
 
-local function clSetColorScheme(label, scheme)
+function clSetColorScheme(label, scheme)
 
 	label.ColorScheme = scheme
 
@@ -5062,10 +5095,14 @@ local function clSetColorScheme(label, scheme)
 	end
 end
 
+function clGetColorScheme(label)
+	return label.ColorScheme
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event Functions
 
-local function clAddEvent(label, event, func)
+function clAddEvent(label, event, func)
 	addEventHandler(event, root, function(...)
 		if source == label.Label then
 			func(...)
@@ -5108,6 +5145,7 @@ function CustomLabel.getText(self, ...) return clGetText(self.Label, ...) end
 function CustomLabel.getColor(self, ...) return clGetColor(self.Label, ...) end
 
 function CustomLabel.setColorScheme(self, ...) return clSetColorScheme(self.Label, ...) end
+function CustomLabel.getColorScheme(self, ...) return clGetColorScheme(self.Label, ...) end
 
 function CustomLabel.addEvent(self, ...) return clAddEvent(self.Label, ...) end
 
@@ -5248,6 +5286,128 @@ function CustomDialog.setColorScheme(self, ...)
 	return self.Dialog:setColorScheme(...)
 end
 
+function CustomDialog.setColorScheme(self)
+	return self.Dialog.Window.ColorScheme
+end
+
+
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+---------------------------Tooltips---------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+
+CustomTooltip = {}
+CustomTooltip.__index = CustomTooltip
+
+function CustomTooltip.create(text, element, timetoshow)
+
+	local self = setmetatable({}, CustomTooltip)
+	if not timetoshow or not tonumber(timetoshow) or timetoshow < 0 then
+		timetoshow = 1
+	end
+
+	local objects = text:split("\n")
+	local wdth = 0
+
+	for _, v in pairs(objects) do
+		LabelForGettingSizes:setText(v)
+		wdth = math.max(wdth, guiLabelGetTextExtent(LabelForGettingSizes.Label.Label))
+	end
+
+	local hght = (guiLabelGetFontHeight(LabelForGettingSizes.Label.Label)+2)*(#objects)
+
+	wdth = wdth+4
+	hght = hght+4
+
+	local back = GuiStaticImage.create(0, 0, wdth+6, hght+6, pane, false)
+	local shad1 = GuiStaticImage.create(0, 1, wdth+6, hght+4, pane, false, back)
+	local shad2 = GuiStaticImage.create(1, 0, wdth+4, hght+6, pane, false, back)
+	local main = GuiStaticImage.create(1, 1, wdth+4, hght+4, pane, false, back)
+	local label = CustomLabel.create(2, 2, wdth, hght, text, false, main)
+
+
+	back:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	shad1:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
+	shad2:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
+	back:setProperty("AlwaysOnTop", "True")
+	back:setEnabled(false)
+	back:setVisible(false)
+
+	local isEntered = false
+	local tooltiptimer
+	local animation = 0 --1 to open, 2 to close
+
+	local function show()
+
+		back:setAlpha(0)
+		back:setVisible(true)
+		animation = 1
+
+		local scheme = element:getColorScheme()
+		local color = "FFEEEEEE"
+		if scheme.DarkTheme then
+			color = "FF444444"
+		end
+		
+		main:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", color, color, color, color))
+		label:setColorScheme(scheme)
+
+	end
+
+	element:addEvent("onClientMouseEnter", function(ax, ay)
+
+		isEntered = true
+		back:setPosition(ax+1, ay-hght-6, false)
+		
+		if timetoshow < 5/100 then
+			show()
+		else 
+			tooltiptimer = setTimer(show, timetoshow*1000, 1)
+		end
+
+	end)
+
+	addEventHandler("onClientMouseLeave", root, function()
+		
+		if isTimer(tooltiptimer) then killTimer(tooltiptimer) end
+
+		isEntered = false
+		animation = 2
+	end)
+
+	addEventHandler("onClientCursorMove", root, function(_, _, ax, ay)
+
+		if isEntered then
+			back:setPosition(ax+1, ay-hght-6, false)
+		end
+
+	end)
+
+	addEventHandler("onClientRender", root, function()
+
+		if animation == 1 then
+
+			if back:getAlpha() >= 1 then
+				back:setAlpha(1)
+				animation = 0
+			end
+
+			back:setAlpha(back:getAlpha() + 0.15)
+
+		elseif animation == 2 then
+
+			if back:getAlpha() <= 0 then
+				back:setAlpha(0)
+				animation = 0
+			end
+
+			back:setAlpha(back:getAlpha() - 0.15)
+
+		end
+
+	end)
+end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
