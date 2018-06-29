@@ -274,7 +274,7 @@ end)
 
 ---------------------------------------
 
-demo_dialog = CustomDialog.create(100, "Dialog, what attached\nto Demo Window Frame\nMultiline Automatic", {"OK", "Cancel"}, demo_window)
+demo_dialog = CustomDialog.create(100, "Dialog, what attached\nto Demo Window Frame\nMultiline Automatic", {"OK", "Cancel", "Buttons", "Three", "Another"}, demo_window)
 demo_dialog_l = CustomDialog.create(200, "Local Dialog")
 
 demo_window:addElements({test_button, test_imgs, test_imgtxt, test_but_locked})
@@ -286,6 +286,9 @@ demo_window:addElements({test_combo, test_combo_d, test_combo_s})
 demo_window:addElements({test_tab, test_tab_d})
 demo_window:addElements({test_label, test_label_hov, test_label_sch})
 demo_window:setColorScheme(BlueColorsDark)
+
+demo_window_l:addElements({test_but_locked2, test_but_clicked2})
+demo_window_m:addElements({test_but_locked3, test_but_clicked3})
 
 indx = 1
 
