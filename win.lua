@@ -1,9 +1,22 @@
 CONTENT = "LuaWinSys" --Resource name with files
 
-ScriptText = {
-	Accept = "Accept",
-	Cancel = "Cancel"
-}
+function string:split(sep)
+
+	local tab = {}
+	local a = self:find(sep)
+
+	while a ~= nil do
+
+		tab[#tab+1] = self:sub(1, a-1)
+		
+		self = self:sub(a+sep:len(), self:len())
+		a = self:find(sep)
+	end
+
+	tab[#tab+1] = self
+	
+	return tab
+end
 
 function fromHEXToRGB(color)
 	--this function replace color from HEX, and return R, G and B parameters (from 0 to 255)
@@ -533,7 +546,7 @@ function ScrollMenu.addScrollElement(self, element, axis) return addScrollElemen
 --------------------------------------------------------------------------------------------------------------------
 
 Windows = {}
-local function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
+function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -605,12 +618,12 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	if Windows[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
 	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", FrameColor, FrameColor, FrameColor, FrameColor)
-	frlcol = string.format("tl:AA%s tr:AA%s bl:AA%s br:AA%s", FrameColor, FrameColor, FrameColor, FrameColor)
+	--frlcol = string.format("tl:00%s tr:00%s bl:00%s br:00%s", FrameColor, FrameColor, FrameColor, FrameColor)
 	txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextColor, TextColor, TextColor, TextColor)
 
 	Windows[id].Frame:setProperty("ImageColours", frmcol)
 	--Windows[id].Divider:setProperty("ImageColours", "tl:FFAAAAAA tr:FFAAAAAA bl:FFAAAAAA br:FFAAAAAA")
-	Windows[id].Top:setProperty("ImageColours", frlcol)
+	Windows[id].Top:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 	Windows[id].Top:setProperty("AlwaysOnTop", "True")
 
 	--Windows[id].Close:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red))
@@ -1014,11 +1027,9 @@ local function cwSetColorScheme(window, scheme)
 	if window.ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
 	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", FrameColor, FrameColor, FrameColor, FrameColor)
-	frlcol = string.format("tl:AA%s tr:AA%s bl:AA%s br:AA%s", FrameColor, FrameColor, FrameColor, FrameColor)
 	txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextColor, TextColor, TextColor, TextColor)
 
 	window.Frame:setProperty("ImageColours", frmcol)
-	window.Top:setProperty("ImageColours", frlcol)
 	window.Cross:setProperty("ImageColours", txtcol)
 	window.Title:setColor(fromHEXToRGB(TextColor))
 
@@ -5109,12 +5120,53 @@ function CustomLabel.addEvent(self, ...) return clAddEvent(self.Label, ...) end
 CustomDialog = {}
 CustomDialog.__index = CustomDialog
 
-function CustomDialog.create(w, h, text, window)
+local LabelForGettingSizes = CustomLabel.create(0, 0, 0, 0, "", false)
+function CustomDialog.create(rwidth, text, buttons, window)
 
 	local self = setmetatable({}, CustomDialog)
 
-	if w < 135 then w = 135 end
-	if h < 60 then h = 60 end
+	local w, h
+	local maxw = 0
+
+	local objects = text:split("\n")
+
+	for _, v in pairs(objects) do
+		LabelForGettingSizes:setText(v)
+		maxw = math.max(maxw, guiLabelGetTextExtent(LabelForGettingSizes.Label.Label)+10)
+	end
+	maxw = maxw + 20
+
+	local butmaxw = 0
+	local butsizes = {}
+	if type(buttons) == type(objects) then
+
+		for _, v in pairs(buttons) do
+		
+			LabelForGettingSizes:setText(v)
+			butmaxw = butmaxw + (guiLabelGetTextExtent(LabelForGettingSizes.Label.Label) + 20) + 10
+		
+			butsizes[#butsizes + 1] = guiLabelGetTextExtent(LabelForGettingSizes.Label.Label) + 20
+		
+		end
+		
+		butmaxw = butmaxw + 5
+	
+	elseif type(buttons) == type("string") or type(buttons) == type(123) then
+
+		LabelForGettingSizes:setText(buttons)
+		butmaxw = (guiLabelGetTextExtent(LabelForGettingSizes.Label.Label) + 20) + 10
+		buttons = {buttons}
+		butsizes = {butmaxw-10}
+
+	else
+		buttons = {}
+
+	end
+
+	w = math.max(butmaxw, maxw) + 5
+	w = math.max(rwidth, w)
+	h = (guiLabelGetFontHeight(LabelForGettingSizes.Label.Label) + 5)*(#objects+1) + 25 + 30
+
 
 	local x, y = Width/2 - w/2, Height/2 - h/2
 	if window then
@@ -5138,31 +5190,31 @@ function CustomDialog.create(w, h, text, window)
 		dialog:setCloseEnabled(true)
 	end
 
-	dialog.Cancel = CustomButton.create(w-130, h-30, 60, 25, ScriptText.Cancel, false, dialog:getFrame())
-	dialog.Accept = CustomButton.create(w-65, h-30, 60, 25, ScriptText.Accept, false, dialog:getFrame())
-	dialog.Label = CustomLabel.create(5, 5, w-10, h-40, text, false, dialog:getFrame())
+	dialog.Label = CustomLabel.create(5, 20, w-10, h-38-30, text, false, dialog:getFrame())
 	dialog.Label:setAlign("center", "center")
-	dialog:addElements({dialog.Cancel, dialog.Accept, dialog.Label})
 
-	dialog.Accept:addEvent("onClientGUIClick", function()
-		
-		dialog:close()
-		triggerEvent("onCustomDialogAccept", dialog:getFrame(), dialog:getFrame())
-		if window then
-			window:showDialog(false)
-		end
-	
-	end)
+	dialog.Buttons = {}
+	local nlen = 0
+	for i, v in pairs(buttons) do
 
-	dialog.Cancel:addEvent("onClientGUIClick", function()
+		nlen = nlen + butsizes[i]
+
+		dialog.Buttons[i] = CustomButton.create(w-10*i-nlen, h-38, butsizes[i], 28, v, false, dialog:getFrame())
+		dialog:addElement(dialog.Buttons[i])
 		
-		dialog:close()
-		triggerEvent("onCustomDialogCancel", dialog:getFrame(), dialog:getFrame())
-		if window then
-			window:showDialog(false)
-		end
-	
-	end)
+		dialog.Buttons[i]:addEvent("onClientGUIClick", function()
+			
+			dialog:close()
+			triggerEvent("onCustomDialogClick", dialog:getFrame(), v)
+
+			if window then
+				window:showDialog(false)
+			end
+
+		end)
+	end
+
+	dialog:addElement(dialog.Label)
 
 	self.Dialog = dialog
 
@@ -5203,7 +5255,6 @@ end
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 addEvent("onCustomScrollBarScrolled", true)
-addEvent("onCustomDialogAccept", true)
-addEvent("onCustomDialogCancel", true)
+addEvent("onCustomDialogClick", true)
 addEvent("onCustomWindowClose", true)
 addEvent("onCustomComboBoxSelectItem", true)

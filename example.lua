@@ -274,8 +274,8 @@ end)
 
 ---------------------------------------
 
-demo_dialog = CustomDialog.create(200, 100, "Dialog, what attached\nto Demo Window Frame", demo_window)
-demo_dialog_l = CustomDialog.create(200, 100, "Local Dialog")
+demo_dialog = CustomDialog.create(100, "Dialog, what attached\nto Demo Window Frame\nMultiline Automatic", {"OK", "Cancel"}, demo_window)
+demo_dialog_l = CustomDialog.create(200, "Local Dialog")
 
 demo_window:addElements({test_button, test_imgs, test_imgtxt, test_but_locked})
 demo_window:addElements({test_pbar, test_pbar2, test_pbar3, test_pbar4, test_pbar5, test_pbar6})
@@ -309,12 +309,12 @@ test_checkbox_e:addEvent("onClientGUIClick", function()
 
 end)
 
-demo_dialog:addEvent("onCustomDialogAccept", function()
-	test_imgtxt:setText("Accepted")
-end)
-
-demo_dialog:addEvent("onCustomDialogCancel", function()
-	test_imgtxt:setText("Canceled")
+demo_dialog:addEvent("onCustomDialogClick", function(button)
+	if button == "OK" then
+		test_imgtxt:setText("Accepted")
+	elseif button == "Cancel" then
+		test_imgtxt:setText("Cancelled")
+	end
 end)
 
 local test_timer
