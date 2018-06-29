@@ -1,12 +1,8 @@
 CONTENT = "LuaWinSys" --Resource name with files
 
-EventList = {
-	"onClientGUIClick",
-	"onClientGUIMouseUp",
-	"onClientGUIMouseDown",
-	"onClientMouseEnter",
-	"onClientMouseLeave",
-	"onClientMouseWheel"
+ScriptText = {
+	Accept = "Accept",
+	Cancel = "Cancel"
 }
 
 function fromHEXToRGB(color)
@@ -123,7 +119,25 @@ BlueColorsDark = proceedColor("5278e2", "4667d0", "46c169", true) --Blue Theme
 RedColors = proceedColor("f94f4f", "ef2d2d", "46c169", false) --Red Theme
 BlueColors = proceedColor("5278e2", "4667d0", "46c169", false) --Blue Theme
 
+PurpleColors = proceedColor("743597", "582A72", "9741C6", false) --Purple Theme
+PurpleColorsDark = proceedColor("A53FC5", "200F26", "7E3396", true) --Purple Theme
+
 DefaultColors = BlueColors
+
+Themes = {
+	
+	Dark = {
+		Red = RedColorsDark,
+		Blue = BlueColorsDark,
+		Purple = PurpleColorsDark
+	},
+
+	Light = {
+		Red = RedColors,
+		Blue = BlueColors,
+		Purple = PurpleColors
+	}
+}
 
 --------------------------
 
@@ -207,7 +221,7 @@ local ScrollPaneSettings = {}
 local ScrollPaneNumber = 0
 
 --Element for onClientGUIMouseUp
-local BackForMouse = GuiStaticImage.create(0, 0, 1, 1, pane, true)
+BackForMouse = GuiStaticImage.create(0, 0, 1, 1, pane, true)
 BackForMouse:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 BackForMouse:setVisible(false)
 
@@ -489,13 +503,6 @@ local function addScrollElement(panez, element, axises)
 	end)
 
 end
---[[
-local scrol = createCustomScrollPane(0, 0, 100, 100, false)
-local img = GuiStaticImage.create(50, 50, 90, 90, pane, false, scrol)
-addElementToScrollPane(scrol, img)
-local ig = GuiStaticImage.create(0, 0, 1, 1, pane, false, scrol)
-addElementToScrollPane(scrol, ig)]]
-
 
 ScrollMenu = {}
 ScrollMenu.__index = ScrollMenu
@@ -519,10 +526,6 @@ function ScrollMenu.setSpeed(self, speed) return scrollPaneSetScrollSpeed(self.M
 function ScrollMenu.addScrollElement(self, element, axis) return addScrollElement(self.Menu, element, axis) end
 
 
---[[local menu = ScrollMenu.create(0, 0, 100, 100, false)
-local img = GuiStaticImage.create(50, 50, 90, 90, pane, false, menu.Menu)
-menu:addElement(img)]]
-
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 ---------------------------Windows----------------------------------------------------------------------------------
@@ -530,18 +533,23 @@ menu:addElement(img)]]
 --------------------------------------------------------------------------------------------------------------------
 
 Windows = {}
-local function guiCreateCustomWindow(x, y, w, h, title, relative)
+local function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
 	local id = #Windows+1
 
+	local nw, nh = Width, Height
 	if relative then
 
-		x = math.floor(x*Width)
-		y = math.floor(y*Height)
-		w = math.floor(w*Width)
-		h = math.floor(h*Height)
+		if parent then
+			nw, nh = parent:getSize(false)
+		end
+
+		x = math.floor(x*nw)
+		y = math.floor(y*nh)
+		w = math.floor(w*nw)
+		h = math.floor(h*nh)
 
 	else
 
@@ -556,8 +564,11 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative)
 	--Main part of window
 	Windows[id] = {}
 	Windows[id].SchemeElements = {}
-	Windows[id].Canvas = GuiStaticImage.create(x-2, y-2, w+4, h+4, pane, false)
+	Windows[id].Canvas = GuiStaticImage.create(x-2, y-2, w+4, h+4, pane, false, parent)
 	Windows[id].ColorScheme = DefaultColors
+
+	Windows[id].MaxX = nw
+	Windows[id].MaxY = nh
 
 	--Shadows
 	Windows[id].Shadows = {}
@@ -567,6 +578,9 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative)
 
 	--Frame
 	Windows[id].Frame = GuiStaticImage.create(2, 2, w, h, pane, false, Windows[id].Canvas)
+
+	--Dialog shadow
+	Windows[id].Dialog = GuiStaticImage.create(0, 0, 1, 1, pane, true, Windows[id].Frame)
 	
 	--Title
 	Windows[id].Top = GuiStaticImage.create(0, 0, w, 22, pane, false, Windows[id].Frame)
@@ -598,8 +612,10 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative)
 	--Windows[id].Divider:setProperty("ImageColours", "tl:FFAAAAAA tr:FFAAAAAA bl:FFAAAAAA br:FFAAAAAA")
 	Windows[id].Top:setProperty("ImageColours", frlcol)
 	Windows[id].Top:setProperty("AlwaysOnTop", "True")
+
 	--Windows[id].Close:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red))
 	Windows[id].Close:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	Windows[id].Dialog:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 	Windows[id].Cross:setProperty("ImageColours", txtcol)
 	Windows[id].Title:setEnabled(false)
 
@@ -610,6 +626,7 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative)
 
 	Windows[id].Close:setVisible(false)
 	Windows[id].Cross:setEnabled(false)
+	Windows[id].Dialog:setVisible(false)
 
 	Windows[id].Frame:bringToFront()
 	Windows[id].Enabled = true
@@ -621,6 +638,29 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative)
 	Windows[id].Animation = "none" --"open", "close", "move"
 
 	Windows[id].Positions = {X = x, Y = y}
+
+	------------------------------------------------------------------------------------------------------------------------------------------
+	--Functions
+
+	Windows[id].DialogAnimation = 0 -- 1 - hide; 2 - show
+	Windows[id].DialogList = {}
+
+	Windows[id].ShowDialog = function(bool)
+
+		Windows[id].DialogAnimation = bool and 2 or 1
+		Windows[id].Dialog:setProperty("AlwaysOnTop", "True")
+		Windows[id].Top:setProperty("AlwaysOnTop", "False")
+		Windows[id].Dialog:setVisible(true)
+		Windows[id].Frame:bringToFront()
+		Windows[id].Dialog:bringToFront()
+
+		if bool == false then
+			for _, v in pairs(Windows[id].DialogList) do
+				v.Dialog:close()
+			end
+		end
+
+	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Events
@@ -667,13 +707,58 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative)
 			elseif y >= self_y-2 then y= y+1
 			end
 
-			if y >= Height then y = Height end
+			if y >= Windows[id].MaxY then y = Windows[id].MaxY end
 
 			Windows[id].Canvas:setPosition(Windows[id].Positions.X-2, y, false)
-			if y == Height then
+			if y == Windows[id].MaxY then
 				Windows[id].Canvas:setVisible(false)
 				Windows[id].Canvas:setEnabled(Windows[id].Enabled)
 				Windows[id].Animation = "none"
+			end
+
+		end
+
+		if Windows[id].DialogAnimation == 2 then
+
+			local alpha = fromPropertyToHEX(Windows[id].Dialog)
+			alpha = tonumber(alpha:sub(1, 2), 16)
+
+			if alpha == 120 then
+
+				Windows[id].DialogAnimation = 0
+			
+			else
+
+				alpha = alpha + 4
+
+				if alpha >= 120 then alpha = 120 end
+				local color = string.format("%.2x000000", alpha)
+				Windows[id].Dialog:setProperty("ImageColours", "tl:"..color.." tr:"..color.." bl:"..color.." br:"..color)
+
+			end
+
+		elseif Windows[id].DialogAnimation == 1 then
+			
+			local alpha = fromPropertyToHEX(Windows[id].Dialog)
+			alpha = tonumber(alpha:sub(1, 2), 16)
+
+			if alpha == 0 then
+
+				Windows[id].DialogAnimation = 0
+				Windows[id].Dialog:setVisible(false)
+				Windows[id].Dialog:setProperty("AlwaysOnTop", "False")
+				Windows[id].Top:setProperty("AlwaysOnTop", "True")
+				Windows[id].Frame:bringToFront()
+				triggerEvent("onClientGUIMouseUp", Windows[id].Dialog)
+
+			else
+
+				alpha = alpha - 4
+
+				if alpha <= 0 then alpha = 0 end
+				local color = string.format("%.2x000000", alpha)
+				Windows[id].Dialog:setProperty("ImageColours", "tl:"..color.." tr:"..color.." bl:"..color.." br:"..color)
+
 			end
 
 		end
@@ -683,6 +768,11 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative)
 	addEventHandler("onClientGUIClick", root, function()
 		if source == Windows[id].Close then
 			Windows[id].Animation = "close"
+			triggerEvent("onCustomWindowClose", Windows[id].Canvas, Windows[id].Canvas)
+		end
+
+		if source == Windows[id].Dialog then
+			Windows[id].ShowDialog(false)
 		end
 	end)
 
@@ -690,23 +780,17 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative)
 	addEventHandler("onClientMouseEnter", root, function()
 		if source == Windows[id].Close then
 			Windows[id].Close:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red))
-			--Windows[id].Cross:loadImage(Images.Cross)
 		end
 	end)
 
 	--Close button leave
 	addEventHandler("onClientMouseLeave", root, function()
-		
 		Windows[id].Close:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-		
-		--[[if source == Windows[id].Close then
-			Windows[id].Cross:loadImage(Images.Point)
-		end]]
 	end)
 
 	--Window move - hold
 	addEventHandler("onClientGUIMouseDown", root, function(button, x, y)
-		if Windows[id].Movable and button == "left" and source == Windows[id].Top then
+		if Windows[id].Movable and button == "left" and (source == Windows[id].Top or source == Windows[id].Dialog) then
 			
 			Windows[id].Animation = "move"
 			
@@ -717,7 +801,7 @@ local function guiCreateCustomWindow(x, y, w, h, title, relative)
 	
 	--Windows move - relax
 	addEventHandler("onClientGUIMouseUp", root, function()
-		if source == Windows[id].Top then
+		if source == Windows[id].Top or source == Windows[id].Dialog then
 			Windows[id].Animation = "none"
 			Windows[id].MoveCursorPositions = {X = 0, Y = 0}
 
@@ -912,6 +996,10 @@ local function cwClose(window)
 	end
 end
 
+local function cwShowDialog(window, bool)
+	window.ShowDialog(bool)
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme Functions
 
@@ -946,6 +1034,7 @@ local function cwAddSchemeElement(window, element)
 
 	cnt = #window.SchemeElements
 	window.SchemeElements[cnt+1] = element
+	element:setColorScheme(window.ColorScheme)
 
 end
 
@@ -955,10 +1044,18 @@ local function cwAddSchemeElements(window, elements)
 
 		cnt = #window.SchemeElements
 		window.SchemeElements[cnt+1] = v
+		v:setColorScheme(window.ColorScheme)
 
 	end
 end
 
+local function cwAddEvent(window, event, func)
+	addEventHandler(event, root, function(...)
+		if source == window.Frame or source == window.Canvas then
+			func(...)
+		end
+	end)
+end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
@@ -1002,6 +1099,10 @@ function CustomWindow.close(self) return cwClose(self.Window) end
 function CustomWindow.setColorScheme(self, ...) return cwSetColorScheme(self.Window, ...) end
 function CustomWindow.addElement(self, ...) return cwAddSchemeElement(self.Window, ...) end
 function CustomWindow.addElements(self, ...) return cwAddSchemeElements(self.Window, ...) end
+
+function CustomWindow.addEvent(self, ...) return cwAddEvent(self.Window, ...) end
+
+function CustomWindow.showDialog(self, ...) return cwShowDialog(self.Window, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -3676,6 +3777,9 @@ local function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 
 					v.Selected = true
 					v.Mark:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main)) 
+					
+					triggerEvent("onCustomComboBoxSelectItem", ComboBoxes[id].Canvas, ComboBoxes[id].Canvas)
+
 				end
 			end
 		end
@@ -3971,12 +4075,23 @@ end
 
 local function clbSetColorScheme(combo, scheme)
 
+	local objtocol = nil
+	for _, v in pairs(combo.List.Items) do
+		if fromPropertyToHEX(v.Canvas) == "FF"..combo.ColorScheme.Main:upper() then
+			objtocol = v.Canvas
+		end
+	end
+
 	combo.ColorScheme = scheme
 
 	clbSetEnabled(combo, clbGetEnabled(combo))
 
 	TopCol, BotCol, BackCol = "FFFFFF", "EEEEEE", "CCCCCC"
 	if combo.ColorScheme.DarkTheme then TopCol, BotCol, BackCol = "555555", "444444", "333333" end
+
+	if objtocol then
+		objtocol:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", combo.ColorScheme.Main, combo.ColorScheme.Main, combo.ColorScheme.Main, combo.ColorScheme.Main))
+	end
 
 	LMainCol = "F7F7F7"
 	if combo.ColorScheme.DarkTheme then LMainCol = "505050" end 
@@ -4011,7 +4126,7 @@ local function clbAddEvent(combo, event, func)
 				break
 			end
 		end
-		if source == combo.Main or source == combo.List.Main or visited then
+		if source == combo.Main or source == combo.Canvas or source == combo.List.Main or visited then
 			func(...)
 		end
 	end)
@@ -4984,3 +5099,111 @@ function CustomLabel.getColor(self, ...) return clGetColor(self.Label, ...) end
 function CustomLabel.setColorScheme(self, ...) return clSetColorScheme(self.Label, ...) end
 
 function CustomLabel.addEvent(self, ...) return clAddEvent(self.Label, ...) end
+
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+---------------------------Dialogs----------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+
+CustomDialog = {}
+CustomDialog.__index = CustomDialog
+
+function CustomDialog.create(w, h, text, window)
+
+	local self = setmetatable({}, CustomDialog)
+
+	if w < 135 then w = 135 end
+	if h < 60 then h = 60 end
+
+	local x, y = Width/2 - w/2, Height/2 - h/2
+	if window then
+		local nw, nh = window:getSize(false)
+		x, y = nw/2 - w/2, nh/2 - h/2
+	end
+
+	local parent = nil
+	if window then
+		parent = window.Window.Dialog
+	end
+
+	local dialog = CustomWindow.create(x, y, w, h, "", false, parent)
+	dialog:setVisible(false)
+
+	dialog.Parent = window
+
+	if window then
+		dialog:setMovable(false)
+	else
+		dialog:setCloseEnabled(true)
+	end
+
+	dialog.Cancel = CustomButton.create(w-130, h-30, 60, 25, ScriptText.Cancel, false, dialog:getFrame())
+	dialog.Accept = CustomButton.create(w-65, h-30, 60, 25, ScriptText.Accept, false, dialog:getFrame())
+	dialog.Label = CustomLabel.create(5, 5, w-10, h-40, text, false, dialog:getFrame())
+	dialog.Label:setAlign("center", "center")
+	dialog:addElements({dialog.Cancel, dialog.Accept, dialog.Label})
+
+	dialog.Accept:addEvent("onClientGUIClick", function()
+		
+		dialog:close()
+		triggerEvent("onCustomDialogAccept", dialog:getFrame(), dialog:getFrame())
+		if window then
+			window:showDialog(false)
+		end
+	
+	end)
+
+	dialog.Cancel:addEvent("onClientGUIClick", function()
+		
+		dialog:close()
+		triggerEvent("onCustomDialogCancel", dialog:getFrame(), dialog:getFrame())
+		if window then
+			window:showDialog(false)
+		end
+	
+	end)
+
+	self.Dialog = dialog
+
+	if window then
+		window:addElement(dialog)
+		window.Window.DialogList[#window.Window.DialogList+1] = self
+	end
+
+	return self
+end
+
+function CustomDialog.open(self) 
+	if self.Dialog.Parent then
+		self.Dialog.Parent:showDialog(true)
+	end
+	self.Dialog:open()
+end
+
+function CustomDialog.close(self) 
+	if self.Dialog.Parent then
+		self.Dialog.Parent:showDialog(false)
+	end
+	self.Dialog:close()
+end
+
+function CustomDialog.addEvent(self, ...)
+	return self.Dialog:addEvent(...)
+end
+
+function CustomDialog.setColorScheme(self, ...)
+	return self.Dialog:setColorScheme(...)
+end
+
+
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+---------------------------Events-----------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+addEvent("onCustomScrollBarScrolled", true)
+addEvent("onCustomDialogAccept", true)
+addEvent("onCustomDialogCancel", true)
+addEvent("onCustomWindowClose", true)
+addEvent("onCustomComboBoxSelectItem", true)

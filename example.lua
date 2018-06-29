@@ -4,6 +4,16 @@
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 
+CurrentTheme = Themes.Light.Blue
+
+themes = {
+	["Dark Red"] = Themes.Dark.Red,
+	["Dark Blue"] = Themes.Dark.Blue,
+	["Dark Purple"] = Themes.Dark.Purple,
+	["Light Red"] = Themes.Light.Red,
+	["Light Blue"] = Themes.Light.Blue,
+	["Light Purple"] = Themes.Light.Purple
+}
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Windows
@@ -38,15 +48,15 @@ addCommandHandler("demowidgets", function()
 	end
 end)
 
-addEventHandler("onClientGUIClick", root, function() 
-	if source == demo_window.Window.Close then
-		if not demo_window_m:getVisible() then
-			showCursor(false)
-		end
-	elseif source == demo_window_m.Window.Close then
-		if not demo_window:getVisible() then
-			showCursor(false)
-		end
+demo_window:addEvent("onCustomWindowClose", function()
+	if not demo_window_m:getVisible() then
+		showCursor(false)
+	end
+end)
+
+demo_window_m:addEvent("onCustomWindowClose", function()
+	if not demo_window:getVisible() then
+		showCursor(false)
 	end
 end)
 
@@ -59,19 +69,15 @@ test_imgtxt = CustomButton.create(10, 130, 100, 40, "Imaged", false, demo_window
 test_imgs:setText("")
 test_imgs:setImage(Images.Point)
 test_imgs.Button.Image:setProperty("ImageColours", "tl:FF62D262 tr:FF62D262 bl:FF62D262 br:FF62D262")
---test_imgs:setColorScheme(RedColors)
 
 test_imgtxt:setImage(Images.Cross)
 test_imgtxt.Button.Image:setProperty("ImageColours", "tl:FF62D262 tr:FF62D262 bl:FF62D262 br:FF62D262")
---test_imgtxt:setColorScheme(BlueColors)
 
 test_but_locked = CustomButton.create(10, 180, 100, 40, "Disabled", false, demo_window:getFrame())
---test_but_locked:setColorScheme(BlueColors)
 test_but_locked:setEnabled(false)
 
 test_but_locked2 = CustomButton.create(100, 60, 100, 40, "Disabled", false, demo_window_l:getFrame())
 test_but_locked2:setEnabled(false)
---test_but_locked2:setColorScheme(BlueColors)
 
 test_but_clicked2 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_l:getFrame())
 
@@ -84,11 +90,9 @@ test_but_clicked3 = CustomButton.create(100, 110, 100, 40, "Clicked", false, dem
 --Progress bars
 test_pbar = CustomProgressBar.create(10, 230, 100, 20, false, demo_window:getFrame())
 test_pbar:setProgress(0)
---test_pbar:setColorScheme(BlueColors)
 
 test_pbar2 = CustomProgressBar.create(10, 265, 100, 10, false, demo_window:getFrame())
 test_pbar2:setProgress(50)
---test_pbar2:setColorScheme(BlueColorsDark)
 
 test_pbar3 = CustomProgressBar.create(10, 290, 100, 20, false, demo_window:getFrame())
 test_pbar3:setProgress(100)
@@ -98,7 +102,6 @@ test_pbar4:setProgress(0)
 
 test_pbar5 = CustomProgressBar.create(55, 320, 10, 200, false, demo_window:getFrame())
 test_pbar5:setProgress(50)
---test_pbar5:setColorScheme(RedColors)
 
 test_pbar6 = CustomProgressBar.create(80, 320, 20, 200, false, demo_window:getFrame())
 test_pbar6:setProgress(100)
@@ -125,10 +128,6 @@ test_schor_l:setScrollPosition(100)
 test_schor_l:setScrollLength(40)
 test_schor_l:setEnabled(false)
 
---test_scver:setColorScheme(BlueColors)
---test_schor:setColorScheme(BlueColorsDark)
-
-addEvent("onCustomScrollBarScrolled", true)
 test_scver:addEvent("onCustomScrollBarScrolled", function()
 	test_pbar5:setProgress(test_scver:getScrollPosition())
 end)
@@ -155,11 +154,6 @@ test_numscroll_r = CustomNumberScroller.create(590, 30, 30, 30, false, demo_wind
 
 test_numscroll_r:setSize(150, 70, false)
 
---test_edit:setColorScheme(BlueColors)
---test_memo_r:setColorScheme(RedColors)
---test_numscroll:setColorScheme(RedColors)
---test_memo:setColorScheme(BlueColors)
-
 test_edit_l:setEnabled(false)
 test_memo_l:setEnabled(false)
 test_numscroll_l:setEnabled(false)
@@ -174,34 +168,33 @@ test_numscroll_r:setText(49)
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Check boxes
 
-test_checkbox = CustomCheckBox.create(430, 120, 150, 30, "Dark", false, demo_window:getFrame())
-test_checkbox_e = CustomCheckBox.create(430, 160, 150, 30, "Blue", false, demo_window:getFrame())
+test_checkbox = CustomCheckBox.create(430, 120, 150, 30, "Deactivated", false, demo_window:getFrame())
+test_checkbox_e = CustomCheckBox.create(430, 160, 150, 30, "Activated", false, demo_window:getFrame())
 test_checkbox_d = CustomCheckBox.create(590, 120, 150, 30, "Disabled", false, demo_window:getFrame())
 test_checkbox_d_e = CustomCheckBox.create(590, 160, 150, 30, "Disabled Activated", false, demo_window:getFrame())
 
 test_checkbox_e:setChecked(true)
 test_checkbox_d:setEnabled(false)
 
---test_checkbox:setColorScheme(BlueColorsDark)
---test_checkbox_e:setColorScheme(RedColors)
-
 test_checkbox_d_e:setChecked(true)
 test_checkbox_d_e:setEnabled(false)
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Combo boxes
-test_combo = CustomComboBox.create(430, 200, 150, 30, "Select...", false, demo_window:getFrame())
+test_combo = CustomComboBox.create(430, 200, 150, 30, "Select Theme...", false, demo_window:getFrame())
 test_combo_d = CustomComboBox.create(430, 240, 150, 30, "Disabled", false, demo_window:getFrame())
 test_combo_s = CustomComboBox.create(590, 200, 50, 20, "Sized", false, demo_window:getFrame())
 
 for i = 1, 20 do
-	test_combo:addItem("Test"..i)
 	test_combo_d:addItem("Test"..i)
 	test_combo_s:addItem("Test"..i)
 end
 
+for i in pairs(themes) do
+	test_combo:addItem(i)
+end
+
 test_combo:setMaxHeight(450)
---test_combo:setColorScheme(BlueColors)
 
 test_combo_d:setEnabled(false)
 test_combo_s:setMaxHeight(200)
@@ -212,8 +205,6 @@ test_combo_s:setSize(150, 70, false)
 test_tab = CustomTabPanel.create(430, 280, 40, 40, false, demo_window:getFrame())
 test_tab_d = CustomTabPanel.create(430, 430, 310, 110, false, demo_window:getFrame())
 
---test_tab:setColorScheme(BlueColors)
---test_tab_d:setColorScheme(RedColors)
 for i = 1, 5 do
 	test_tab:addTab("Tab "..i)
 	test_tab_d:addTab("Tab "..i)
@@ -283,6 +274,9 @@ end)
 
 ---------------------------------------
 
+demo_dialog = CustomDialog.create(200, 100, "Dialog, what attached\nto Demo Window Frame", demo_window)
+demo_dialog_l = CustomDialog.create(200, 100, "Local Dialog")
+
 demo_window:addElements({test_button, test_imgs, test_imgtxt, test_but_locked})
 demo_window:addElements({test_pbar, test_pbar2, test_pbar3, test_pbar4, test_pbar5, test_pbar6})
 demo_window:addElements({test_scver, test_scver_l, test_schor, test_schor_l})
@@ -293,38 +287,34 @@ demo_window:addElements({test_tab, test_tab_d})
 demo_window:addElements({test_label, test_label_hov, test_label_sch})
 demo_window:setColorScheme(BlueColorsDark)
 
-themes = {RedColorsDark, BlueColorsDark, RedColors, BlueColors}
 indx = 1
 
 test_checkbox:addEvent("onClientGUIClick", function()
 
-	--outputDebugString("Checkbox 1 (Dark/Light) Changed to '"..tostring(test_checkbox:getChecked()).."', Theme ID = "..tostring(indx))
-
 	if test_checkbox:getChecked() then
-		indx = indx + 2
-		test_checkbox:setText("Light")
+		test_checkbox:setText("Activated")
 	else
-		indx = indx - 2
-		test_checkbox:setText("Dark")
+		test_checkbox:setText("Deactivated")
 	end
 
-	demo_window:setColorScheme(themes[indx+1])
 end)
 
 test_checkbox_e:addEvent("onClientGUIClick", function()
 
-	--outputDebugString("Checkbox 2 (Red/Blue) Changed to '"..tostring(test_checkbox_e:getChecked()).."', Theme ID = "..tostring(indx))
-
 	if test_checkbox_e:getChecked() then
-		indx = indx + 1
-		test_checkbox_e:setText("Blue")
+		test_checkbox_e:setText("Activated")
 	else
-		indx = indx - 1
-		test_checkbox_e:setText("Red")
+		test_checkbox_e:setText("Deactivated")
 	end
 
-	demo_window:setColorScheme(themes[indx+1])
-	
+end)
+
+demo_dialog:addEvent("onCustomDialogAccept", function()
+	test_imgtxt:setText("Accepted")
+end)
+
+demo_dialog:addEvent("onCustomDialogCancel", function()
+	test_imgtxt:setText("Canceled")
 end)
 
 local test_timer
@@ -335,6 +325,14 @@ end)
 test_button:addEvent("onClientMouseLeave", function()
 	if isTimer(test_timer) then killTimer(test_timer) end
 	test_button:setText("Texted")
+end)
+
+test_imgtxt:addEvent("onClientGUIClick", function()
+	demo_dialog:open()
+end)
+
+test_imgs:addEvent("onClientGUIClick", function()
+	demo_dialog_l:open()
 end)
 
 test_button:addEvent("onClientGUIClick", function()
@@ -361,11 +359,30 @@ test_imgtxt:addEvent("onClientMouseLeave", function()
 	test_imgtxt:setImage(Images.Cross)
 end)
 
-test_combo:addEvent("onClientGUIClick", function()
-	--outputDebugString("Selected from 1s combo: "..tostring(test_combo:getSelectedItem()))
-	test_edit:setText("Selected from 1s combo: "..tostring(test_combo:getSelectedItem()))
-end)
+test_combo:addEvent("onCustomComboBoxSelectItem", function()
 
+	if test_combo:getSelectedItem() ~= nil then
+		CurrentTheme = themes[test_combo:getSelectedItem()]
+	end
+
+	demo_window:setColorScheme(CurrentTheme)
+	demo_window_l:setColorScheme(CurrentTheme)
+	demo_window_m:setColorScheme(CurrentTheme)
+
+	image1:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main)) 
+	image2:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main)) 
+	image3:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main)) 
+
+	image4:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.DarkMain, CurrentTheme.DarkMain, CurrentTheme.DarkMain, CurrentTheme.DarkMain)) 
+	image5:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.DarkMain, CurrentTheme.DarkMain, CurrentTheme.DarkMain, CurrentTheme.DarkMain)) 
+	image6:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.DarkMain, CurrentTheme.DarkMain, CurrentTheme.DarkMain, CurrentTheme.DarkMain)) 
+
+	image7:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain)) 
+	image8:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain)) 
+	image9:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain)) 
+
+	test_edit:setText("Selected theme: "..tostring(test_combo:getSelectedItem()))
+end)
 
 
 --[[addEventHandler("onClientGUIClick", test_checkbox.CheckBox.Entrail, function()
