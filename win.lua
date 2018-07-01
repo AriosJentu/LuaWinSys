@@ -1091,6 +1091,10 @@ function cwGetHeader(window)
 	return window.Top
 end
 
+function cwGetDialog(window)
+	return window.Dialog
+end
+
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Animated functions
@@ -1212,6 +1216,7 @@ function CustomWindow.getMovable(self, ...) return cwGetMovable(self.Window, ...
 
 function CustomWindow.getFrame(self, ...) return cwGetFrame(self.Window, ...) end
 function CustomWindow.getHeader(self, ...) return cwGetHeader(self.Window, ...) end
+function CustomWindow.getDialog(self, ...) return cwGetDialog(self.Window, ...) end
 
 function CustomWindow.open(self) return cwOpen(self.Window) end
 function CustomWindow.close(self) return cwClose(self.Window) end
@@ -5670,6 +5675,18 @@ end
 
 function CustomLoading.getPosition(self, relative)
 	return self.Back:getPosition(relative or false)
+end
+
+function CustomLoading.getVisible(self)
+	return self.Back:getVisible()
+end
+
+function CustomLoading.getEnabled(self)
+	return self.Back:getEnabled()
+end
+
+function CustomLoading.getAnimated(self)
+	return self.Animated
 end
 
 function CustomLoading.bringToFront(self) self.Back:bringToFront() end
