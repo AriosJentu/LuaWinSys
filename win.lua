@@ -583,6 +583,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	Windows[id].MaxX = nw
 	Windows[id].MaxY = nh
+	Windows[id].SideBlockLocation = "none"
 
 	--Shadows
 	Windows[id].Shadows = {}
@@ -599,9 +600,18 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	--Title
 	Windows[id].Top = GuiStaticImage.create(0, 0, w, 22, pane, false, Windows[id].Frame)
 	--Windows[id].Divider = GuiStaticImage.create(0, 21, w, 1, pane, false, Windows[id].Top)
-	Windows[id].Close = GuiStaticImage.create(0, 0, 21, 21, Images.Cross, false, Windows[id].Top)
-	Windows[id].Cross = GuiStaticImage.create(0, 0, 21, 21, Images.Point, false, Windows[id].Close)
-	Windows[id].Title = GuiLabel.create(0, 0, w, 19, title or "Window", false, Windows[id].Top)
+	Windows[id].CloseMain = GuiStaticImage.create(0, 0, 21, 21, Images.Cross, false, Windows[id].Frame)
+	Windows[id].Cross = GuiStaticImage.create(0, 0, 21, 21, Images.Point, false, Windows[id].CloseMain)
+	Windows[id].Title = GuiLabel.create(0, 0, w, 19, title or "Window", false, Windows[id].Frame)
+
+	Windows[id].Close = GuiStaticImage.create(0, 0, 21, 21, pane, false, Windows[id].Top)
+	
+	Windows[id].SideBlock = GuiStaticImage.create(0, 0, 0, 0, pane, false, Windows[id].Frame)
+	
+	Windows[id].AlterTitle = GuiLabel.create(0, 0, w, 19, title or "Window", false, Windows[id].SideBlock)
+	Windows[id].CloseAlter = GuiStaticImage.create(0, 0, 21, 21, Images.Cross, false, Windows[id].SideBlock)
+	Windows[id].CrossAlter = GuiStaticImage.create(0, 0, 21, 21, Images.Point, false, Windows[id].CloseAlter)
+
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Properties
@@ -621,6 +631,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", FrameColor, FrameColor, FrameColor, FrameColor)
 	--frlcol = string.format("tl:00%s tr:00%s bl:00%s br:00%s", FrameColor, FrameColor, FrameColor, FrameColor)
 	txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextColor, TextColor, TextColor, TextColor)
+	whitecol = "tl:FFFFFFFF tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF"
 
 	Windows[id].Frame:setProperty("ImageColours", frmcol)
 	--Windows[id].Divider:setProperty("ImageColours", "tl:FFAAAAAA tr:FFAAAAAA bl:FFAAAAAA br:FFAAAAAA")
@@ -629,18 +640,31 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	--Windows[id].Close:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red))
 	Windows[id].Close:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	Windows[id].CloseMain:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	Windows[id].CloseAlter:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 	Windows[id].Dialog:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 	Windows[id].Cross:setProperty("ImageColours", txtcol)
+	Windows[id].CrossAlter:setProperty("ImageColours", whitecol)
 	Windows[id].Title:setEnabled(false)
+	Windows[id].AlterTitle:setEnabled(false)
+	Windows[id].SideBlock:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Windows[id].ColorScheme.SubMain, Windows[id].ColorScheme.SubMain, Windows[id].ColorScheme.SubMain, Windows[id].ColorScheme.SubMain))
+
 
 	Windows[id].Title:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
 	Windows[id].Title:setColor(fromHEXToRGB(TextColor))
 	Windows[id].Title:setHorizontalAlign("center")
 	Windows[id].Title:setVerticalAlign("center")
 
+	Windows[id].AlterTitle:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
+	Windows[id].AlterTitle:setColor(fromHEXToRGB("FFFFFF"))
+	Windows[id].AlterTitle:setHorizontalAlign("center")
+	Windows[id].AlterTitle:setVerticalAlign("center")
+
 	Windows[id].Close:setVisible(false)
 	Windows[id].Cross:setEnabled(false)
 	Windows[id].Dialog:setVisible(false)
+	Windows[id].SideBlock:setEnabled(false)
+	Windows[id].CloseMain:setVisible(false)
 
 	Windows[id].Frame:bringToFront()
 	Windows[id].Enabled = true
@@ -793,13 +817,19 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	--Close button hover
 	addEventHandler("onClientMouseEnter", root, function()
 		if source == Windows[id].Close then
-			Windows[id].Close:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red))
+
+			local col = Windows[id].ColorScheme.Red
+			local wht = "FFFFFF"
+
+			Windows[id].CloseMain:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", col, col, col, col))
+			Windows[id].CloseAlter:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", wht, wht, wht, wht))
 		end
 	end)
 
 	--Close button leave
 	addEventHandler("onClientMouseLeave", root, function()
-		Windows[id].Close:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+		Windows[id].CloseMain:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+		Windows[id].CloseAlter:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 	end)
 
 	--Window move - hold
@@ -854,6 +884,10 @@ end
 --Set functions
 
 function cwSetCloseEnabled(window, boolean)
+
+	window.CloseMain:setVisible(boolean or false)
+	window.CloseAlter:setVisible(boolean or false)
+
 	return window.Close:setVisible(boolean or false)
 end
 
@@ -892,6 +926,31 @@ function cwSetSize(window, w, h, relative)
 	window.Title:setSize(w, 19, false)
 
 	window.Close:setPosition(w-21, 0, false)
+
+
+	local location = window.SideBlockLocation 
+
+	sw, sh = w, h
+	x, y = 0, 0
+
+	if location == "top" or location == "bottom" then
+		y = (location == "bottom") and sh-length or 0
+		sh = length
+	end
+	if location == "left" or location == "right" then
+		x = (location == "right") and sw-length or 0
+		sw = length
+	end
+
+	if location == "none" then
+		sw, sh = 0, 0
+	end
+
+	window.SideBlock:setPosition(x, y, false)
+	window.SideBlock:setSize(sw, sh, false)
+	window.AlterTitle:setPosition(-x, -y, false)
+	window.CloseAlter:setPosition(-x, -y, false)
+
 end
 
 function cwSetPosition(window, x, y, rel, replace)
@@ -916,10 +975,52 @@ end
 
 function cwSetTitle(window, text)
 	window.Title:setText(text)
+	window.AlterTitle:setText(text)
 end
 
 function cwSetMovable(window, bool)
 	window.Movable = bool or false
+end
+
+function cwShowBar(window, location, length)
+
+	if location ~= "none" and location ~= "top" and location ~= "bottom" and location ~= "left" and location ~= "right" then
+		location = "none"
+	end
+
+	window.SideBlockLocation = location
+
+	w, h = cwGetSize(window, false)
+	x, y = 0, 0
+
+	if location == "top" or location == "bottom" then
+
+		if location == "bottom" then
+			y = h-length
+		end
+
+		h = length
+	end
+
+	if location == "left" or location == "right" then
+
+		if location == "right" then
+			x = w-length
+		end
+
+		w = length
+	end
+
+	if location == "none" then
+		w, h = 0, 0
+	end
+
+	window.SideBlock:setPosition(x, y, false)
+	window.SideBlock:setSize(w, h, false)
+	window.AlterTitle:setPosition(-x, -y, false)
+	window.CloseAlter:setPosition(-x, -y, false)
+
+
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -1027,8 +1128,11 @@ function cwSetColorScheme(window, scheme)
 	TextColor = "444444"
 	if window.ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
+	ncolor = "tl:FFFFFFFF tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF"
 	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", FrameColor, FrameColor, FrameColor, FrameColor)
 	txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextColor, TextColor, TextColor, TextColor)
+
+	window.SideBlock:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", window.ColorScheme.SubMain, window.ColorScheme.SubMain, window.ColorScheme.SubMain, window.ColorScheme.SubMain))
 
 	window.Frame:setProperty("ImageColours", frmcol)
 	window.Cross:setProperty("ImageColours", txtcol)
@@ -1120,6 +1224,7 @@ function CustomWindow.addElements(self, ...) return cwAddSchemeElements(self.Win
 function CustomWindow.addEvent(self, ...) return cwAddEvent(self.Window, ...) end
 
 function CustomWindow.showDialog(self, ...) return cwShowDialog(self.Window, ...) end
+function CustomWindow.showBar(self, ...) return cwShowBar(self.Window, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -2429,6 +2534,7 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 
 	EditBoxes[id] = {}
 	EditBoxes[id].ColorScheme = DefaultColors
+	EditBoxes[id].IsOnSideBlock = false
 	EditBoxes[id].Canvas = GuiStaticImage.create(x, y, w, h, pane, false, parent)
 
 	if objtype == "memo" then
@@ -2911,6 +3017,25 @@ function ctbSetScrollStep(textbox, stepsize)
 	textbox.ScrollSpeed = stepsize
 end
 
+function ctbPutOnSide(textbox, bool)
+
+	textbox.IsOnSideBlock = bool
+
+	scheme = textbox.ColorScheme
+
+	WinColor = "EEEEEE"
+	if scheme.DarkTheme then WinColor = "444444" end
+
+	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", WinColor, WinColor, WinColor, WinColor)
+	sbmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", scheme.SubMain, scheme.SubMain, scheme.SubMain, scheme.SubMain)
+
+	for _, v in pairs(textbox.Sides) do
+		
+		v:setProperty("ImageColours", textbox.IsOnSideBlock and sbmcol or frmcol)
+		v:setEnabled(false)
+	end
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -2984,6 +3109,7 @@ function ctbSetColorScheme(textbox, scheme)
 	if textbox.ColorScheme.DarkTheme then WinColor, EdgeCol, TextCol = "444444", "333333", "EEEEEE" end
 
 	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", WinColor, WinColor, WinColor, WinColor)
+	sbmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", textbox.ColorScheme.SubMain, textbox.ColorScheme.SubMain, textbox.ColorScheme.SubMain, textbox.ColorScheme.SubMain)
 	edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgeCol, EdgeCol, EdgeCol, EdgeCol)
 	txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextCol, TextCol, TextCol, TextCol)
 
@@ -2993,8 +3119,10 @@ function ctbSetColorScheme(textbox, scheme)
 	textbox.TextBox:setProperty("ActiveSelectionColour", "FF"..textbox.ColorScheme.Main)
 
 	for _, v in pairs(textbox.Sides) do
-		v:setProperty("ImageColours", frmcol)
+		
+		v:setProperty("ImageColours", textbox.IsOnSideBlock and sbmcol or frmcol)
 		v:setEnabled(false)
+
 	end
 
 	for _, v in pairs(textbox.Edges) do
@@ -3004,6 +3132,21 @@ function ctbSetColorScheme(textbox, scheme)
 
 	ctbSetReadOnly(textbox, ctbGetReadOnly(textbox))
 	ctbSetEnabled(textbox, ctbGetEnabled(textbox))
+
+
+	scheme = textbox.ColorScheme
+
+	WinColor = "EEEEEE"
+	if scheme.DarkTheme then WinColor = "444444" end
+
+	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", WinColor, WinColor, WinColor, WinColor)
+	sbmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", scheme.SubMain, scheme.SubMain, scheme.SubMain, scheme.SubMain)
+
+	for _, v in pairs(textbox.Sides) do
+		
+		v:setProperty("ImageColours", textbox.IsOnSideBlock and sbmcol or frmcol)
+		v:setEnabled(false)
+	end
 
 end
 
@@ -3061,6 +3204,7 @@ function CustomEdit.setColorScheme(self, ...) return ctbSetColorScheme(self.Box,
 function CustomEdit.getColorScheme(self, ...) return ctbGetColorScheme(self.Box, ...) end
 
 function CustomEdit.addEvent(self, ...) return ctbAddEvent(self.Box, ...) end
+function CustomEdit.putOnSide(self, ...) return ctbPutOnSide(self.Box, ...) end
 
 
 CustomMemo = {}
@@ -3095,6 +3239,7 @@ function CustomMemo.setColorScheme(self, ...) return ctbSetColorScheme(self.Box,
 function CustomMemo.getColorScheme(self, ...) return ctbGetColorScheme(self.Box, ...) end
 
 function CustomMemo.addEvent(self, ...) return ctbAddEvent(self.Box, ...) end
+function CustomMemo.putOnSide(self, ...) return ctbPutOnSide(self.Box, ...) end
 
 
 CustomNumberScroller = {}
@@ -3137,6 +3282,7 @@ function CustomNumberScroller.setColorScheme(self, ...) return ctbSetColorScheme
 function CustomNumberScroller.getColorScheme(self, ...) return ctbGetColorScheme(self.Box, ...) end
 
 function CustomNumberScroller.addEvent(self, ...) return ctbAddEvent(self.Box, ...) end
+function CustomNumberScroller.putOnSide(self, ...) return ctbPutOnSide(self.Box, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -5441,7 +5587,7 @@ function CustomLoading.create(x, y, relative, parent)
 
 	self.Circles = {}
 
-	local color = "tl:FF666666 tr:FF666666 bl:FF666666 br:FF666666"
+	local color = "tl:FFAAAAAA tr:FFAAAAAA bl:FFAAAAAA br:FFAAAAAA"
 	if self.ColorScheme.DarkTheme then
 		color = "tl:FFEEEEEE tr:FFEEEEEE bl:FFEEEEEE br:FFEEEEEE"
 	end
@@ -5482,7 +5628,7 @@ function CustomLoading.setProgress(self, percentage)
 
 	for i = 0, 330, 30 do
 
-		local color = "tl:FF666666 tr:FF666666 bl:FF666666 br:FF666666"
+		local color = "tl:FFAAAAAA tr:FFAAAAAA bl:FFAAAAAA br:FFAAAAAA"
 		if self.ColorScheme.DarkTheme then
 			color = "tl:FFEEEEEE tr:FFEEEEEE bl:FFEEEEEE br:FFEEEEEE"
 		end

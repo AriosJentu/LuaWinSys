@@ -20,6 +20,7 @@ themes = {
 demo_window = CustomWindow.create(100, 100, 750, 580, "Widgets List", false)
 demo_window:setVisible(false)
 demo_window:setCloseEnabled(true)
+demo_window:showBar("left", 165)
 --bindKey("b", "up", function() demo_window:open() end)
 
 
@@ -32,6 +33,7 @@ demo_window_m = CustomWindow.create(1000, 400, 300, 200, "Not Movable Window", f
 demo_window_m:setVisible(false)
 demo_window_m:setCloseEnabled(true)
 demo_window_m:setMovable(false)
+demo_window_m:showBar("top", 65)
 --bindKey("m", "up", function() demo_window_m:open() end)
 
 addCommandHandler("demowidgets", function()
@@ -81,10 +83,10 @@ test_but_locked2:setEnabled(false)
 
 test_but_clicked2 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_l:getFrame())
 
-test_but_locked3 = CustomButton.create(100, 60, 100, 40, "Disabled", false, demo_window_m:getFrame())
+test_but_locked3 = CustomButton.create(100, 80, 100, 40, "Disabled", false, demo_window_m:getFrame())
 test_but_locked3:setEnabled(false)
 
-test_but_clicked3 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_m:getFrame())
+test_but_clicked3 = CustomButton.create(100, 130, 100, 40, "Clicked", false, demo_window_m:getFrame())
 
 CustomTooltip.create("Custom Tooltip", test_button, 0)
 
@@ -111,9 +113,9 @@ test_pbar6:setProgress(100)
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Scroll bars
 test_scver = CustomScrollBar.create(120, 30, 10, 490, false, demo_window:getFrame())
-test_scver_l = CustomScrollBar.create(140, 30, 20, 490, false, demo_window:getFrame())
-test_schor = CustomScrollBar.create(10, 530, 150, 10, false, demo_window:getFrame())
-test_schor_l = CustomScrollBar.create(10, 550, 150, 20, false, demo_window:getFrame())
+test_scver_l = CustomScrollBar.create(140, 30, 15, 490, false, demo_window:getFrame())
+test_schor = CustomScrollBar.create(10, 530, 145, 10, false, demo_window:getFrame())
+test_schor_l = CustomScrollBar.create(10, 550, 145, 20, false, demo_window:getFrame())
 
 test_scver:setScrollPosition(50)
 test_scver:setScrollLength(90)
@@ -146,6 +148,9 @@ test_edit_l = CustomEdit.create(170, 70, 250, 30, "EditBox Disabled", false, dem
 test_edit_m = CustomEdit.create(170, 110, 250, 30, "EditBox Masked", false, demo_window:getFrame())
 test_edit_r = CustomEdit.create(170, 150, 250, 30, "EditBox ReadOnly", false, demo_window:getFrame())
 
+test_edit_nm = CustomEdit.create(10, 30, 280, 30, "EditBox on Side Panel", false, demo_window_m:getFrame())
+test_edit_nm:putOnSide(true)
+
 test_memo = CustomMemo.create(170, 190, 250, 200, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", false, demo_window:getFrame())
 test_memo_l = CustomMemo.create(170, 400, 250, 80, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ", false, demo_window:getFrame())
 test_memo_r = CustomMemo.create(170, 490, 250, 83, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ", false, demo_window:getFrame())
@@ -166,6 +171,7 @@ test_edit_r:setReadOnly(true)
 test_memo_r:setReadOnly(true)
 test_numscroll_r:setReadOnly(true)
 test_numscroll_r:setText(49)
+
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Check boxes
@@ -296,10 +302,13 @@ demo_window:addElements({test_combo, test_combo_d, test_combo_s})
 demo_window:addElements({test_tab, test_tab_d})
 demo_window:addElements({test_label, test_label_hov, test_label_sch})
 demo_window:addElement(test_loading)
-demo_window:setColorScheme(BlueColorsDark)
 
 demo_window_l:addElements({test_but_locked2, test_but_clicked2})
-demo_window_m:addElements({test_but_locked3, test_but_clicked3})
+demo_window_m:addElements({test_but_locked3, test_but_clicked3, test_edit_nm})
+
+demo_window:setColorScheme(BlueColorsDark)
+demo_window_l:setColorScheme(BlueColorsDark)
+demo_window_m:setColorScheme(BlueColorsDark)
 
 indx = 1
 
