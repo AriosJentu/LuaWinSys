@@ -2212,7 +2212,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 
 			ScrollBars[id].Edges:setPosition(sx, sy, false)
 
-			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Canvas)
+			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Scroll)
 
 		end
 
@@ -2228,7 +2228,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			end
 
 			csbSetScrollPosition(ScrollBars[id], ScrollBars[id].Scroll + x*upper*ScrollBars[id].ScrollSpeed)
-			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Canvas)
+			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Scroll)
 
 		end
 
@@ -4061,7 +4061,7 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 					v.Selected = true
 					v.Mark:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main)) 
 					
-					triggerEvent("onCustomComboBoxSelectItem", ComboBoxes[id].Canvas, ComboBoxes[id].Canvas)
+					triggerEvent("onCustomComboBoxSelectItem", ComboBoxes[id].Canvas, v.Text)
 
 				end
 			end
