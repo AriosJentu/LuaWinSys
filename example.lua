@@ -36,6 +36,10 @@ demo_window_m:setMovable(false)
 demo_window_m:showBar("top", 65)
 --bindKey("m", "up", function() demo_window_m:open() end)
 
+demo_window_n = CustomWindow.create(5, 80, 90, 50, "Parented", false, demo_window_m)
+demo_window_n:setCloseEnabled(true)
+demo_window_n:showBar("right", 30)
+
 addCommandHandler("demowidgets", function()
 	if demo_window_l:getVisible() then
 		demo_window:close()

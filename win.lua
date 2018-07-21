@@ -578,12 +578,21 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	end
 
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
+	end
+
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main part of window
 	Windows[id] = {}
 	Windows[id].SchemeElements = {}
 	Windows[id].Canvas = GuiStaticImage.create(x-2, y-2, w+4, h+4, pane, false, parent)
 	Windows[id].ColorScheme = DefaultColors
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		Windows[id].ColorScheme = oldparent.ColorScheme
+	end
 
 	Windows[id].MaxX = nw
 	Windows[id].MaxY = nh
@@ -1193,6 +1202,12 @@ CustomWindow.__index = CustomWindow
 
 function CustomWindow.create(...)
 	local self = setmetatable(guiCreateCustomWindow(...), CustomWindow)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
@@ -2382,7 +2397,6 @@ function csbSetEnabled(scroll, bool)
 
 		TopCol, BotCol, EdgesCol, MainCol = "CCCCCC", "BBBBBB", "999999", "B7B7B7"
 		if scroll.ColorScheme.DarkTheme then TopCol, BotCol, EdgesCol, MainCol = "3A3A3A", "333333", "222222", "2F2F2F" end
-		print(scroll.ColorScheme.DarkTheme)
 
 		maicol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
 		edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgesCol, EdgesCol, EdgesCol, EdgesCol)
