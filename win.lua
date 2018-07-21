@@ -1,5 +1,9 @@
 CONTENT = "LuaWinSys" --Resource name with files
 
+function comparetypes(object, metatable)
+	return getmetatable(object) == metatable
+end
+
 function string:split(sep)
 
 	local tab = {}
@@ -1188,48 +1192,47 @@ CustomWindow = {}
 CustomWindow.__index = CustomWindow
 
 function CustomWindow.create(...)
-	local self = setmetatable({}, CustomWindow)
-	self.Window = guiCreateCustomWindow(...)
+	local self = setmetatable(guiCreateCustomWindow(...), CustomWindow)
 	return self
 end
 
-function CustomWindow.setCloseEnabled(self, ...) return cwSetCloseEnabled(self.Window, ...) end
-function CustomWindow.setEnabled(self, ...) return cwSetEnabled(self.Window, ...) end
-function CustomWindow.setVisible(self, ...) return cwSetVisible(self.Window, ...) end
-function CustomWindow.setSize(self, ...) return cwSetSize(self.Window, ...) end
-function CustomWindow.setPosition(self, ...) return cwSetPosition(self.Window, ...) end
-function CustomWindow.setText(self, ...) return cwSetTitle(self.Window, ...) end
-function CustomWindow.setTitle(self, ...) return cwSetTitle(self.Window, ...) end
-function CustomWindow.setMovable(self, ...) return cwSetMovable(self.Window, ...) end
+function CustomWindow.setCloseEnabled(self, ...) return cwSetCloseEnabled(self, ...) end
+function CustomWindow.setEnabled(self, ...) return cwSetEnabled(self, ...) end
+function CustomWindow.setVisible(self, ...) return cwSetVisible(self, ...) end
+function CustomWindow.setSize(self, ...) return cwSetSize(self, ...) end
+function CustomWindow.setPosition(self, ...) return cwSetPosition(self, ...) end
+function CustomWindow.setText(self, ...) return cwSetTitle(self, ...) end
+function CustomWindow.setTitle(self, ...) return cwSetTitle(self, ...) end
+function CustomWindow.setMovable(self, ...) return cwSetMovable(self, ...) end
 
-function CustomWindow.bringToFront(self) return cwBringToFront(self.Window) end
-function CustomWindow.moveToBack(self) return cwMoveToBack(self.Window) end
+function CustomWindow.bringToFront(self) return cwBringToFront(self) end
+function CustomWindow.moveToBack(self) return cwMoveToBack(self) end
 
-function CustomWindow.getCloseEnabled(self, ...) return cwGetCloseEnabled(self.Window, ...) end
-function CustomWindow.getEnabled(self, ...) return cwGetEnabled(self.Window, ...) end
-function CustomWindow.getVisible(self, ...) return cwGetVisible(self.Window, ...) end
-function CustomWindow.getSize(self, ...) return cwGetSize(self.Window, ...) end
-function CustomWindow.getPosition(self, ...) return cwGetPosition(self.Window, ...) end
-function CustomWindow.getText(self, ...) return cwGetTitle(self.Window, ...) end
-function CustomWindow.getTitle(self, ...) return cwGetTitle(self.Window, ...) end
-function CustomWindow.getMovable(self, ...) return cwGetMovable(self.Window, ...) end
+function CustomWindow.getCloseEnabled(self, ...) return cwGetCloseEnabled(self, ...) end
+function CustomWindow.getEnabled(self, ...) return cwGetEnabled(self, ...) end
+function CustomWindow.getVisible(self, ...) return cwGetVisible(self, ...) end
+function CustomWindow.getSize(self, ...) return cwGetSize(self, ...) end
+function CustomWindow.getPosition(self, ...) return cwGetPosition(self, ...) end
+function CustomWindow.getText(self, ...) return cwGetTitle(self, ...) end
+function CustomWindow.getTitle(self, ...) return cwGetTitle(self, ...) end
+function CustomWindow.getMovable(self, ...) return cwGetMovable(self, ...) end
 
-function CustomWindow.getFrame(self, ...) return cwGetFrame(self.Window, ...) end
-function CustomWindow.getHeader(self, ...) return cwGetHeader(self.Window, ...) end
-function CustomWindow.getDialog(self, ...) return cwGetDialog(self.Window, ...) end
+function CustomWindow.getFrame(self, ...) return cwGetFrame(self, ...) end
+function CustomWindow.getHeader(self, ...) return cwGetHeader(self, ...) end
+function CustomWindow.getDialog(self, ...) return cwGetDialog(self, ...) end
 
-function CustomWindow.open(self) return cwOpen(self.Window) end
-function CustomWindow.close(self) return cwClose(self.Window) end
+function CustomWindow.open(self) return cwOpen(self) end
+function CustomWindow.close(self) return cwClose(self) end
 
-function CustomWindow.setColorScheme(self, ...) return cwSetColorScheme(self.Window, ...) end
-function CustomWindow.getColorScheme(self, ...) return cwGetColorScheme(self.Window, ...) end
-function CustomWindow.addElement(self, ...) return cwAddSchemeElement(self.Window, ...) end
-function CustomWindow.addElements(self, ...) return cwAddSchemeElements(self.Window, ...) end
+function CustomWindow.setColorScheme(self, ...) return cwSetColorScheme(self, ...) end
+function CustomWindow.getColorScheme(self, ...) return cwGetColorScheme(self, ...) end
+function CustomWindow.addElement(self, ...) return cwAddSchemeElement(self, ...) end
+function CustomWindow.addElements(self, ...) return cwAddSchemeElements(self, ...) end
 
-function CustomWindow.addEvent(self, ...) return cwAddEvent(self.Window, ...) end
+function CustomWindow.addEvent(self, ...) return cwAddEvent(self, ...) end
 
-function CustomWindow.showDialog(self, ...) return cwShowDialog(self.Window, ...) end
-function CustomWindow.showBar(self, ...) return cwShowBar(self.Window, ...) end
+function CustomWindow.showDialog(self, ...) return cwShowDialog(self, ...) end
+function CustomWindow.showBar(self, ...) return cwShowBar(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -1267,12 +1270,21 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 
 	end
 
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
+	end
+
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main part of button
 	Buttons[id] = {}
 
 	Buttons[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
 	Buttons[id].ColorScheme = DefaultColors
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		Buttons[id].ColorScheme = oldparent.ColorScheme
+	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Button formal shadow
@@ -1623,31 +1635,36 @@ CustomButton = {}
 CustomButton.__index = CustomButton
 
 function CustomButton.create(...)
-	local self = setmetatable({}, CustomButton)
-	self.Button = guiCreateCustomButton(...)
+	local self = setmetatable(guiCreateCustomButton(...), CustomButton)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
-function CustomButton.setEnabled(self, ...) return cbSetEnabled(self.Button, ...) end
-function CustomButton.setVisible(self, ...) return cbSetVisible(self.Button, ...) end
-function CustomButton.setSize(self, ...) return cbSetSize(self.Button, ...) end
-function CustomButton.setPosition(self, ...) return cbSetPosition(self.Button, ...) end
-function CustomButton.setText(self, ...) return cbSetText(self.Button, ...) end
-function CustomButton.setImage(self, ...) return cbSetImage(self.Button, ...) end
+function CustomButton.setEnabled(self, ...) return cbSetEnabled(self, ...) end
+function CustomButton.setVisible(self, ...) return cbSetVisible(self, ...) end
+function CustomButton.setSize(self, ...) return cbSetSize(self, ...) end
+function CustomButton.setPosition(self, ...) return cbSetPosition(self, ...) end
+function CustomButton.setText(self, ...) return cbSetText(self, ...) end
+function CustomButton.setImage(self, ...) return cbSetImage(self, ...) end
 
-function CustomButton.bringToFront(self) return cbBringToFront(self.Button) end
-function CustomButton.moveToBack(self) return cbMoveToBack(self.Button) end
+function CustomButton.bringToFront(self) return cbBringToFront(self) end
+function CustomButton.moveToBack(self) return cbMoveToBack(self) end
 
-function CustomButton.getEnabled(self, ...) return cbGetEnabled(self.Button, ...) end
-function CustomButton.getVisible(self, ...) return cbGetVisible(self.Button, ...) end
-function CustomButton.getSize(self, ...) return cbGetSize(self.Button, ...) end
-function CustomButton.getPosition(self, ...) return cbGetPosition(self.Button, ...) end
-function CustomButton.getText(self, ...) return cbGetText(self.Button, ...) end
+function CustomButton.getEnabled(self, ...) return cbGetEnabled(self, ...) end
+function CustomButton.getVisible(self, ...) return cbGetVisible(self, ...) end
+function CustomButton.getSize(self, ...) return cbGetSize(self, ...) end
+function CustomButton.getPosition(self, ...) return cbGetPosition(self, ...) end
+function CustomButton.getText(self, ...) return cbGetText(self, ...) end
 
-function CustomButton.setColorScheme(self, ...) return cbSetColorScheme(self.Button, ...) end
-function CustomButton.getColorScheme(self, ...) return cbGetColorScheme(self.Button, ...) end
+function CustomButton.setColorScheme(self, ...) return cbSetColorScheme(self, ...) end
+function CustomButton.getColorScheme(self, ...) return cbGetColorScheme(self, ...) end
 
-function CustomButton.addEvent(self, ...) return cbAddEvent(self.Button, ...) end
+function CustomButton.addEvent(self, ...) return cbAddEvent(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -1686,12 +1703,21 @@ function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 
 	end
 
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
+	end
+
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
 	ProgressBars[id] = {}
 	ProgressBars[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
 	ProgressBars[id].ColorScheme = DefaultColors
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		ProgressBars[id].ColorScheme = oldparent.ColorScheme
+	end
 
 	ProgressBars[id].Vertical = GuiStaticImage.create(1, 0, w, h+2, pane, false, ProgressBars[id].Canvas)
 	ProgressBars[id].Horizontal = GuiStaticImage.create(0, 1, w+2, h, pane, false, ProgressBars[id].Canvas)
@@ -1927,28 +1953,33 @@ CustomProgressBar = {}
 CustomProgressBar.__index = CustomProgressBar
 
 function CustomProgressBar.create(...)
-	local self = setmetatable({}, CustomProgressBar)
-	self.ProgressBar = guiCreateCustomProgressBar(...)
+	local self = setmetatable(guiCreateCustomProgressBar(...), CustomProgressBar)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
-function CustomProgressBar.setProgress(self, ...) return cpbSetProgress(self.ProgressBar, ...) end
-function CustomProgressBar.setPosition(self, ...) return cpbSetPosition(self.ProgressBar, ...) end
-function CustomProgressBar.setSize(self, ...) return cpbSetSize(self.ProgressBar, ...) end
-function CustomProgressBar.setVisible(self, ...) return cpbSetVisible(self.ProgressBar, ...) end
+function CustomProgressBar.setProgress(self, ...) return cpbSetProgress(self, ...) end
+function CustomProgressBar.setPosition(self, ...) return cpbSetPosition(self, ...) end
+function CustomProgressBar.setSize(self, ...) return cpbSetSize(self, ...) end
+function CustomProgressBar.setVisible(self, ...) return cpbSetVisible(self, ...) end
 
-function CustomProgressBar.bringToFront(self) return cpbBringToFront(self.ProgressBar) end
-function CustomProgressBar.moveToBack(self) return cpbMoveToBack(self.ProgressBar) end
+function CustomProgressBar.bringToFront(self) return cpbBringToFront(self) end
+function CustomProgressBar.moveToBack(self) return cpbMoveToBack(self) end
 
-function CustomProgressBar.getProgress(self, ...) return cpbGetProgress(self.ProgressBar, ...) end
-function CustomProgressBar.getPosition(self, ...) return cpbGetPosition(self.ProgressBar, ...) end
-function CustomProgressBar.getSize(self, ...) return cpbGetSize(self.ProgressBar, ...) end
-function CustomProgressBar.getVisible(self, ...) return cpbGetVisible(self.ProgressBar, ...) end
+function CustomProgressBar.getProgress(self, ...) return cpbGetProgress(self, ...) end
+function CustomProgressBar.getPosition(self, ...) return cpbGetPosition(self, ...) end
+function CustomProgressBar.getSize(self, ...) return cpbGetSize(self, ...) end
+function CustomProgressBar.getVisible(self, ...) return cpbGetVisible(self, ...) end
 
-function CustomProgressBar.setColorScheme(self, ...) return cpbSetColorScheme(self.ProgressBar, ...) end
-function CustomProgressBar.getColorScheme(self, ...) return cpbGetColorScheme(self.ProgressBar, ...) end
+function CustomProgressBar.setColorScheme(self, ...) return cpbSetColorScheme(self, ...) end
+function CustomProgressBar.getColorScheme(self, ...) return cpbGetColorScheme(self, ...) end
 
-function CustomProgressBar.addEvent(self, ...) return cpbAddEvent(self.ProgressBar, ...) end
+function CustomProgressBar.addEvent(self, ...) return cpbAddEvent(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -1991,6 +2022,10 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 	ScrollBars[id].ScrollLength = 0.2*high
 	ScrollBars[id].ColorScheme = DefaultColors
 
+	if parent and parent.ColorScheme ~= nil then
+		ScrollBars[id].ColorScheme = parent.ColorScheme
+	end
+
 	local sw, sh = ScrollBars[id].ScrollLength, h
 	local xw, xh = ScrollBars[id].ScrollLength-2, h
 	local sx, sy = 1, 0
@@ -1999,6 +2034,11 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 		sw, sh = w, ScrollBars[id].ScrollLength
 		xw, xh = w, ScrollBars[id].ScrollLength-2
 		sx, sy = 0, 1
+	end
+
+
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -2342,6 +2382,7 @@ function csbSetEnabled(scroll, bool)
 
 		TopCol, BotCol, EdgesCol, MainCol = "CCCCCC", "BBBBBB", "999999", "B7B7B7"
 		if scroll.ColorScheme.DarkTheme then TopCol, BotCol, EdgesCol, MainCol = "3A3A3A", "333333", "222222", "2F2F2F" end
+		print(scroll.ColorScheme.DarkTheme)
 
 		maicol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
 		edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgesCol, EdgesCol, EdgesCol, EdgesCol)
@@ -2351,9 +2392,6 @@ function csbSetEnabled(scroll, bool)
 		scroll.Edges:setProperty("ImageColours", edgcol)
 		scroll.Entrail:setProperty("ImageColours", btncol)
 
-		--scroll.Main:setProperty("ImageColours", "tl:FFB7B7B7 tr:FFB7B7B7 bl:FFB7B7B7 br:FFB7B7B7")
-		--scroll.Edges:setProperty("ImageColours", "tl:FF999999 tr:FF999999 bl:FF999999 br:FF999999")
-		--scroll.Entrail:setProperty("ImageColours", "tl:FFCCCCCC tr:FFCCCCCC bl:FFBBBBBB br:FFBBBBBB")
 	end
 end
 
@@ -2465,36 +2503,40 @@ CustomScrollBar = {}
 CustomScrollBar.__index = CustomScrollBar
 
 function CustomScrollBar.create(...)
-	local self = setmetatable({}, CustomScrollBar)
-	self.ScrollBar = guiCreateCustomScrollBar(...)
+	local self = setmetatable(guiCreateCustomScrollBar(...), CustomScrollBar)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
 
 	return self
 
 end
 
-function CustomScrollBar.setScrollPosition(self, ...) return csbSetScrollPosition(self.ScrollBar, ...) end
-function CustomScrollBar.setScrollLength(self, ...) return csbSetScrollLength(self.ScrollBar, ...) end
-function CustomScrollBar.setPosition(self, ...) return csbSetPosition(self.ScrollBar, ...) end
-function CustomScrollBar.setSize(self, ...) return csbSetSize(self.ScrollBar, ...) end
-function CustomScrollBar.setVisible(self, ...) return csbSetVisible(self.ScrollBar, ...) end
-function CustomScrollBar.setEnabled(self, ...) return csbSetEnabled(self.ScrollBar, ...) end
-function CustomScrollBar.setScrollSpeed(self, ...) return csbSetScrollSpeed(self.ScrollBar, ...) end
+function CustomScrollBar.setScrollPosition(self, ...) return csbSetScrollPosition(self, ...) end
+function CustomScrollBar.setScrollLength(self, ...) return csbSetScrollLength(self, ...) end
+function CustomScrollBar.setPosition(self, ...) return csbSetPosition(self, ...) end
+function CustomScrollBar.setSize(self, ...) return csbSetSize(self, ...) end
+function CustomScrollBar.setVisible(self, ...) return csbSetVisible(self, ...) end
+function CustomScrollBar.setEnabled(self, ...) return csbSetEnabled(self, ...) end
+function CustomScrollBar.setScrollSpeed(self, ...) return csbSetScrollSpeed(self, ...) end
 
-function CustomScrollBar.bringToFront(self) return csbBringToFront(self.ScrollBar) end
-function CustomScrollBar.moveToBack(self) return csbMoveToBack(self.ScrollBar) end
+function CustomScrollBar.bringToFront(self) return csbBringToFront(self) end
+function CustomScrollBar.moveToBack(self) return csbMoveToBack(self) end
 
-function CustomScrollBar.getScrollPosition(self, ...) return csbGetScrollPosition(self.ScrollBar, ...) end
-function CustomScrollBar.getScrollLength(self, ...) return csbGetScrollLength(self.ScrollBar, ...) end
-function CustomScrollBar.getPosition(self, ...) return csbGetPosition(self.ScrollBar, ...) end
-function CustomScrollBar.getSize(self, ...) return csbGetSize(self.ScrollBar, ...) end
-function CustomScrollBar.getVisible(self, ...) return csbGetVisible(self.ScrollBar, ...) end
-function CustomScrollBar.getEnabled(self, ...) return csbGetEnabled(self.ScrollBar, ...) end
-function CustomScrollBar.getScrollSpeed(self, ...) return csbGetScrollSpeed(self.ScrollBar, ...) end
+function CustomScrollBar.getScrollPosition(self, ...) return csbGetScrollPosition(self, ...) end
+function CustomScrollBar.getScrollLength(self, ...) return csbGetScrollLength(self, ...) end
+function CustomScrollBar.getPosition(self, ...) return csbGetPosition(self, ...) end
+function CustomScrollBar.getSize(self, ...) return csbGetSize(self, ...) end
+function CustomScrollBar.getVisible(self, ...) return csbGetVisible(self, ...) end
+function CustomScrollBar.getEnabled(self, ...) return csbGetEnabled(self, ...) end
+function CustomScrollBar.getScrollSpeed(self, ...) return csbGetScrollSpeed(self, ...) end
 
-function CustomScrollBar.setColorScheme(self, ...) return csbSetColorScheme(self.ScrollBar, ...) end
-function CustomScrollBar.getColorScheme(self, ...) return csbGetColorScheme(self.ScrollBar, ...) end
+function CustomScrollBar.setColorScheme(self, ...) return csbSetColorScheme(self, ...) end
+function CustomScrollBar.getColorScheme(self, ...) return csbGetColorScheme(self, ...) end
 
-function CustomScrollBar.addEvent(self, ...) return csbAddEvent(self.ScrollBar, ...) end
+function CustomScrollBar.addEvent(self, ...) return csbAddEvent(self, ...) end
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -2534,6 +2576,11 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 
 	end
 
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
+	end
+
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
@@ -2541,6 +2588,10 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	EditBoxes[id].ColorScheme = DefaultColors
 	EditBoxes[id].IsOnSideBlock = false
 	EditBoxes[id].Canvas = GuiStaticImage.create(x, y, w, h, pane, false, parent)
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		EditBoxes[id].ColorScheme = oldparent.ColorScheme
+	end
 
 	if objtype == "memo" then
 		EditBoxes[id].TextBox = GuiMemo.create(0, 0, w, h, text, false, EditBoxes[id].Canvas)
@@ -3177,117 +3228,132 @@ CustomEdit = {}
 CustomEdit.__index = CustomEdit
 
 function CustomEdit.create(...)
-	local self = setmetatable({}, CustomEdit)
-	self.Box = guiCreateCustomEdit(...)
+	local self = setmetatable(guiCreateCustomEdit(...), CustomEdit)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
-function CustomEdit.setPosition(self, ...) return ctbSetPosition(self.Box, ...) end
-function CustomEdit.setSize(self, ...) return ctbSetSize(self.Box, ...) end
-function CustomEdit.setVisible(self, ...) return ctbSetVisible(self.Box, ...) end
-function CustomEdit.setEnabled(self, ...) return ctbSetEnabled(self.Box, ...) end
-function CustomEdit.setReadOnly(self, ...) return ctbSetReadOnly(self.Box, ...) end
-function CustomEdit.setMaxLength(self, ...) return ctbSetMaxLength(self.Box, ...) end
-function CustomEdit.setText(self, ...) return ctbSetText(self.Box, ...) end
-function CustomEdit.setCaretIndex(self, ...) return ctbSetCaretIndex(self.Box, ...) end
-function CustomEdit.setMasked(self, ...) return ctbSetMasked(self.Box, ...) end
+function CustomEdit.setPosition(self, ...) return ctbSetPosition(self, ...) end
+function CustomEdit.setSize(self, ...) return ctbSetSize(self, ...) end
+function CustomEdit.setVisible(self, ...) return ctbSetVisible(self, ...) end
+function CustomEdit.setEnabled(self, ...) return ctbSetEnabled(self, ...) end
+function CustomEdit.setReadOnly(self, ...) return ctbSetReadOnly(self, ...) end
+function CustomEdit.setMaxLength(self, ...) return ctbSetMaxLength(self, ...) end
+function CustomEdit.setText(self, ...) return ctbSetText(self, ...) end
+function CustomEdit.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
+function CustomEdit.setMasked(self, ...) return ctbSetMasked(self, ...) end
 
-function CustomEdit.bringToFront(self) return ctbBringToFront(self.Box) end
-function CustomEdit.moveToBack(self) return ctbMoveToBack(self.Box) end
+function CustomEdit.bringToFront(self) return ctbBringToFront(self) end
+function CustomEdit.moveToBack(self) return ctbMoveToBack(self) end
 
-function CustomEdit.getPosition(self, ...) return ctbGetPosition(self.Box, ...) end
-function CustomEdit.getSize(self, ...) return ctbGetSize(self.Box, ...) end
-function CustomEdit.getVisible(self, ...) return ctbGetVisible(self.Box, ...) end
-function CustomEdit.getEnabled(self, ...) return ctbGetEnabled(self.Box, ...) end
-function CustomEdit.getReadOnly(self, ...) return ctbGetReadOnly(self.Box, ...) end
-function CustomEdit.getMaxLength(self, ...) return ctbGetMaxLength(self.Box, ...) end
-function CustomEdit.getText(self, ...) return ctbGetText(self.Box, ...) end
-function CustomEdit.getCaretIndex(self, ...) return ctbGetCaretIndex(self.Box, ...) end
-function CustomEdit.getMasked(self, ...) return ctbGetMasked(self.Box, ...) end
+function CustomEdit.getPosition(self, ...) return ctbGetPosition(self, ...) end
+function CustomEdit.getSize(self, ...) return ctbGetSize(self, ...) end
+function CustomEdit.getVisible(self, ...) return ctbGetVisible(self, ...) end
+function CustomEdit.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
+function CustomEdit.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
+function CustomEdit.getMaxLength(self, ...) return ctbGetMaxLength(self, ...) end
+function CustomEdit.getText(self, ...) return ctbGetText(self, ...) end
+function CustomEdit.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
+function CustomEdit.getMasked(self, ...) return ctbGetMasked(self, ...) end
 
-function CustomEdit.setColorScheme(self, ...) return ctbSetColorScheme(self.Box, ...) end
-function CustomEdit.getColorScheme(self, ...) return ctbGetColorScheme(self.Box, ...) end
+function CustomEdit.setColorScheme(self, ...) return ctbSetColorScheme(self, ...) end
+function CustomEdit.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
 
-function CustomEdit.addEvent(self, ...) return ctbAddEvent(self.Box, ...) end
-function CustomEdit.putOnSide(self, ...) return ctbPutOnSide(self.Box, ...) end
+function CustomEdit.addEvent(self, ...) return ctbAddEvent(self, ...) end
+function CustomEdit.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 
 
 CustomMemo = {}
 CustomMemo.__index = CustomMemo
 
 function CustomMemo.create(...)
-	local self = setmetatable({}, CustomMemo)
-	self.Box = guiCreateCustomMemo(...)
+	local self = setmetatable(guiCreateCustomMemo(...), CustomMemo)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
-function CustomMemo.setPosition(self, ...) return ctbSetPosition(self.Box, ...) end
-function CustomMemo.setSize(self, ...) return ctbSetSize(self.Box, ...) end
-function CustomMemo.setVisible(self, ...) return ctbSetVisible(self.Box, ...) end
-function CustomMemo.setEnabled(self, ...) return ctbSetEnabled(self.Box, ...) end
-function CustomMemo.setReadOnly(self, ...) return ctbSetReadOnly(self.Box, ...) end
-function CustomMemo.setText(self, ...) return ctbSetText(self.Box, ...) end
-function CustomMemo.setCaretIndex(self, ...) return ctbSetCaretIndex(self.Box, ...) end
+function CustomMemo.setPosition(self, ...) return ctbSetPosition(self, ...) end
+function CustomMemo.setSize(self, ...) return ctbSetSize(self, ...) end
+function CustomMemo.setVisible(self, ...) return ctbSetVisible(self, ...) end
+function CustomMemo.setEnabled(self, ...) return ctbSetEnabled(self, ...) end
+function CustomMemo.setReadOnly(self, ...) return ctbSetReadOnly(self, ...) end
+function CustomMemo.setText(self, ...) return ctbSetText(self, ...) end
+function CustomMemo.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
 
-function CustomMemo.bringToFront(self) return ctbBringToFront(self.Box) end
-function CustomMemo.moveToBack(self) return ctbMoveToBack(self.Box) end
+function CustomMemo.bringToFront(self) return ctbBringToFront(self) end
+function CustomMemo.moveToBack(self) return ctbMoveToBack(self) end
 
-function CustomMemo.getPosition(self, ...) return ctbGetPosition(self.Box, ...) end
-function CustomMemo.getSize(self, ...) return ctbGetSize(self.Box, ...) end
-function CustomMemo.getVisible(self, ...) return ctbGetVisible(self.Box, ...) end
-function CustomMemo.getEnabled(self, ...) return ctbGetEnabled(self.Box, ...) end
-function CustomMemo.getReadOnly(self, ...) return ctbGetReadOnly(self.Box, ...) end
-function CustomMemo.getText(self, ...) return ctbGetText(self.Box, ...) end
-function CustomMemo.getCaretIndex(self, ...) return ctbGetCaretIndex(self.Box, ...) end
+function CustomMemo.getPosition(self, ...) return ctbGetPosition(self, ...) end
+function CustomMemo.getSize(self, ...) return ctbGetSize(self, ...) end
+function CustomMemo.getVisible(self, ...) return ctbGetVisible(self, ...) end
+function CustomMemo.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
+function CustomMemo.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
+function CustomMemo.getText(self, ...) return ctbGetText(self, ...) end
+function CustomMemo.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
 
-function CustomMemo.setColorScheme(self, ...) return ctbSetColorScheme(self.Box, ...) end
-function CustomMemo.getColorScheme(self, ...) return ctbGetColorScheme(self.Box, ...) end
+function CustomMemo.setColorScheme(self, ...) return ctbSetColorScheme(self, ...) end
+function CustomMemo.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
 
-function CustomMemo.addEvent(self, ...) return ctbAddEvent(self.Box, ...) end
-function CustomMemo.putOnSide(self, ...) return ctbPutOnSide(self.Box, ...) end
+function CustomMemo.addEvent(self, ...) return ctbAddEvent(self, ...) end
+function CustomMemo.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 
 
 CustomNumberScroller = {}
 CustomNumberScroller.__index = CustomNumberScroller
 
 function CustomNumberScroller.create(...)
-	local self = setmetatable({}, CustomNumberScroller)
-	self.Box = guiCreateCustomNumberScroller(...)
+	local self = setmetatable(guiCreateCustomNumberScroller(...), CustomNumberScroller)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
-function CustomNumberScroller.setPosition(self, ...) return ctbSetPosition(self.Box, ...) end
-function CustomNumberScroller.setSize(self, ...) return ctbSetSize(self.Box, ...) end
-function CustomNumberScroller.setVisible(self, ...) return ctbSetVisible(self.Box, ...) end
-function CustomNumberScroller.setEnabled(self, ...) return ctbSetEnabled(self.Box, ...) end
-function CustomNumberScroller.setReadOnly(self, ...) return ctbSetReadOnly(self.Box, ...) end
-function CustomNumberScroller.setText(self, ...) return ctbSetText(self.Box, ...) end
-function CustomNumberScroller.setCaretIndex(self, ...) return ctbSetCaretIndex(self.Box, ...) end
+function CustomNumberScroller.setPosition(self, ...) return ctbSetPosition(self, ...) end
+function CustomNumberScroller.setSize(self, ...) return ctbSetSize(self, ...) end
+function CustomNumberScroller.setVisible(self, ...) return ctbSetVisible(self, ...) end
+function CustomNumberScroller.setEnabled(self, ...) return ctbSetEnabled(self, ...) end
+function CustomNumberScroller.setReadOnly(self, ...) return ctbSetReadOnly(self, ...) end
+function CustomNumberScroller.setText(self, ...) return ctbSetText(self, ...) end
+function CustomNumberScroller.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
 
-function CustomNumberScroller.setMinimal(self, ...) return ctbSetMinimal(self.Box, ...) end
-function CustomNumberScroller.setMaximal(self, ...) return ctbSetMaximal(self.Box, ...) end
-function CustomNumberScroller.setStepSize(self, ...) return ctbSetScrollStep(self.Box, ...) end
+function CustomNumberScroller.setMinimal(self, ...) return ctbSetMinimal(self, ...) end
+function CustomNumberScroller.setMaximal(self, ...) return ctbSetMaximal(self, ...) end
+function CustomNumberScroller.setStepSize(self, ...) return ctbSetScrollStep(self, ...) end
 
-function CustomNumberScroller.bringToFront(self) return ctbBringToFront(self.Box) end
-function CustomNumberScroller.moveToBack(self) return ctbMoveToBack(self.Box) end
+function CustomNumberScroller.bringToFront(self) return ctbBringToFront(self) end
+function CustomNumberScroller.moveToBack(self) return ctbMoveToBack(self) end
 
-function CustomNumberScroller.getPosition(self, ...) return ctbGetPosition(self.Box, ...) end
-function CustomNumberScroller.getSize(self, ...) return ctbGetSize(self.Box, ...) end
-function CustomNumberScroller.getVisible(self, ...) return ctbGetVisible(self.Box, ...) end
-function CustomNumberScroller.getEnabled(self, ...) return ctbGetEnabled(self.Box, ...) end
-function CustomNumberScroller.getReadOnly(self, ...) return ctbGetReadOnly(self.Box, ...) end
-function CustomNumberScroller.getText(self, ...) return ctbGetText(self.Box, ...) end
-function CustomNumberScroller.getCaretIndex(self, ...) return ctbGetCaretIndex(self.Box, ...) end
+function CustomNumberScroller.getPosition(self, ...) return ctbGetPosition(self, ...) end
+function CustomNumberScroller.getSize(self, ...) return ctbGetSize(self, ...) end
+function CustomNumberScroller.getVisible(self, ...) return ctbGetVisible(self, ...) end
+function CustomNumberScroller.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
+function CustomNumberScroller.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
+function CustomNumberScroller.getText(self, ...) return ctbGetText(self, ...) end
+function CustomNumberScroller.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
 
-function CustomNumberScroller.getMinimal(self, ...) return ctbGetMinimal(self.Box, ...) end
-function CustomNumberScroller.getMaximal(self, ...) return ctbGetMaximal(self.Box, ...) end
-function CustomNumberScroller.getStepSize(self, ...) return ctbGetScrollStep(self.Box, ...) end
+function CustomNumberScroller.getMinimal(self, ...) return ctbGetMinimal(self, ...) end
+function CustomNumberScroller.getMaximal(self, ...) return ctbGetMaximal(self, ...) end
+function CustomNumberScroller.getStepSize(self, ...) return ctbGetScrollStep(self, ...) end
 
-function CustomNumberScroller.setColorScheme(self, ...) return ctbSetColorScheme(self.Box, ...) end
-function CustomNumberScroller.getColorScheme(self, ...) return ctbGetColorScheme(self.Box, ...) end
+function CustomNumberScroller.setColorScheme(self, ...) return ctbSetColorScheme(self, ...) end
+function CustomNumberScroller.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
 
-function CustomNumberScroller.addEvent(self, ...) return ctbAddEvent(self.Box, ...) end
-function CustomNumberScroller.putOnSide(self, ...) return ctbPutOnSide(self.Box, ...) end
+function CustomNumberScroller.addEvent(self, ...) return ctbAddEvent(self, ...) end
+function CustomNumberScroller.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -3327,6 +3393,11 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 
 	end
 
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
+	end
+
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
@@ -3338,6 +3409,10 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	CheckBoxes[id].Main = GuiStaticImage.create(w-42, (h/2)-10, 40, 20, Images.Check, false, CheckBoxes[id].Canvas)
 
 	CheckBoxes[id].Entrail = GuiStaticImage.create(0, 0, 20, 20, Images.Round, false, CheckBoxes[id].Main)
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		CheckBoxes[id].ColorScheme = oldparent.ColorScheme
+	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Properties
@@ -3746,32 +3821,37 @@ CustomCheckBox = {}
 CustomCheckBox.__index = CustomCheckBox
 
 function CustomCheckBox.create(...)
-	local self = setmetatable({}, CustomCheckBox)
-	self.CheckBox = guiCreateCustomCheckBox(...)
+	local self = setmetatable(guiCreateCustomCheckBox(...), CustomCheckBox)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
-function CustomCheckBox.setText(self, ...) return ccbSetText(self.CheckBox, ...) end
-function CustomCheckBox.setPosition(self, ...) return ccbSetPosition(self.CheckBox, ...) end
-function CustomCheckBox.setSize(self, ...) return ccbSetSize(self.CheckBox, ...) end
-function CustomCheckBox.setVisible(self, ...) return ccbSetVisible(self.CheckBox, ...) end
-function CustomCheckBox.setEnabled(self, ...) return ccbSetEnabled(self.CheckBox, ...) end
-function CustomCheckBox.setChecked(self, ...) return ccbSetChecked(self.CheckBox, ...) end
+function CustomCheckBox.setText(self, ...) return ccbSetText(self, ...) end
+function CustomCheckBox.setPosition(self, ...) return ccbSetPosition(self, ...) end
+function CustomCheckBox.setSize(self, ...) return ccbSetSize(self, ...) end
+function CustomCheckBox.setVisible(self, ...) return ccbSetVisible(self, ...) end
+function CustomCheckBox.setEnabled(self, ...) return ccbSetEnabled(self, ...) end
+function CustomCheckBox.setChecked(self, ...) return ccbSetChecked(self, ...) end
 
-function CustomCheckBox.bringToFront(self) return ccbBringToFront(self.CheckBox) end
-function CustomCheckBox.moveToBack(self) return ccbMoveToBack(self.CheckBox) end
+function CustomCheckBox.bringToFront(self) return ccbBringToFront(self) end
+function CustomCheckBox.moveToBack(self) return ccbMoveToBack(self) end
 
-function CustomCheckBox.getText(self, ...) return ccbGetText(self.CheckBox, ...) end
-function CustomCheckBox.getPosition(self, ...) return ccbGetPosition(self.CheckBox, ...) end
-function CustomCheckBox.getSize(self, ...) return ccbGetSize(self.CheckBox, ...) end
-function CustomCheckBox.getVisible(self, ...) return ccbGetVisible(self.CheckBox, ...) end
-function CustomCheckBox.getEnabled(self, ...) return ccbGetEnabled(self.CheckBox, ...) end
-function CustomCheckBox.getChecked(self, ...) return ccbGetChecked(self.CheckBox, ...) end
+function CustomCheckBox.getText(self, ...) return ccbGetText(self, ...) end
+function CustomCheckBox.getPosition(self, ...) return ccbGetPosition(self, ...) end
+function CustomCheckBox.getSize(self, ...) return ccbGetSize(self, ...) end
+function CustomCheckBox.getVisible(self, ...) return ccbGetVisible(self, ...) end
+function CustomCheckBox.getEnabled(self, ...) return ccbGetEnabled(self, ...) end
+function CustomCheckBox.getChecked(self, ...) return ccbGetChecked(self, ...) end
 
-function CustomCheckBox.setColorScheme(self, ...) return ccbSetColorScheme(self.CheckBox, ...) end
-function CustomCheckBox.getColorScheme(self, ...) return ccbGetColorScheme(self.CheckBox, ...) end
+function CustomCheckBox.setColorScheme(self, ...) return ccbSetColorScheme(self, ...) end
+function CustomCheckBox.getColorScheme(self, ...) return ccbGetColorScheme(self, ...) end
 
-function CustomCheckBox.addEvent(self, ...) return ccbAddEvent(self.CheckBox, ...) end
+function CustomCheckBox.addEvent(self, ...) return ccbAddEvent(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -3809,12 +3889,21 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 
 	end
 
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
+	end
+
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
 	ComboBoxes[id] = {}
 	ComboBoxes[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
 	ComboBoxes[id].ColorScheme = DefaultColors
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		ComboBoxes[id].ColorScheme = oldparent.ColorScheme
+	end
 
 	ComboBoxes[id].Vertical = GuiStaticImage.create(1, 0, w, h+2, pane, false, ComboBoxes[id].Canvas)
 	ComboBoxes[id].Horizontal = GuiStaticImage.create(0, 1, w+2, h, pane, false, ComboBoxes[id].Canvas)
@@ -4329,34 +4418,39 @@ CustomComboBox = {}
 CustomComboBox.__index = CustomComboBox
 
 function CustomComboBox.create(...)
-	local self = setmetatable({}, CustomComboBox)
-	self.ComboBox = guiCreateCustomComboBox(...)
+	local self = setmetatable(guiCreateCustomComboBox(...), CustomComboBox)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
-function CustomComboBox.setPosition(self, ...) return clbSetPosition(self.ComboBox, ...) end
-function CustomComboBox.setSize(self, ...) return clbSetSize(self.ComboBox, ...) end
-function CustomComboBox.setVisible(self, ...) return clbSetVisible(self.ComboBox, ...) end
-function CustomComboBox.setEnabled(self, ...) return clbSetEnabled(self.ComboBox, ...) end
-function CustomComboBox.setSelectedItem(self, ...) return clbSetSelectedItem(self.ComboBox, ...) end
-function CustomComboBox.addItem(self, ...) return clbAddItem(self.ComboBox, ...) end
-function CustomComboBox.removeItem(self, ...) return clbRemoveItem(self.ComboBox, ...) end
-function CustomComboBox.setMaxHeight(self, ...) return clbSetMaxHeight(self.ComboBox, ...) end
+function CustomComboBox.setPosition(self, ...) return clbSetPosition(self, ...) end
+function CustomComboBox.setSize(self, ...) return clbSetSize(self, ...) end
+function CustomComboBox.setVisible(self, ...) return clbSetVisible(self, ...) end
+function CustomComboBox.setEnabled(self, ...) return clbSetEnabled(self, ...) end
+function CustomComboBox.setSelectedItem(self, ...) return clbSetSelectedItem(self, ...) end
+function CustomComboBox.addItem(self, ...) return clbAddItem(self, ...) end
+function CustomComboBox.removeItem(self, ...) return clbRemoveItem(self, ...) end
+function CustomComboBox.setMaxHeight(self, ...) return clbSetMaxHeight(self, ...) end
 
-function CustomComboBox.bringToFront(self) return clbBringToFront(self.ComboBox) end
-function CustomComboBox.moveToBack(self) return clbMoveToBack(self.ComboBox) end
+function CustomComboBox.bringToFront(self) return clbBringToFront(self) end
+function CustomComboBox.moveToBack(self) return clbMoveToBack(self) end
 
-function CustomComboBox.getPosition(self, ...) return clbGetPosition(self.ComboBox, ...) end
-function CustomComboBox.getSize(self, ...) return clbGetSize(self.ComboBox, ...) end
-function CustomComboBox.getVisible(self, ...) return clbGetVisible(self.ComboBox, ...) end
-function CustomComboBox.getEnabled(self, ...) return clbGetEnabled(self.ComboBox, ...) end
-function CustomComboBox.getSelectedItem(self, ...) return clbGetSelectedItem(self.ComboBox, ...) end
-function CustomComboBox.getMaxHeight(self, ...) return clbGetMaxHeight(self.ComboBox, ...) end
+function CustomComboBox.getPosition(self, ...) return clbGetPosition(self.CoboBox, ...) end
+function CustomComboBox.getSize(self, ...) return clbGetSize(self, ...) end
+function CustomComboBox.getVisible(self, ...) return clbGetVisible(self, ...) end
+function CustomComboBox.getEnabled(self, ...) return clbGetEnabled(self, ...) end
+function CustomComboBox.getSelectedItem(self, ...) return clbGetSelectedItem(self, ...) end
+function CustomComboBox.getMaxHeight(self, ...) return clbGetMaxHeight(self, ...) end
 
-function CustomComboBox.setColorScheme(self, ...) return clbSetColorScheme(self.ComboBox, ...) end
-function CustomComboBox.getColorScheme(self, ...) return clbGetColorScheme(self.ComboBox, ...) end
+function CustomComboBox.setColorScheme(self, ...) return clbSetColorScheme(self, ...) end
+function CustomComboBox.getColorScheme(self, ...) return clbGetColorScheme(self, ...) end
 
-function CustomComboBox.addEvent(self, ...) return clbAddEvent(self.ComboBox, ...) end
+function CustomComboBox.addEvent(self, ...) return clbAddEvent(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -4395,11 +4489,21 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 		
 	end
 
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
+	end
+
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
 	TabPanels[id] = {}
 	TabPanels[id].ColorScheme = DefaultColors
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		TabPanels[id].ColorScheme = oldparent.ColorScheme
+	end
+
 	TabPanels[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
 
 	TabPanels[id].Vertical = GuiStaticImage.create(1, 0, w, h+2, pane, false, TabPanels[id].Canvas)
@@ -4901,41 +5005,46 @@ CustomTabPanel = {}
 CustomTabPanel.__index = CustomTabPanel
 
 function CustomTabPanel.create(...)
-	local self = setmetatable({}, CustomTabPanel)
-	self.TabPanel = guiCreateCustomTabPanel(...)
+	local self = setmetatable(guiCreateCustomTabPanel(...), CustomTabPanel)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
-function CustomTabPanel.setPosition(self, ...) return ctpSetPosition(self.TabPanel, ...) end
-function CustomTabPanel.setSize(self, ...) return ctpSetSize(self.TabPanel, ...) end
-function CustomTabPanel.setVisible(self, ...) return ctpSetVisible(self.TabPanel, ...) end
-function CustomTabPanel.setEnabled(self, ...) return ctpSetEnabled(self.TabPanel, ...) end
-function CustomTabPanel.addTab(self, ...) return ctpAddTab(self.TabPanel, ...) end
-function CustomTabPanel.setTabEnabled(self, ...) return ctpSetTabEnabled(self.TabPanel, ...) end
-function CustomTabPanel.setTabVisible(self, ...) return ctpSetTabVisible(self.TabPanel, ...) end
-function CustomTabPanel.setTabText(self, ...) return ctpSetTabText(self.TabPanel, ...) end
-function CustomTabPanel.setSelectedTab(self, ...) return ctpSetSelectedTab(self.TabPanel, ...) end
-function CustomTabPanel.setTabsMinLength(self, ...) return ctpSetTabsMinLength(self.TabPanel, ...) end
+function CustomTabPanel.setPosition(self, ...) return ctpSetPosition(self, ...) end
+function CustomTabPanel.setSize(self, ...) return ctpSetSize(self, ...) end
+function CustomTabPanel.setVisible(self, ...) return ctpSetVisible(self, ...) end
+function CustomTabPanel.setEnabled(self, ...) return ctpSetEnabled(self, ...) end
+function CustomTabPanel.addTab(self, ...) return ctpAddTab(self, ...) end
+function CustomTabPanel.setTabEnabled(self, ...) return ctpSetTabEnabled(self, ...) end
+function CustomTabPanel.setTabVisible(self, ...) return ctpSetTabVisible(self, ...) end
+function CustomTabPanel.setTabText(self, ...) return ctpSetTabText(self, ...) end
+function CustomTabPanel.setSelectedTab(self, ...) return ctpSetSelectedTab(self, ...) end
+function CustomTabPanel.setTabsMinLength(self, ...) return ctpSetTabsMinLength(self, ...) end
 
-function CustomTabPanel.bringToFront(self) return ctpBringToFront(self.TabPanel) end
-function CustomTabPanel.moveToBack(self) return ctpMoveToBack(self.TabPanel) end
+function CustomTabPanel.bringToFront(self) return ctpBringToFront(self) end
+function CustomTabPanel.moveToBack(self) return ctpMoveToBack(self) end
 
-function CustomTabPanel.getPosition(self, ...) return ctpGetPosition(self.TabPanel, ...) end
-function CustomTabPanel.getSize(self, ...) return ctpGetSize(self.TabPanel, ...) end
-function CustomTabPanel.getVisible(self, ...) return ctpGetVisible(self.TabPanel, ...) end
-function CustomTabPanel.getEnabled(self, ...) return ctpGetEnabled(self.TabPanel, ...) end
-function CustomTabPanel.getTabEnabled(self, ...) return ctpGetTabEnabled(self.TabPanel, ...) end
-function CustomTabPanel.getTabVisible(self, ...) return ctpGetTabVisible(self.TabPanel, ...) end
-function CustomTabPanel.getTabText(self, ...) return ctpGetTabText(self.TabPanel, ...) end
-function CustomTabPanel.getTabFromText(self, ...) return ctpGetTabFromText(self.TabPanel, ...) end
-function CustomTabPanel.getSelectedTab(self, ...) return ctpGetSelectedTab(self.TabPanel, ...) end
-function CustomTabPanel.getTabsMinLength(self, ...) return ctpGetTabsMinLength(self.TabPanel, ...) end
-function CustomTabPanel.getTabHeader(self, ...) return ctpGetTabHeader(self.TabPanel, ...) end
+function CustomTabPanel.getPosition(self, ...) return ctpGetPosition(self, ...) end
+function CustomTabPanel.getSize(self, ...) return ctpGetSize(self, ...) end
+function CustomTabPanel.getVisible(self, ...) return ctpGetVisible(self, ...) end
+function CustomTabPanel.getEnabled(self, ...) return ctpGetEnabled(self, ...) end
+function CustomTabPanel.getTabEnabled(self, ...) return ctpGetTabEnabled(self, ...) end
+function CustomTabPanel.getTabVisible(self, ...) return ctpGetTabVisible(self, ...) end
+function CustomTabPanel.getTabText(self, ...) return ctpGetTabText(self, ...) end
+function CustomTabPanel.getTabFromText(self, ...) return ctpGetTabFromText(self, ...) end
+function CustomTabPanel.getSelectedTab(self, ...) return ctpGetSelectedTab(self, ...) end
+function CustomTabPanel.getTabsMinLength(self, ...) return ctpGetTabsMinLength(self, ...) end
+function CustomTabPanel.getTabHeader(self, ...) return ctpGetTabHeader(self, ...) end
 
-function CustomTabPanel.setColorScheme(self, ...) return ctpSetColorScheme(self.TabPanel, ...) end
-function CustomTabPanel.getColorScheme(self, ...) return ctpGetColorScheme(self.TabPanel, ...) end
+function CustomTabPanel.setColorScheme(self, ...) return ctpSetColorScheme(self, ...) end
+function CustomTabPanel.getColorScheme(self, ...) return ctpGetColorScheme(self, ...) end
 
-function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self.TabPanel, ...) end
+function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -4973,11 +5082,20 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 
 	end
 
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
+	end
+
 	Labels[id] = {}
 
 	Labels[id].ColorScheme = DefaultColors
 	Labels[id].IsHoverable = false
 	Labels[id].IsSchematical = false
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		Labels[id].ColorScheme = oldparent.ColorScheme
+	end
 
 	Labels[id].Label = GuiLabel.create(x, y, w, h, text, false, parent)
 
@@ -5268,38 +5386,43 @@ CustomLabel = {}
 CustomLabel.__index = CustomLabel
 
 function CustomLabel.create(...)
-	local self = setmetatable({}, CustomLabel)
-	self.Label = guiCreateCustomLabel(...)
+	local self = setmetatable(guiCreateCustomLabel(...), CustomLabel)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) then
+		args[#args]:addElement(self)
+	end
+
 	return self
 end
 
-function CustomLabel.setEnabled(self, ...) return clSetEnabled(self.Label, ...) end
-function CustomLabel.setVisible(self, ...) return clSetVisible(self.Label, ...) end
-function CustomLabel.setSize(self, ...) return clSetSize(self.Label, ...) end
-function CustomLabel.setPosition(self, ...) return clSetPosition(self.Label, ...) end
-function CustomLabel.setText(self, ...) return clSetText(self.Label, ...) end
-function CustomLabel.setColor(self, ...) return clSetColor(self.Label, ...) end
-function CustomLabel.setSchematicalColor(self, ...) return clSetSchematicalColor(self.Label, ...) end
-function CustomLabel.setHoverable(self, ...) return clSetHoverable(self.Label, ...) end
-function CustomLabel.setVerticalAlign(self, ...) return clSetVerticalAlign(self.Label, ...) end
-function CustomLabel.setHorizontalAlign(self, ...) return clSetHorizontalAlign(self.Label, ...) end
-function CustomLabel.setAlign(self, ...) return clSetAlign(self.Label, ...) end
-function CustomLabel.setFont(self, ...) return clSetFont(self.Label, ...) end
+function CustomLabel.setEnabled(self, ...) return clSetEnabled(self, ...) end
+function CustomLabel.setVisible(self, ...) return clSetVisible(self, ...) end
+function CustomLabel.setSize(self, ...) return clSetSize(self, ...) end
+function CustomLabel.setPosition(self, ...) return clSetPosition(self, ...) end
+function CustomLabel.setText(self, ...) return clSetText(self, ...) end
+function CustomLabel.setColor(self, ...) return clSetColor(self, ...) end
+function CustomLabel.setSchematicalColor(self, ...) return clSetSchematicalColor(self, ...) end
+function CustomLabel.setHoverable(self, ...) return clSetHoverable(self, ...) end
+function CustomLabel.setVerticalAlign(self, ...) return clSetVerticalAlign(self, ...) end
+function CustomLabel.setHorizontalAlign(self, ...) return clSetHorizontalAlign(self, ...) end
+function CustomLabel.setAlign(self, ...) return clSetAlign(self, ...) end
+function CustomLabel.setFont(self, ...) return clSetFont(self, ...) end
 
-function CustomLabel.bringToFront(self) return clBringToFront(self.Label) end
-function CustomLabel.moveToBack(self) return clMoveToBack(self.Label) end
+function CustomLabel.bringToFront(self) return clBringToFront(self) end
+function CustomLabel.moveToBack(self) return clMoveToBack(self) end
 
-function CustomLabel.getEnabled(self, ...) return clGetEnabled(self.Label, ...) end
-function CustomLabel.getVisible(self, ...) return clGetVisible(self.Label, ...) end
-function CustomLabel.getSize(self, ...) return clGetSize(self.Label, ...) end
-function CustomLabel.getPosition(self, ...) return clGetPosition(self.Label, ...) end
-function CustomLabel.getText(self, ...) return clGetText(self.Label, ...) end
-function CustomLabel.getColor(self, ...) return clGetColor(self.Label, ...) end
+function CustomLabel.getEnabled(self, ...) return clGetEnabled(self, ...) end
+function CustomLabel.getVisible(self, ...) return clGetVisible(self, ...) end
+function CustomLabel.getSize(self, ...) return clGetSize(self, ...) end
+function CustomLabel.getPosition(self, ...) return clGetPosition(self, ...) end
+function CustomLabel.getText(self, ...) return clGetText(self, ...) end
+function CustomLabel.getColor(self, ...) return clGetColor(self, ...) end
 
-function CustomLabel.setColorScheme(self, ...) return clSetColorScheme(self.Label, ...) end
-function CustomLabel.getColorScheme(self, ...) return clGetColorScheme(self.Label, ...) end
+function CustomLabel.setColorScheme(self, ...) return clSetColorScheme(self, ...) end
+function CustomLabel.getColorScheme(self, ...) return clGetColorScheme(self, ...) end
 
-function CustomLabel.addEvent(self, ...) return clAddEvent(self.Label, ...) end
+function CustomLabel.addEvent(self, ...) return clAddEvent(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -5322,7 +5445,7 @@ function CustomDialog.create(rwidth, text, buttons, window)
 
 	for _, v in pairs(objects) do
 		LabelForGettingSizes:setText(v)
-		maxw = math.max(maxw, guiLabelGetTextExtent(LabelForGettingSizes.Label.Label)+10)
+		maxw = math.max(maxw, guiLabelGetTextExtent(LabelForGettingSizes.Label)+10)
 	end
 	maxw = maxw + 20
 
@@ -5333,9 +5456,9 @@ function CustomDialog.create(rwidth, text, buttons, window)
 		for _, v in pairs(buttons) do
 		
 			LabelForGettingSizes:setText(v)
-			butmaxw = butmaxw + (guiLabelGetTextExtent(LabelForGettingSizes.Label.Label) + 20) + 10
+			butmaxw = butmaxw + (guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20) + 10
 		
-			butsizes[#butsizes + 1] = guiLabelGetTextExtent(LabelForGettingSizes.Label.Label) + 20
+			butsizes[#butsizes + 1] = guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20
 		
 		end
 		
@@ -5344,7 +5467,7 @@ function CustomDialog.create(rwidth, text, buttons, window)
 	elseif type(buttons) == type("string") or type(buttons) == type(123) then
 
 		LabelForGettingSizes:setText(buttons)
-		butmaxw = (guiLabelGetTextExtent(LabelForGettingSizes.Label.Label) + 20) + 10
+		butmaxw = (guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20) + 10
 		buttons = {buttons}
 		butsizes = {butmaxw-10}
 
@@ -5355,7 +5478,7 @@ function CustomDialog.create(rwidth, text, buttons, window)
 
 	w = math.max(butmaxw, maxw) + 5
 	w = math.max(rwidth, w)
-	h = (guiLabelGetFontHeight(LabelForGettingSizes.Label.Label) + 5)*(#objects+1) + 25 + 30
+	h = (guiLabelGetFontHeight(LabelForGettingSizes.Label) + 5)*(#objects+1) + 25 + 30
 
 
 	local x, y = Width/2 - w/2, Height/2 - h/2
@@ -5366,7 +5489,7 @@ function CustomDialog.create(rwidth, text, buttons, window)
 
 	local parent = nil
 	if window then
-		parent = window.Window.Dialog
+		parent = window.Dialog
 	end
 
 	local dialog = CustomWindow.create(x, y, w, h, "", false, parent)
@@ -5410,7 +5533,7 @@ function CustomDialog.create(rwidth, text, buttons, window)
 
 	if window then
 		window:addElement(dialog)
-		window.Window.DialogList[#window.Window.DialogList+1] = self
+		window.DialogList[#window.DialogList+1] = self
 	end
 
 	return self
@@ -5464,10 +5587,10 @@ function CustomTooltip.create(text, element, timetoshow)
 
 	for _, v in pairs(objects) do
 		LabelForGettingSizes:setText(v)
-		wdth = math.max(wdth, guiLabelGetTextExtent(LabelForGettingSizes.Label.Label))
+		wdth = math.max(wdth, guiLabelGetTextExtent(LabelForGettingSizes.Label))
 	end
 
-	local hght = (guiLabelGetFontHeight(LabelForGettingSizes.Label.Label)+2)*(#objects)
+	local hght = (guiLabelGetFontHeight(LabelForGettingSizes.Label)+2)*(#objects)
 
 	wdth = wdth+4
 	hght = hght+4
@@ -5585,10 +5708,19 @@ function CustomLoading.create(x, y, relative, parent)
 		x, y = x*w, y*h
 	end
 
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) then
+		parent = parent:getFrame()
+	end
+
 	self.Back = GuiStaticImage.create(x, y, 30, 30, pane, false, parent)
 	self.ColorScheme = DefaultColors
 	self.Progress = 0
 	self.Animated = true
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		self.ColorScheme = oldparent.ColorScheme
+	end
 
 	self.Circles = {}
 
@@ -5617,6 +5749,10 @@ function CustomLoading.create(x, y, relative, parent)
 	end)
 
 	self.Back:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+
+	if comparetypes(oldparent, CustomWindow) then
+		oldparent:addElement(self)
+	end
 
 	return self
 end
@@ -5667,6 +5803,11 @@ function CustomLoading.setVisible(self, bool)
 	self.Back:setVisible(bool)
 end
 
+function CustomLoading.setColorScheme(self, scheme)
+	self.ColorScheme = scheme
+	self:setProgress(self:getProgress())
+end
+
 
 
 function CustomLoading.getProgress(self)
@@ -5692,18 +5833,22 @@ end
 function CustomLoading.bringToFront(self) self.Back:bringToFront() end
 function CustomLoading.moveToBack(self) self.Back:moveToBack()end
 
-
-function CustomLoading.setColorScheme(self, scheme)
-	self.ColorScheme = scheme
-	self:setProgress(self:getProgress())
-end
-
 function CustomLoading.getColorScheme(self)
 	return self.ColorScheme
 end
 
+--------------------------------------------------------------------------------------------------------------------
 
+local createImage = GuiStaticImage.create
+GuiStaticImage.create = function(x, y, w, h, image, rel, par)
+	
+	if comparetypes(par, CustomWindow) then
+		par = par:getFrame()
+	end
 
+	return createImage(x, y, w, h, image, rel, par)
+
+end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
