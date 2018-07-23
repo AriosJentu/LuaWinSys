@@ -678,6 +678,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Dialog:setVisible(false)
 	Windows[id].SideBlock:setEnabled(false)
 	Windows[id].CloseMain:setVisible(false)
+	Windows[id].CloseAlter:setVisible(false)
 
 	Windows[id].Frame:bringToFront()
 	Windows[id].Enabled = true
@@ -1265,7 +1266,7 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	if relative then
 
 		local sw, sh = Width, Height
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		else
 			parent = nil
@@ -1481,7 +1482,7 @@ function cbSetPosition(button, x, y, rel)
 		local sw, sh = Width, Height
 		local parent = button.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -1500,7 +1501,7 @@ function cbSetSize(button, w, h, rel)
 		local sw, sh = Width, Height
 		local parent = button.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -1575,7 +1576,7 @@ function cbGetPosition(button, rel)
 		local sw, sh = Width, Height
 		local parent = button.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 		
@@ -1596,7 +1597,7 @@ function cbGetSize(button, rel)
 		local sw, sh = Width, Height
 		local parent = button.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -1698,7 +1699,7 @@ function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 	if relative then
 
 		local sw, sh = Width, Height
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		else
 			parent = nil
@@ -1809,7 +1810,7 @@ function cpbSetPosition(bar, x, y, rel)
 		local sw, sh = Width, Height
 		local parent = bar.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -1828,7 +1829,7 @@ function cpbSetSize(bar, w, h, rel)
 		local sw, sh = Width, Height
 		local parent = bar.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -1889,7 +1890,7 @@ function cpbGetPosition(bar, rel)
 		local sw, sh = Width, Height
 		local parent = bar.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 		
@@ -1910,7 +1911,7 @@ function cpbGetSize(bar, rel)
 		local sw, sh = Width, Height
 		local parent = bar.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 		
@@ -2013,7 +2014,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 	if relative then
 
 		local sw, sh = Width, Height
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		else
 			parent = nil
@@ -2312,7 +2313,7 @@ function csbSetPosition(scroll, x, y, rel)
 		local sw, sh = Width, Height
 		local parent = scroll.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -2331,7 +2332,7 @@ function csbSetSize(scroll, w, h, rel)
 		local sw, sh = Width, Height
 		local parent = scroll.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -2431,7 +2432,7 @@ function csbGetPosition(scroll, rel)
 		local sw, sh = Width, Height
 		local parent = scroll.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 		
@@ -2452,7 +2453,7 @@ function csbGetSize(scroll, rel)
 		local sw, sh = Width, Height
 		local parent = scroll.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -2570,7 +2571,7 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	if relative then
 
 		local sw, sh = Width, Height
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		else
 			parent = nil
@@ -2880,7 +2881,7 @@ function ctbSetSize(textbox, w, h, rel)
 		local sw, sh = Width, Height
 		local parent = textbox.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -3387,7 +3388,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	if relative then
 
 		local sw, sh = Width, Height
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		else
 			parent = nil
@@ -3717,7 +3718,7 @@ function ccbSetSize(checkbox, w, h, rel)
 		local sw, sh = Width, Height
 		local parent = checkbox.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -3883,7 +3884,7 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	if relative then
 
 		local sw, sh = Width, Height
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		else
 			parent = nil
@@ -4248,7 +4249,7 @@ function clbSetSize(combo, w, h, rel)
 		local sw, sh = Width, Height
 		local parent = combo.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -4483,7 +4484,7 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 	if relative then
 
 		local sw, sh = Width, Height
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		else
 			parent = nil
@@ -4845,7 +4846,7 @@ function ctpSetSize(tabpan, w, h, rel)
 		local sw, sh = Width, Height
 		local parent = combo.Canvas.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -5076,7 +5077,7 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 	if relative then
 
 		local sw, sh = Width, Height
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		else
 			parent = nil
@@ -5169,7 +5170,7 @@ function clSetPosition(label, x, y, rel)
 		local sw, sh = Width, Height
 		local parent = label.Label.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -5189,7 +5190,7 @@ function clSetSize(label, w, h, rel)
 		local sw, sh = Width, Height
 		local parent = label.Label.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
@@ -5310,7 +5311,7 @@ function clGetPosition(label, rel)
 		local sw, sh = Width, Height
 		local parent = label.Label.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 		
@@ -5331,7 +5332,7 @@ function clGetSize(label, rel)
 		local sw, sh = Width, Height
 		local parent = label.Label.parent or nil
 
-		if parent and parent.type:find("gui") then
+		if parent then
 			sw, sh = parent:getSize(false)
 		end
 
