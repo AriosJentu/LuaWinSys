@@ -3067,6 +3067,10 @@ function ctbSetMinimal(textbox, minimal)
 	end
 
 	textbox.Minimal = minimal
+
+	if tonumber(textbox.TextBox:getText()) < textbox.Minimal then
+		textbox.TextBox:setText(minimal)
+	end
 end
 
 function ctbSetMaximal(textbox, maximal)
@@ -3078,6 +3082,10 @@ function ctbSetMaximal(textbox, maximal)
 	end
 
 	textbox.Maximal = maximal
+
+	if tonumber(textbox.TextBox:getText()) > textbox.Maximal then
+		textbox.TextBox:setText(maximal)
+	end
 end
 
 function ctbSetScrollStep(textbox, stepsize)
