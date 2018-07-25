@@ -383,7 +383,7 @@ end)
 test_combo:addEvent("onCustomComboBoxSelectItem", function()
 
 	if test_combo:getSelectedItem() ~= nil then
-		CurrentTheme = themes[test_combo:getSelectedItem()]
+		CurrentTheme = themes[test_combo:getSelectedItem().Text]
 	end
 
 	demo_window:setColorScheme(CurrentTheme)
@@ -402,7 +402,7 @@ test_combo:addEvent("onCustomComboBoxSelectItem", function()
 	image8:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain)) 
 	image9:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain)) 
 
-	test_edit:setText("Selected theme: "..tostring(test_combo:getSelectedItem()))
+	test_edit:setText("Selected theme: "..test_combo:getSelectedItem().Text)
 end)
 
 test_numscroll:addEvent("onClientGUIChanged", function()

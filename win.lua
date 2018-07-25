@@ -4062,7 +4062,7 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 					v.Selected = true
 					v.Mark:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main)) 
 					
-					triggerEvent("onCustomComboBoxSelectItem", ComboBoxes[id].Canvas, v.Text)
+					triggerEvent("onCustomComboBoxSelectItem", ComboBoxes[id].Canvas, v)
 
 				end
 			end
@@ -4333,7 +4333,7 @@ function clbGetSelectedItem(combo)
 	local result = nil
 	for _, v in pairs(combo.List.Items) do
 		if v.Selected then
-			result = v.Text
+			result = v
 			break
 		end
 	end
