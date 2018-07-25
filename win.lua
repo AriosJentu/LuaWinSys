@@ -3046,6 +3046,7 @@ function ctbSetText(textbox, text)
 		elseif tonumber(text) > textbox.Maximal then
 			text = tostring(textbox.Maximal)
 		end
+		text = tostring(text)
 	end
 	return textbox.TextBox:setText(text)
 end
