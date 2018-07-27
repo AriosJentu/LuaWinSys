@@ -4966,7 +4966,7 @@ function ctpGetTabsMinLength(tabpan)
 end
 
 function ctpGetSelectedTab(tabpan)
-	return tabpan.CurrentTab
+	return tabpan.CurrentTab.Entrail
 end
 
 function ctpGetTabFromText(tabpan, text)
@@ -5018,6 +5018,13 @@ function ctpAddEvent(tabpan, event, func)
 	addEventHandler(event, root, function(...)
 		if source == tabpan.Main then
 			func(...)
+		else
+
+			for _, v in pairs(tabpan.Tabs) do
+				if source == v.Canvas or source ==  v.Entrail then
+					func(...)
+				end
+			end
 		end
 	end)
 end
