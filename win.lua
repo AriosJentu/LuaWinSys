@@ -4655,6 +4655,9 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 				v.Entrail:setVisible(true) -- make animated
 				v.Label:setColor(fromHEXToRGB("FFFFFF"))
 				v.Canvas:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TabPanels[id].ColorScheme.Main, TabPanels[id].ColorScheme.Main, TabPanels[id].ColorScheme.Main, TabPanels[id].ColorScheme.Main)) 
+				
+				triggerEvent("onCustomTabPanelChangeTab", TabPanels[id].Main, v.Text)
+
 			end
 		end
 	end)
@@ -5890,3 +5893,4 @@ addEvent("onCustomScrollBarScrolled", true)
 addEvent("onCustomDialogClick", true)
 addEvent("onCustomWindowClose", true)
 addEvent("onCustomComboBoxSelectItem", true)
+addEvent("onCustomTabPanelChangeTab", true)
