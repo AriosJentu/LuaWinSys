@@ -579,7 +579,8 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+
 		parent = parent:getFrame()
 	end
 
@@ -1063,6 +1064,10 @@ function cwGetSize(window, rel)
 	end
 end
 
+function cwGetRealSize(window, rel)
+	return window.Canvas:getSize(rel or false)
+end
+
 function cwGetPosition(window, rel)
 	x, y = window.Canvas:getPosition(false)
 	x, y = x+2, y+2
@@ -1205,7 +1210,7 @@ function CustomWindow.create(...)
 	local self = setmetatable(guiCreateCustomWindow(...), CustomWindow)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
 
@@ -1228,6 +1233,7 @@ function CustomWindow.getCloseEnabled(self, ...) return cwGetCloseEnabled(self, 
 function CustomWindow.getEnabled(self, ...) return cwGetEnabled(self, ...) end
 function CustomWindow.getVisible(self, ...) return cwGetVisible(self, ...) end
 function CustomWindow.getSize(self, ...) return cwGetSize(self, ...) end
+function CustomWindow.getRealSize(self, ...) return cwGetRealSize(self, ...) end
 function CustomWindow.getPosition(self, ...) return cwGetPosition(self, ...) end
 function CustomWindow.getText(self, ...) return cwGetTitle(self, ...) end
 function CustomWindow.getTitle(self, ...) return cwGetTitle(self, ...) end
@@ -1249,6 +1255,523 @@ function CustomWindow.addEvent(self, ...) return cwAddEvent(self, ...) end
 
 function CustomWindow.showDialog(self, ...) return cwShowDialog(self, ...) end
 function CustomWindow.showBar(self, ...) return cwShowBar(self, ...) end
+
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+---------------------------ScrollPanes------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+
+ScrollPanels = {}
+function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
+	
+	------------------------------------------------------------------------------------------------------------------------------------------
+	--Counting IDs and coordinates
+	local id = #ScrollPanels+1
+
+	if relative then
+
+		local sw, sh = Width, Height
+		if parent then
+			sw, sh = parent:getSize(false)
+		else
+			parent = nil
+		end
+
+		x = x*sw
+		y = y*sh
+		w = w*sw
+		h = h*sh
+
+	else
+
+		x = math.floor(x)
+		y = math.floor(y)
+		w = math.floor(w)
+		h = math.floor(h)
+
+	end
+
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+		parent = parent:getFrame()
+	end
+
+	------------------------------------------------------------------------------------------------------------------------------------------
+	--Creating
+
+	ScrollPanels[id] = {}
+	ScrollPanels[id].ColorScheme = DefaultColors
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		ScrollPanels[id].ColorScheme = oldparent.ColorScheme
+	end
+
+	ScrollPanels[id].Canvas = GuiStaticImage.create(x, y, w, h, pane, false, parent)
+	ScrollPanels[id].Scroller = GuiStaticImage.create(0, 0, w, h, pane, false, ScrollPanels[id].Canvas)
+	ScrollPanels[id].EnablingBlock = GuiStaticImage.create(0, 0, 1, 1, pane, true, ScrollPanels[id].Canvas)
+
+	ScrollPanels[id].Elements = {}
+	ScrollPanels[id].ScrollElements = {}
+
+	ScrollPanels[id].MoveCursorPositions = {X = 0, Y = 0}
+	ScrollPanels[id].IsScrolling = false
+	ScrollPanels[id].ScrollSpeed = 4
+
+	ScrollPanels[id].InversedVertical = 1
+	ScrollPanels[id].InversedHorizontal = 1
+
+	------------------------------------------------------------------------------------------------------------------------------------------
+	--Properties
+
+	ScrollPanels[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	ScrollPanels[id].Scroller:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	ScrollPanels[id].EnablingBlock:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
+	
+	ScrollPanels[id].EnablingBlock:setEnabled(false)
+	ScrollPanels[id].EnablingBlock:setVisible(false)
+
+	------------------------------------------------------------------------------------------------------------------------------------------
+	--Events
+
+	addEventHandler("onClientGUIMouseDown", root, function(button, x, y)
+
+		local canScroll = false
+
+		if source == ScrollPanels[id].Scroller then
+			canScroll = true
+		else
+			for _, v in pairs(ScrollPanels[id].ScrollElements) do
+				if source == v.Element then
+					canScroll = true
+					break
+				end
+			end
+		end
+
+		if canScroll then
+			
+			ScrollPanels[id].IsScrolling = true
+
+			local ax, ay = ScrollPanels[id].Scroller:getPosition(false)
+			ScrollPanels[id].MoveCursorPositions = {X = x-ax, Y = y-ay}		
+
+			BackForMouse:setVisible(true)	
+		end
+	end)
+
+
+
+	addEventHandler("onClientGUIMouseUp", root, function()
+
+		ScrollPanels[id].IsScrolling = false
+		ScrollPanels[id].MoveCursorPositions = {X = 0, Y = 0}
+	
+		BackForMouse:setVisible(false)	
+
+	end)
+
+	addEventHandler("onClientCursorMove", root, function(_, _, x, y)
+
+		if ScrollPanels[id].IsScrolling then
+			
+			local ax, ay = ScrollPanels[id].MoveCursorPositions.X, ScrollPanels[id].MoveCursorPositions.Y
+
+			local w, h = ScrollPanels[id].Scroller:getSize(false)
+			local aw, ah = ScrollPanels[id].Canvas:getSize(false)
+
+			local posX, posY = x-ax, y-ay
+
+			if posX > 0 then posX = 0 end
+			if posY > 0 then posY = 0 end
+			if posX < aw-w then posX = aw-w end
+			if posY < ah-h then posY = ah-h end
+
+			ScrollPanels[id].Scroller:setPosition(posX, posY, false)
+
+		end
+
+	end)
+
+	addEventHandler("onClientMouseWheel", root, function(upper)
+
+		local canScroll = false
+
+		if source == ScrollPanels[id].Scroller then
+			canScroll = true
+		else
+			for _, v in pairs(ScrollPanels[id].ScrollElements) do
+				print(v.Element)
+				if source == v.Element then
+					canScroll = true
+					break
+				end
+			end
+		end
+
+		if canScroll then
+
+			local x, y = ScrollPanels[id].Scroller:getPosition(false)
+
+			local w, h = ScrollPanels[id].Scroller:getSize(false)
+			local aw, ah = ScrollPanels[id].Canvas:getSize(false)
+
+			if getKeyState("lshift") == false and getKeyState("rshift") == false then
+				y = y + ScrollPanels[id].InversedVertical*upper*ScrollPanels[id].ScrollSpeed
+			else
+				x = x + ScrollPanels[id].InversedHorizontal*upper*ScrollPanels[id].ScrollSpeed
+			end
+
+			if x < 0 then x = x-1 end
+			if y < 0 then y = y-1 end
+
+			if x < aw-w then x = aw-w end
+			if y < ah-h then y = ah-h end
+
+			if x > 0 then x = 0 end
+			if y > 0 then y = 0 end
+
+			ScrollPanels[id].Scroller:setPosition(x, y, false)
+
+		end
+	end)
+
+
+	return ScrollPanels[id]
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Set functions
+
+function cspRecalcSize(spane)
+
+	local x, y = spane.Scroller:getPosition(false)
+	local w, h = spane.Canvas:getSize(false)
+
+	local maxW, maxH = 0, 0
+
+	for _, v in pairs(spane.Elements) do
+
+		local ax, ay = v:getPosition(false)
+		local aw, ah = v:getSize(false)
+
+		if v:getRealSize() ~= nil then
+			aw, ah = v:getRealSize(false) 
+		end
+
+		maxW = math.max(ax+aw, maxW)
+		maxH = math.max(ay+ah, maxH)
+
+	end
+
+	maxW = math.max(maxW, w)
+	maxH = math.max(maxH, h)
+
+	if x < 0 then x = x-1 end
+	if y < 0 then y = y-1 end
+
+	if x < w-maxW then x = w-maxW end
+	if y < h-maxH then y = h-maxH end
+
+	if x > 0 then x = 0 end
+	if y > 0 then y = 0 end
+
+	spane.Scroller:setPosition(x, y, false)
+	spane.Scroller:setSize(maxW, maxH, false)
+
+end
+
+function cspSetPosition(spane, x, y, rel)
+	
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = spane.Canvas.parent or nil
+
+		if parent then
+			sw, sh = parent:getSize(false)
+		end
+
+		x = x*sw
+		y = y*sh
+
+	end
+
+	spane.Canvas:setPosition(x, y, false)
+
+end
+
+function cspSetSize(spane, w, h, rel)
+	
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = scroll.Canvas.parent or nil
+
+		if parent then
+			sw, sh = parent:getSize(false)
+		end
+
+		w = w*sw
+		h = h*sh
+
+	end
+
+	spane.Canvas:setSize(w, h, false)
+	cspRecalcSize(spane)
+end
+
+function cspSetEnabled(spane, enabled)
+
+	spane.EnablingBlock:setVisible((not enabled) or true)
+	spane.EnablingBlock:bringToFront()
+
+	spane.Canvas:setEnabled(enabled or false)
+end
+
+function cspSetVisible(spane, visible)
+	spane.Canvas:setVisible(visible or false)
+end
+
+function cspSetColorScheme(spane, scheme)
+
+	spane.ColorScheme = scheme
+
+	for _, v in ipairs(spane.Elements) do
+		if v.ColorScheme ~= nil then
+			v:setColorScheme(sheme)
+		end
+	end
+
+end
+
+function cspSetScrollSpeed(spane, speed)
+	if speed < 2 then speed = 2 end
+	spane.ScrollSpeed = speed
+end
+
+function cspSetVerticalScrollPosition(spane, percentage)
+
+	if percentage < 0 then percentage = 0 end
+	if percentage > 100 then percentage = 100 end
+
+	local x, y = spane.Scroller:getPosition(false)
+	local w, h = spane.Scroller:getSize(false)
+	local aw, ah = spane.Canvas:getSize(false)
+
+	y = (ah-h)*(100-percentage)/100
+
+	spane.Scroller:setPosition(x, y, false)
+	cspRecalcSize(spane)
+
+end
+
+function cspSetHorizontalScrollPosition(spane, percentage)
+
+	if percentage < 0 then percentage = 0 end
+	if percentage > 100 then percentage = 100 end
+
+	local x, y = spane.Scroller:getPosition(false)
+	local w, h = spane.Scroller:getSize(false)
+	local aw, ah = spane.Canvas:getSize(false)
+
+	x = (aw-w)*(100-percentage)/100
+
+	spane.Scroller:setPosition(x, y, false)
+	cspRecalcSize(spane)
+
+end
+
+function cspSetVerticalInversed(spane, bool)
+	if bool then
+		spane.InversedVertical = -1
+	else
+		spane.InversedVertical = 1
+	end
+end
+
+function cspSetHorizontalInversed(spane, bool)
+	if bool then
+		spane.InversedHorizontal = -1
+	else
+		spane.InversedHorizontal = 1
+	end
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Layering functions
+
+function cspBringToFront(spane)
+	spane.Canvas:bringToFront()
+end
+
+function cspMoveToBack(spane)
+	spane.Canvas:moveToBack()
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Get functions
+
+function cspGetEnabled(spane)
+	return spane.Canvas:getEnabled()
+end
+
+function cspGetVisible(spane)
+	return spane.Canvas:getVisible()
+end
+
+function cspGetColorSheme(spane)
+	return spane.ColorScheme
+end
+
+function cspGetPosition(spane, rel)
+
+	local x, y = spane.Canvas:getPosition(rel or false)
+	return x, y
+
+end
+
+function cspGetSize(spane, rel)
+
+	return spane.Canvas:getSize(rel or false)
+end
+
+function cspGetScrollSpeed(spane)
+	return spane.ScrollSpeed
+end
+
+function cspGetVerticalScrollPosition(spane)
+
+	if percentage < 0 then percentage = 0 end
+	if percentage > 100 then percentage = 100 end
+
+	local x, y = spane.Scroller:getPosition(false)
+	local w, h = spane.Scroller:getSize(false)
+	local aw, ah = spane.Canvas:getSize(false)
+
+	if ah-h == 0 then 
+		return 0
+	else
+		return 100*y/(ah-h)
+	end
+
+end
+
+function cspGetHorizontalScrollPosition(spane)
+
+	local x, y = spane.Scroller:getPosition(false)
+	local w, h = spane.Scroller:getSize(false)
+	local aw, ah = spane.Canvas:getSize(false)
+
+	if aw-w == 0 then 
+		return 0
+	else
+		return 100*x/(aw-w)
+	end
+
+end
+
+function cspGetFrame(spane)
+	return spane.Scroller
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Event functions
+
+function cspAddElement(spane, element, scrollable)
+
+	if scrollable ~= false and scrollable ~= true then 
+		scrollable = true 
+	end
+
+	local len = #spane.Elements+1
+	spane.Elements[len] = element
+
+	if scrollable then
+		
+		len = #spane.ScrollElements+1
+		spane.ScrollElements[len] = element
+	end
+	print(element.Element)
+
+	cspRecalcSize(spane)
+end
+
+function cspRemoveElement(spane, element)
+
+	for i, v in pairs(spane.Elements) do
+		if v == element then
+			table.remove(spane.Elements, i)
+			break
+		end
+	end
+
+	for i, v in pairs(spane.ScrollElements) do
+		if v == element then
+			table.remove(spane.ScrollElements, i)
+			break
+		end
+	end
+
+	cspRecalcSize(spane)
+end
+
+function cspAddEvent(spane, event, func)
+	
+	addEventHandler(event, root, function(...)
+		if source == spane.Canvas or source == spane.Scroller then
+			func(...)
+		end
+	end)
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--OOP functions
+CustomScrollPane = {}
+CustomScrollPane.__index = CustomScrollPane
+
+function CustomScrollPane.create(...)
+	local self = setmetatable(guiCreateCustomScrollPane(...), CustomScrollPane)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
+		args[#args]:addElement(self)
+	end
+
+	return self
+end
+
+function CustomScrollPane.setEnabled(self, ...) return cspSetEnabled(self, ...) end
+function CustomScrollPane.setVisible(self, ...) return cspSetVisible(self, ...) end
+function CustomScrollPane.setSize(self, ...) return cspSetSize(self, ...) end
+function CustomScrollPane.setPosition(self, ...) return cspSetPosition(self, ...) end
+function CustomScrollPane.setScrollSpeed(self, ...) return cspSetScrollSpeed(self, ...) end
+function CustomScrollPane.setVerticalScrollPosition(self, ...) return cspSetVerticalScrollPosition(self, ...) end
+function CustomScrollPane.setHorizontalScrollPosition(self, ...) return cspSetHorizontalScrollPosition(self, ...) end
+function CustomScrollPane.setVerticalScrollInversed(self, ...) return cspSetVerticalInversed(self, ...) end
+function CustomScrollPane.setHorizontalScrollInversed(self, ...) return cspSetHorizontalInversed(self, ...) end
+
+function CustomScrollPane.bringToFront(self) return cspBringToFront(self) end
+function CustomScrollPane.moveToBack(self) return cspMoveToBack(self) end
+
+function CustomScrollPane.getEnabled(self, ...) return cspGetEnabled(self, ...) end
+function CustomScrollPane.getVisible(self, ...) return cspGetVisible(self, ...) end
+function CustomScrollPane.getSize(self, ...) return cspGetSize(self, ...) end
+function CustomScrollPane.getRealSize(self, ...) return cspGetSize(self, ...) end
+function CustomScrollPane.getPosition(self, ...) return cspGetPosition(self, ...) end
+function CustomScrollPane.getScrollSpeed(self, ...) return cspGetScrollSpeed(self, ...) end
+function CustomScrollPane.getVerticalScrollPosition(self, ...) return cspGetVerticalScrollPosition(self, ...) end
+function CustomScrollPane.getHorizontalScrollPosition(self, ...) return cspGetHorizontalScrollPosition(self, ...) end
+
+function CustomScrollPane.setColorScheme(self, ...) return cspSetColorScheme(self, ...) end
+function CustomScrollPane.getColorScheme(self, ...) return cspGetColorScheme(self, ...) end
+
+function CustomScrollPane.getFrame(self, ...) return cspGetFrame(self, ...) end
+function CustomScrollPane.addElement(self, ...) return cspAddElement(self, ...) end
+function CustomScrollPane.removeElement(self, ...) return cspRemoveElement(self, ...) end
+
+function CustomScrollPane.addEvent(self, ...) return cspAddEvent(self, ...) end
+
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -1287,7 +1810,7 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
 		parent = parent:getFrame()
 	end
 
@@ -1610,6 +2133,10 @@ function cbGetSize(button, rel)
 
 end
 
+function cbGetRealSize(button, rel)
+	return button.Canvas:getSize(false)
+end
+
 function cbGetEnabled(button)
 	return button.Canvas:getEnabled()
 end
@@ -1654,9 +2181,11 @@ function CustomButton.create(...)
 	local self = setmetatable(guiCreateCustomButton(...), CustomButton)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
+
+	self.Element = self.Main
 
 	return self
 end
@@ -1674,6 +2203,7 @@ function CustomButton.moveToBack(self) return cbMoveToBack(self) end
 function CustomButton.getEnabled(self, ...) return cbGetEnabled(self, ...) end
 function CustomButton.getVisible(self, ...) return cbGetVisible(self, ...) end
 function CustomButton.getSize(self, ...) return cbGetSize(self, ...) end
+function CustomButton.getRealSize(self, ...) return cbGetRealSize(self, ...) end
 function CustomButton.getPosition(self, ...) return cbGetPosition(self, ...) end
 function CustomButton.getText(self, ...) return cbGetText(self, ...) end
 
@@ -1720,7 +2250,7 @@ function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
 		parent = parent:getFrame()
 	end
 
@@ -1905,7 +2435,7 @@ end
 
 function cpbGetSize(bar, rel)
 	
-	local x, y = bar.Canvas:getPosition(false)
+	local w, h = bar.Canvas:getSize(false)
 	if rel then
 
 		local sw, sh = Width, Height
@@ -1922,6 +2452,10 @@ function cpbGetSize(bar, rel)
 
 		return w-2, h-2
 	end
+end
+
+function cpbGetRealSize(bar, rel)
+	return bar.Canvas:getSize(rel or false)
 end
 
 function cpbGetVisible(bar)
@@ -1972,9 +2506,11 @@ function CustomProgressBar.create(...)
 	local self = setmetatable(guiCreateCustomProgressBar(...), CustomProgressBar)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
+
+	self.Element = self.Main
 
 	return self
 end
@@ -1990,6 +2526,7 @@ function CustomProgressBar.moveToBack(self) return cpbMoveToBack(self) end
 function CustomProgressBar.getProgress(self, ...) return cpbGetProgress(self, ...) end
 function CustomProgressBar.getPosition(self, ...) return cpbGetPosition(self, ...) end
 function CustomProgressBar.getSize(self, ...) return cpbGetSize(self, ...) end
+function CustomProgressBar.getRealSize(self, ...) return cpbGetRealSize(self, ...) end
 function CustomProgressBar.getVisible(self, ...) return cpbGetVisible(self, ...) end
 
 function CustomProgressBar.setColorScheme(self, ...) return cpbSetColorScheme(self, ...) end
@@ -2053,7 +2590,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 	end
 
 
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
 		parent = parent:getFrame()
 	end
 
@@ -2466,6 +3003,11 @@ function csbGetSize(scroll, rel)
 
 end
 
+function csbGetRealSize(scroll, rel)
+	
+	return scroll.Canvas:getSize(rel)
+end
+
 function csbGetScrollPosition(scroll)
 	return scroll.Scroll
 end
@@ -2521,7 +3063,7 @@ function CustomScrollBar.create(...)
 	local self = setmetatable(guiCreateCustomScrollBar(...), CustomScrollBar)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
 
@@ -2544,6 +3086,7 @@ function CustomScrollBar.getScrollPosition(self, ...) return csbGetScrollPositio
 function CustomScrollBar.getScrollLength(self, ...) return csbGetScrollLength(self, ...) end
 function CustomScrollBar.getPosition(self, ...) return csbGetPosition(self, ...) end
 function CustomScrollBar.getSize(self, ...) return csbGetSize(self, ...) end
+function CustomScrollBar.getRealSize(self, ...) return csbGetRealSize(self, ...) end
 function CustomScrollBar.getVisible(self, ...) return csbGetVisible(self, ...) end
 function CustomScrollBar.getEnabled(self, ...) return csbGetEnabled(self, ...) end
 function CustomScrollBar.getScrollSpeed(self, ...) return csbGetScrollSpeed(self, ...) end
@@ -2592,7 +3135,7 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
 		parent = parent:getFrame()
 	end
 
@@ -3255,9 +3798,11 @@ function CustomEdit.create(...)
 	local self = setmetatable(guiCreateCustomEdit(...), CustomEdit)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
+
+	self.Element = self.TextBox
 
 	return self
 end
@@ -3277,6 +3822,7 @@ function CustomEdit.moveToBack(self) return ctbMoveToBack(self) end
 
 function CustomEdit.getPosition(self, ...) return ctbGetPosition(self, ...) end
 function CustomEdit.getSize(self, ...) return ctbGetSize(self, ...) end
+function CustomEdit.getRealSize(self, ...) return ctbGetSize(self, ...) end
 function CustomEdit.getVisible(self, ...) return ctbGetVisible(self, ...) end
 function CustomEdit.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
 function CustomEdit.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
@@ -3299,7 +3845,7 @@ function CustomMemo.create(...)
 	local self = setmetatable(guiCreateCustomMemo(...), CustomMemo)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
 
@@ -3319,6 +3865,7 @@ function CustomMemo.moveToBack(self) return ctbMoveToBack(self) end
 
 function CustomMemo.getPosition(self, ...) return ctbGetPosition(self, ...) end
 function CustomMemo.getSize(self, ...) return ctbGetSize(self, ...) end
+function CustomMemo.getRealSize(self, ...) return ctbGetSize(self, ...) end
 function CustomMemo.getVisible(self, ...) return ctbGetVisible(self, ...) end
 function CustomMemo.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
 function CustomMemo.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
@@ -3339,7 +3886,7 @@ function CustomNumberScroller.create(...)
 	local self = setmetatable(guiCreateCustomNumberScroller(...), CustomNumberScroller)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
 
@@ -3363,6 +3910,7 @@ function CustomNumberScroller.moveToBack(self) return ctbMoveToBack(self) end
 
 function CustomNumberScroller.getPosition(self, ...) return ctbGetPosition(self, ...) end
 function CustomNumberScroller.getSize(self, ...) return ctbGetSize(self, ...) end
+function CustomNumberScroller.getRealSize(self, ...) return ctbGetSize(self, ...) end
 function CustomNumberScroller.getVisible(self, ...) return ctbGetVisible(self, ...) end
 function CustomNumberScroller.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
 function CustomNumberScroller.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
@@ -3418,7 +3966,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
 		parent = parent:getFrame()
 	end
 
@@ -3848,9 +4396,11 @@ function CustomCheckBox.create(...)
 	local self = setmetatable(guiCreateCustomCheckBox(...), CustomCheckBox)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
+
+	self.Element = self.Label
 
 	return self
 end
@@ -3868,6 +4418,7 @@ function CustomCheckBox.moveToBack(self) return ccbMoveToBack(self) end
 function CustomCheckBox.getText(self, ...) return ccbGetText(self, ...) end
 function CustomCheckBox.getPosition(self, ...) return ccbGetPosition(self, ...) end
 function CustomCheckBox.getSize(self, ...) return ccbGetSize(self, ...) end
+function CustomCheckBox.getRealSize(self, ...) return ccbGetSize(self, ...) end
 function CustomCheckBox.getVisible(self, ...) return ccbGetVisible(self, ...) end
 function CustomCheckBox.getEnabled(self, ...) return ccbGetEnabled(self, ...) end
 function CustomCheckBox.getChecked(self, ...) return ccbGetChecked(self, ...) end
@@ -3914,7 +4465,7 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
 		parent = parent:getFrame()
 	end
 
@@ -4361,6 +4912,10 @@ function clbGetSize(combo, rel)
 	end
 end
 
+function clbGetRealSize(combo, rel)
+	return combo.Canvas:getSize(rel or false)
+end
+
 function clbGetVisible(combo)
 	return combo.Canvas:getVisible()
 end
@@ -4445,9 +5000,11 @@ function CustomComboBox.create(...)
 	local self = setmetatable(guiCreateCustomComboBox(...), CustomComboBox)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
+
+	self.Element = self.Main
 
 	return self
 end
@@ -4466,6 +5023,7 @@ function CustomComboBox.moveToBack(self) return clbMoveToBack(self) end
 
 function CustomComboBox.getPosition(self, ...) return clbGetPosition(self.CoboBox, ...) end
 function CustomComboBox.getSize(self, ...) return clbGetSize(self, ...) end
+function CustomComboBox.getRealSize(self, ...) return clbGetRealSize(self, ...) end
 function CustomComboBox.getVisible(self, ...) return clbGetVisible(self, ...) end
 function CustomComboBox.getEnabled(self, ...) return clbGetEnabled(self, ...) end
 function CustomComboBox.getSelectedItem(self, ...) return clbGetSelectedItem(self, ...) end
@@ -4514,7 +5072,7 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
 		parent = parent:getFrame()
 	end
 
@@ -4964,6 +5522,10 @@ function ctpGetSize(tabpan, rel)
 	end
 end
 
+function ctpGetRealSize(tabpan, rel)
+	return tabpan.Canvas:getSize(rel or false)
+end	
+
 function ctpGetTabsMinLength(tabpan)
 	return tabpan.MinLen
 end
@@ -5042,7 +5604,7 @@ function CustomTabPanel.create(...)
 	local self = setmetatable(guiCreateCustomTabPanel(...), CustomTabPanel)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
 
@@ -5065,6 +5627,7 @@ function CustomTabPanel.moveToBack(self) return ctpMoveToBack(self) end
 
 function CustomTabPanel.getPosition(self, ...) return ctpGetPosition(self, ...) end
 function CustomTabPanel.getSize(self, ...) return ctpGetSize(self, ...) end
+function CustomTabPanel.getRealSize(self, ...) return ctpGetRealSize(self, ...) end
 function CustomTabPanel.getVisible(self, ...) return ctpGetVisible(self, ...) end
 function CustomTabPanel.getEnabled(self, ...) return ctpGetEnabled(self, ...) end
 function CustomTabPanel.getTabEnabled(self, ...) return ctpGetTabEnabled(self, ...) end
@@ -5082,7 +5645,7 @@ function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
------------------------------Labels--------------------------------------------------------------------------------
+-----------------------------Labels---------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 
@@ -5117,7 +5680,7 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
 		parent = parent:getFrame()
 	end
 
@@ -5345,23 +5908,7 @@ end
 
 function clGetSize(label, rel)
 	
-	local w, h = label.Label:getSize(false)
-	if rel then
-
-		local sw, sh = Width, Height
-		local parent = label.Label.parent or nil
-
-		if parent then
-			sw, sh = parent:getSize(false)
-		end
-
-		return w/sw, h/sh
-	
-	else
-
-		return w, h
-	end
-
+	return label.Label:getSize(rel or false)
 end
 
 function clGetEnabled(label)
@@ -5423,9 +5970,11 @@ function CustomLabel.create(...)
 	local self = setmetatable(guiCreateCustomLabel(...), CustomLabel)
 
 	local args = {...}
-	if comparetypes(args[#args], CustomWindow) then
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(self)
 	end
+
+	self.Element = self.Label
 
 	return self
 end
@@ -5449,6 +5998,7 @@ function CustomLabel.moveToBack(self) return clMoveToBack(self) end
 function CustomLabel.getEnabled(self, ...) return clGetEnabled(self, ...) end
 function CustomLabel.getVisible(self, ...) return clGetVisible(self, ...) end
 function CustomLabel.getSize(self, ...) return clGetSize(self, ...) end
+function CustomLabel.getRealSize(self, ...) return clGetSize(self, ...) end
 function CustomLabel.getPosition(self, ...) return clGetPosition(self, ...) end
 function CustomLabel.getText(self, ...) return clGetText(self, ...) end
 function CustomLabel.getColor(self, ...) return clGetColor(self, ...) end
@@ -5743,7 +6293,7 @@ function CustomLoading.create(x, y, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) then
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
 		parent = parent:getFrame()
 	end
 
@@ -5751,6 +6301,7 @@ function CustomLoading.create(x, y, relative, parent)
 	self.ColorScheme = DefaultColors
 	self.Progress = 0
 	self.Animated = true
+	self.Element = self.Back
 
 	if oldparent and oldparent.ColorScheme ~= nil then
 		self.ColorScheme = oldparent.ColorScheme
@@ -5766,6 +6317,7 @@ function CustomLoading.create(x, y, relative, parent)
 	for i = 0, 330, 30 do	
 		self.Circles[#self.Circles+1] = GuiStaticImage.create(15 + 10*math.cos(math.rad(i)) - 1, 15 + 10*math.sin(math.rad(i)) - 1, 3, 3, Images.Loading, false, self.Back)
 		self.Circles[#self.Circles]:setProperty("ImageColours", color)
+		self.Circles[#self.Circles]:setEnabled(false)
 	end
 
 	local angle = 0
@@ -5784,7 +6336,7 @@ function CustomLoading.create(x, y, relative, parent)
 
 	self.Back:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 
-	if comparetypes(oldparent, CustomWindow) then
+	if comparetypes(oldparent, CustomWindow) or comparetypes(oldparent, CustomScrollPane) then
 		oldparent:addElement(self)
 	end
 
@@ -5872,15 +6424,243 @@ function CustomLoading.getColorScheme(self)
 end
 
 --------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+-----------------------------DataGrid-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+
+DataGrid = {}
+function guiCreateCustomDataGrid(x, y, w, h, relative, parent)
+
+	------------------------------------------------------------------------------------------------------------------------------------------
+	--Counting IDs and coordinates
+	local id = #DataGrid+1
+
+	if relative then
+
+		local sw, sh = Width, Height
+		if parent then
+			sw, sh = parent:getSize(false)
+		else
+			parent = nil
+		end
+
+		x = x*sw
+		y = y*sh
+		w = w*sw
+		h = h*sh
+
+	else
+
+		x = math.floor(x)
+		y = math.floor(y)
+		w = math.floor(w)
+		h = math.floor(h)
+
+	end
+
+	local oldparent = parent
+	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+		parent = parent:getFrame()
+	end
+
+	DataGrid[id] = {}
+
+	DataGrid[id].ColorScheme = DefaultColors
+	DataGrid[id].Items = {}
+	DataGrid[id].Lines = {}
+	DataGrid[id].Columns = {}
+
+	if oldparent and oldparent.ColorScheme ~= nil then
+		DataGrid[id].ColorScheme = oldparent.ColorScheme
+	end
+
+
+	DataGrid[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
+	DataGrid[id].Main = GuiStaticImage.create(1, 1, w, h, pane, false, DataGrid[id].Canvas)
+
+	DataGrid[id].Content = ScrollMenu.create(0, 25, w, h-25, false, DataGrid[id].Main)
+
+	DataGrid[id].TitleBlock = GuiStaticImage.create(0, 0, w, 25, pane, false, DataGrid[id].Main)
+	DataGrid[id].TitleDivider = GuiStaticImage.create(0, 24, w, 1, pane, false, DataGrid[id].TitleBlock)
+
+	DataGrid[id].TitleScroller = ScrollMenu.create(0, 0, w, 24, false, DataGrid[id].TitleBlock)
+
+
+	------------------------------------------------------------------------------------------------------------------------------------------
+	--Properties
+
+	MainCol = "CCCCCC"
+	if DataGrid[id].ColorScheme.DarkTheme then MainCol = "393939" end 
+
+	SameCol = "AAAAAA"
+	if DataGrid[id].ColorScheme.DarkTheme then SameCol = "2E2E2E" end 
+
+	LightCol = "EEEEEE"
+	if DataGrid[id].ColorScheme.DarkTheme then LightCol = "444444" end
+
+	maincol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
+	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
+	objcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DataGrid[id].ColorScheme.Main, DataGrid[id].ColorScheme.Main, DataGrid[id].ColorScheme.Main, DataGrid[id].ColorScheme.Main)
+	divcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DataGrid[id].ColorScheme.SubMain, DataGrid[id].ColorScheme.SubMain, DataGrid[id].ColorScheme.SubMain, DataGrid[id].ColorScheme.SubMain)
+
+	DataGrid[id].Canvas:setProperty("ImageColours", samecol)
+	DataGrid[id].Main:setProperty("ImageColours", maincol)
+	DataGrid[id].TitleBlock:setProperty("ImageColours", objcol)
+	DataGrid[id].TitleDivider:setProperty("ImageColours", divcol)
+
+
+
+	------------------------------------------------------------------------------------------------------------------------------------------
+	--Events
+
+	addEventHandler("onClientGUIChanged", root, function()
+
+		if source == DataGrid[id].Content.Menu then
+
+			local x = DataGrid[id].Content.Menu:getPosition(false)
+			local _, y = DataGrid[id].TitleScroller.Menu:getPosition(false)
+
+			DataGrid[id].TitleScroller.Menu:setPosition(x, y, false)
+
+		elseif source == DataGrid[id].TitleScroller.Menu then
+
+			local x = DataGrid[id].TitleScroller.Menu:getPosition(false)
+			local _, y = DataGrid[id].Content.Menu:getPosition(false)
+
+			DataGrid[id].Content.Menu:setPosition(x, y, false)
+		end
+	end)
+
+
+	return DataGrid[id]
+end
+
+
+-------------------------------------
+
+function cdgAddLine(dgrid)
+
+	local id = #dgrid.Lines+1
+
+	local w = dgrid.TitleBlock:getSize(false)
+	dgrid.Lines[id] = {}
+
+	--------------
+
+	dgrid.Lines[id].Canvas = GuiStaticImage.create(0, (id-1)*28 + 3, w, 25, pane, false, dgrid.Content.Menu)
+	dgrid.Lines[id].Divider = GuiStaticImage.create(0, 24, w, 1, pane, false, dgrid.Lines[id].Canvas)
+
+	dgrid.Content:addElement(dgrid.Lines[id].Canvas)
+	dgrid.Content:addScrollElement(dgrid.Lines[id].Canvas, "y")
+	
+	--------------
+
+	SameCol = "AAAAAA"
+	if dgrid.ColorScheme.DarkTheme then SameCol = "2E2E2E" end 
+
+	LightCol = "EEEEEE"
+	if dgrid.ColorScheme.DarkTheme then LightCol = "444444" end
+
+	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
+	lightcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LightCol, LightCol, LightCol, LightCol)
+
+	dgrid.Lines[id].Canvas:setProperty("ImageColours", lightcol)
+	dgrid.Lines[id].Divider:setProperty("ImageColours", samecol)
+
+	dgrid.Lines[id].Divider:setEnabled(false)
+
+	return dgrid.Lines[id]
+end
+
+function cdgRemoveLine(dgrid)
+
+	local id = #dgrid.Lines
+
+	dgrid.Content:removeElement(dgrid.Lines[id].Canvas)
+
+
+
+end
+
+function cdgAddColumn(dgrid, title, length)
+
+	local id = #dgrid.Columns+1
+
+	local px = 0
+	for i = 1, id-1 do
+		px = px + (dgrid.Columns[i].Length + 1)
+	end
+
+	dgrid.Columns[id] = {}
+	dgrid.Columns[id].Length = length
+
+	dgrid.Columns[id].Label = CustomLabel.create(px, 0, length, 24, title, false, dgrid.TitleScroller.Menu)
+	dgrid.Columns[id].Divider = GuiStaticImage.create(px+length+1, 0, 1, 24, pane, false, dgrid.TitleScroller.Menu)
+
+	divcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain)
+
+	dgrid.Columns[id].Divider:setEnabled(false)
+	dgrid.Columns[id].Divider:setProperty("ImageColours", divcol)
+
+	dgrid.Columns[id].Label:setEnabled(false)
+	dgrid.Columns[id].Label:setAlign("center", "center")
+	dgrid.Columns[id].Label:setColor("FFFFFF")
+
+
+	dgrid.TitleScroller:addElement(dgrid.Columns[id].Label)
+
+end
+
+
+function cdgSetColorScheme(dgrid, scheme)
+
+	dgrid.ColorScheme = scheme
+
+	MainCol = "CCCCCC"
+	if dgrid.ColorScheme.DarkTheme then MainCol = "393939" end 
+
+	SameCol = "AAAAAA"
+	if dgrid.ColorScheme.DarkTheme then SameCol = "2E2E2E" end 
+
+	LightCol = "EEEEEE"
+	if dgrid.ColorScheme.DarkTheme then LightCol = "444444" end
+
+	maincol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
+	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
+	lightcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LightCol, LightCol, LightCol, LightCol)
+	objcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", dgrid.ColorScheme.Main, dgrid.ColorScheme.Main, dgrid.ColorScheme.Main, dgrid.ColorScheme.Main)
+	divcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain)
+
+	dgrid.Canvas:setProperty("ImageColours", samecol)
+	dgrid.Main:setProperty("ImageColours", maincol)
+	dgrid.TitleBlock:setProperty("ImageColours", objcol)
+	dgrid.TitleDivider:setProperty("ImageColours", divcol)
+
+	for _, v in pairs(dgrid.Lines) do
+		v.Canvas:setProperty("ImageColours", lightcol)
+		v.Divider:setProperty("ImageColours", samecol)
+	end
+
+	for _, v in pairs(dgrid.Columns) do
+		v.Divider:setProperty("ImageColours", divcol)
+	end
+end
+
+
+--------------------------------------------------------------------------------------------------------------------
 
 local createImage = GuiStaticImage.create
 GuiStaticImage.create = function(x, y, w, h, image, rel, par)
 	
-	if comparetypes(par, CustomWindow) then
+	if comparetypes(par, CustomWindow) or comparetypes(par, CustomScrollPane) then
 		par = par:getFrame()
 	end
 
-	return createImage(x, y, w, h, image, rel, par)
+	local obj = createImage(x, y, w, h, image, rel, par)
+	obj.Element = obj
+
+	return obj
 
 end
 
