@@ -87,8 +87,6 @@ function proceedColor(main, red, green, dark)
 	if fg > 255 then fg = 255 end
 	if fb > 255 then fb = 255 end
 
-	--print(r, g, b, ar, ag, ab, lr, lg, lb, fr, fg, fb)
-
 	local SubMainColor = string.format("%.2x%.2x%.2x", r, g, b)
 	local DarkMainColor = string.format("%.2x%.2x%.2x", ar, ag, ab)
 	local LightMainColor = string.format("%.2x%.2x%.2x", lr, lg, lb)
@@ -1181,13 +1179,9 @@ function cspRecalcSize(spane)
 		local ax, ay = v:getPosition(false)
 		local aw, ah = v:getSize(false)
 
-		--print("Before: ", aw, ah)
-
 		if v.getRealSize ~= nil then
 			aw, ah = v:getRealSize(false) 
 		end
-
-		--print("After", aw, ah)
 
 		maxW = math.max(ax+aw, maxW)
 		maxH = math.max(ay+ah, maxH)
@@ -1253,7 +1247,7 @@ end
 
 function cspSetEnabled(spane, enabled)
 
-	spane.EnablingBlock:setVisible((not enabled) or true)
+	spane.EnablingBlock:setVisible(not (enabled or false))
 	spane.EnablingBlock:bringToFront()
 
 	spane.Canvas:setEnabled(enabled or false)
@@ -1268,8 +1262,10 @@ function cspSetColorScheme(spane, scheme)
 	spane.ColorScheme = scheme
 
 	for _, v in ipairs(spane.Elements) do
+
 		if v.ColorScheme ~= nil then
-			v:setColorScheme(sheme)
+			
+			v:setColorScheme(scheme)
 		end
 	end
 
@@ -1430,28 +1426,21 @@ function cspAddElement(spane, element, scrollable)
 
 	end
 	
-	--print(element.Element)
-
 	cspRecalcSize(spane)
 end
 
 function cspRemoveElement(spane, element)
 
-	print(element)
 	for i, v in pairs(spane.Elements) do
 		if v == element then
-			print("Found ", spane.Elements[i], spane.Elements[i] == element, #spane.Elements)
 			table.remove(spane.Elements, i)
-			print(#spane.Elements)
 			break
 		end
 	end
 
 	for i, v in pairs(spane.ScrollElements) do
 		if v == element then
-			print("Found scrollable ", spane.Elements[i], spane.Elements[i] == element, #spane.ScrollElements)
 			table.remove(spane.ScrollElements, i)
-			print(#spane.ScrollElements)
 			break
 		end
 	end
