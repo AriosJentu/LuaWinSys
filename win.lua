@@ -545,6 +545,26 @@ function ScrollMenu.addScrollElement(self, element, axis) return addScrollElemen
 
 
 --------------------------------------------------------------------------------------------------------------------
+
+local createImage = GuiStaticImage.create
+GuiStaticImage.create = function(x, y, w, h, image, rel, par)
+	
+	local oldpar = par
+	if comparetypes(par, CustomWindow) or comparetypes(par, CustomScrollPane) then
+		par = par:getFrame()
+	end
+
+	local obj = createImage(x, y, w, h, image, rel, par)
+
+	if comparetypes(oldpar, CustomScrollPane) then
+		oldpar:addElement(obj)
+	end
+
+	return obj
+
+end
+
+--------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 ---------------------------Windows----------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -1316,7 +1336,8 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 
 	ScrollPanels[id].MoveCursorPositions = {X = 0, Y = 0}
 	ScrollPanels[id].IsScrolling = false
-	ScrollPanels[id].ScrollSpeed = 4
+	ScrollPanels[id].IsHorizontal = false
+	ScrollPanels[id].ScrollSpeed = 10
 
 	ScrollPanels[id].InversedVertical = 1
 	ScrollPanels[id].InversedHorizontal = 1
@@ -1342,7 +1363,9 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 			canScroll = true
 		else
 			for _, v in pairs(ScrollPanels[id].ScrollElements) do
-				if source == v.Element then
+
+				if source == v or source == v.Element then
+
 					canScroll = true
 					break
 				end
@@ -1401,8 +1424,7 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 			canScroll = true
 		else
 			for _, v in pairs(ScrollPanels[id].ScrollElements) do
-				print(v.Element)
-				if source == v.Element then
+				if source == v or source == v.Element then
 					canScroll = true
 					break
 				end
@@ -1416,7 +1438,18 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 			local w, h = ScrollPanels[id].Scroller:getSize(false)
 			local aw, ah = ScrollPanels[id].Canvas:getSize(false)
 
-			if getKeyState("lshift") == false and getKeyState("rshift") == false then
+			if 
+				(
+					(getKeyState("lshift") == false and getKeyState("rshift") == false) 
+					and not ScrollPanels[id].IsHorizontal
+
+				) or (
+					
+					not (getKeyState("lshift") == false and getKeyState("rshift") == false) 
+					and ScrollPanels[id].IsHorizontal
+				)
+			then
+
 				y = y + ScrollPanels[id].InversedVertical*upper*ScrollPanels[id].ScrollSpeed
 			else
 				x = x + ScrollPanels[id].InversedHorizontal*upper*ScrollPanels[id].ScrollSpeed
@@ -1455,9 +1488,13 @@ function cspRecalcSize(spane)
 		local ax, ay = v:getPosition(false)
 		local aw, ah = v:getSize(false)
 
-		if v:getRealSize() ~= nil then
+		--print("Before: ", aw, ah)
+
+		if v.getRealSize ~= nil then
 			aw, ah = v:getRealSize(false) 
 		end
+
+		--print("After", aw, ah)
 
 		maxW = math.max(ax+aw, maxW)
 		maxH = math.max(ay+ah, maxH)
@@ -1598,6 +1635,10 @@ function cspSetHorizontalInversed(spane, bool)
 	end
 end
 
+function cspSetHorizontalScrolling(spane, bool)
+	spane.IsHorizontal = bool or false
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -1642,9 +1683,6 @@ end
 
 function cspGetVerticalScrollPosition(spane)
 
-	if percentage < 0 then percentage = 0 end
-	if percentage > 100 then percentage = 100 end
-
 	local x, y = spane.Scroller:getPosition(false)
 	local w, h = spane.Scroller:getSize(false)
 	local aw, ah = spane.Canvas:getSize(false)
@@ -1675,6 +1713,11 @@ function cspGetFrame(spane)
 	return spane.Scroller
 end
 
+function cspIsHorizontalScrolling(spane)
+	return spane.IsHorizontal
+end
+
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event functions
 
@@ -1691,8 +1734,10 @@ function cspAddElement(spane, element, scrollable)
 		
 		len = #spane.ScrollElements+1
 		spane.ScrollElements[len] = element
+
 	end
-	print(element.Element)
+	
+	--print(element.Element)
 
 	cspRecalcSize(spane)
 end
@@ -1750,6 +1795,7 @@ function CustomScrollPane.setVerticalScrollPosition(self, ...) return cspSetVert
 function CustomScrollPane.setHorizontalScrollPosition(self, ...) return cspSetHorizontalScrollPosition(self, ...) end
 function CustomScrollPane.setVerticalScrollInversed(self, ...) return cspSetVerticalInversed(self, ...) end
 function CustomScrollPane.setHorizontalScrollInversed(self, ...) return cspSetHorizontalInversed(self, ...) end
+function CustomScrollPane.setHorizontalScrolling(self, ...) return cspSetHorizontalScrolling(self, ...) end
 
 function CustomScrollPane.bringToFront(self) return cspBringToFront(self) end
 function CustomScrollPane.moveToBack(self) return cspMoveToBack(self) end
@@ -1762,6 +1808,7 @@ function CustomScrollPane.getPosition(self, ...) return cspGetPosition(self, ...
 function CustomScrollPane.getScrollSpeed(self, ...) return cspGetScrollSpeed(self, ...) end
 function CustomScrollPane.getVerticalScrollPosition(self, ...) return cspGetVerticalScrollPosition(self, ...) end
 function CustomScrollPane.getHorizontalScrollPosition(self, ...) return cspGetHorizontalScrollPosition(self, ...) end
+function CustomScrollPane.isHorizontalScrolling(self, ...) return cspIsHorizontalScrolling(self, ...) end
 
 function CustomScrollPane.setColorScheme(self, ...) return cspSetColorScheme(self, ...) end
 function CustomScrollPane.getColorScheme(self, ...) return cspGetColorScheme(self, ...) end
@@ -1771,6 +1818,7 @@ function CustomScrollPane.addElement(self, ...) return cspAddElement(self, ...) 
 function CustomScrollPane.removeElement(self, ...) return cspRemoveElement(self, ...) end
 
 function CustomScrollPane.addEvent(self, ...) return cspAddEvent(self, ...) end
+function CustomScrollPane.update(self, ...) return cspRecalcSize(self, ...) end
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -4495,7 +4543,8 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 
 	ComboBoxes[id].List.Main = GuiStaticImage.create(1, 1, w, h, pane, false, ComboBoxes[id].List.Canvas)
 
-	ComboBoxes[id].Entrail = ScrollMenu.create(0, 0, w, h, false, ComboBoxes[id].List.Main)
+	--ComboBoxes[id].Entrail = ScrollMenu.create(0, 0, w, h, false, ComboBoxes[id].List.Main)
+	ComboBoxes[id].Entrail = CustomScrollPane.create(0, 0, w, h, false, ComboBoxes[id].List.Main)
 	
 	ComboBoxes[id].List.Items = {}
 
@@ -4612,6 +4661,7 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 			for _, v in pairs(ComboBoxes[id].List.Items) do
 
 				if source == v.Canvas then
+
 					ComboBoxes[id].Label:setText(v.Text)
 
 					for _, val in pairs(ComboBoxes[id].List.Items) do
@@ -4624,13 +4674,20 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 					
 					triggerEvent("onCustomComboBoxSelectItem", ComboBoxes[id].Canvas, v)
 
+					--[[local a, b = ComboBoxes[id].List.Canvas:getSize(false)
+					local c, d = ComboBoxes[id].Entrail:getSize(false)
+					local scrollpos = ComboBoxes[id].Entrail:getVerticalScrollPosition()
+					local e, f = ComboBoxes[id].Entrail.Scroller:getSize(false)
+
+					print(a, c, a-c, " : ", b, d, b-d, " : ", scrollpos, " : ", e, f, " : ", #ComboBoxes[id].Entrail.Elements, #ComboBoxes[id].Entrail.ScrollElements)]]
+
 				end
 			end
 		end
 
 	end)
 
-	addEventHandler("onClientGUIClick", root, function()
+	addEventHandler("onClientGUIMouseUp", root, function()
 		if source == ComboBoxes[id].Main and not ComboBoxes[id].Opened then
 		
 			local x, y = guiGetOnScreenPosition(ComboBoxes[id].Canvas)
@@ -4677,6 +4734,13 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 			end
 		
 		end
+
+		if ComboBoxes[id].Opened then
+
+			local x, y = guiGetOnScreenPosition(ComboBoxes[id].Canvas)
+			ComboBoxes[id].List.Canvas:setPosition(x, y, false)
+
+		end
 	end)
 
 	addEventHandler("onClientResourceStop", root, function(res)
@@ -4700,6 +4764,7 @@ end
 --Set functions
 
 function clbSetMaxHeight(combo, h)
+	
 	combo.Height = h
 	local w = combo.Main:getSize(false)
 
@@ -4719,7 +4784,7 @@ function clbAddItem(combo, text)
 	combo.List.Items[id].Text = text
 	combo.List.Items[id].Selected = false
 
-	combo.List.Items[id].Canvas = GuiStaticImage.create(0, (id-1)*30, w, 30, pane, false, combo.Entrail.Menu)
+	combo.List.Items[id].Canvas = GuiStaticImage.create(0, (id-1)*30, w, 30, pane, false, combo.Entrail)
 	combo.List.Items[id].Label = GuiLabel.create(8, 0, w-8, 28, text, false, combo.List.Items[id].Canvas)
 	combo.List.Items[id].Mark = GuiStaticImage.create(0, 0, 5, 30, pane, false, combo.List.Items[id].Canvas)
 
@@ -4737,7 +4802,7 @@ function clbAddItem(combo, text)
 	combo.List.Items[id].Mark:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 
 	combo.Entrail:addElement(combo.List.Items[id].Canvas)
-	combo.Entrail:addScrollElement(combo.List.Items[id].Canvas, "y")
+	--combo.Entrail:addScrollElement(combo.List.Items[id].Canvas, "y")
 
 	return combo.List.Items[id]
 end
@@ -4751,6 +4816,8 @@ function clbRemoveItem(combo, item)
 		local v = combo.List.Items[i]
 		if item == v or item == v.Text then
 	
+			combo.Entrail:removeElement(v.Canvas)
+
 			destroyElement(v.Label)
 			destroyElement(v.Mark)
 			destroyElement(v.Canvas)
@@ -4765,10 +4832,12 @@ function clbRemoveItem(combo, item)
 	for i, v in pairs(combo.List.Items) do
 		
 		v.Canvas:setPosition(0, 30*(i-1), false)
-		combo.Entrail:addElement(v.Canvas)
-		--combo.Entrail:addScrollElement(v.Canvas, "y")
 
+		--combo.Entrail:addElement(v.Canvas)
+		--combo.Entrail:addScrollElement(v.Canvas, "y")
 	end
+
+	combo.Entrail:update()
 end
 
 function clbSetSelectedItem(combo, item)
@@ -4835,9 +4904,13 @@ function clbSetSize(combo, w, h, rel)
 	for _, v in pairs(combo.List.Items) do
 		v.Canvas:setSize(w, 30, false)
 		v.Label:setSize(w-8, 28, false)
-		combo.Entrail:addElement(v.Canvas)
+
+
+		--combo.Entrail:addElement(v.Canvas)
 		--combo.Entrail:addScrollElement(v.Canvas, "y")
 	end
+
+	combo.Entrail:update()
 end
 
 function clbSetVisible(combo, bool)
@@ -5096,8 +5169,7 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 	TabPanels[id].TitleBlock = GuiStaticImage.create(0, 0, w, 23, pane, false, TabPanels[id].Main)
 	TabPanels[id].TitleDivider = GuiStaticImage.create(0, 22, w, 1, pane, false, TabPanels[id].TitleBlock)
 
-	TabPanels[id].TabScroller = ScrollMenu.create(0, 0, w, 22, false, TabPanels[id].TitleBlock)
-
+	TabPanels[id].TabScroller = CustomScrollPane.create(0, 0, w, 22, false, TabPanels[id].TitleBlock)
 	TabPanels[id].Tabs = {}
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -5128,6 +5200,8 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 
 	TabPanels[id].Vertical:setEnabled(false)
 	TabPanels[id].Horizontal:setEnabled(false)
+
+	TabPanels[id].TabScroller:setHorizontalScrolling(true)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Events
@@ -5264,7 +5338,7 @@ function compareTabs(tabpan)
 	local w = tabpan.Main:getSize(false)
 	local width = math.floor(w/count) > tabpan.MinLen and math.floor(w/count) or tabpan.MinLen
 
-	tabpan.TabScroller.Menu:setSize(w, 22, false)
+	--tabpan.TabScroller.Menu:setSize(w, 22, false)
 	
 	TextCol = "444444"
 	if tabpan.ColorScheme.DarkTheme then TextCol = "EEEEEE" end
@@ -5300,7 +5374,7 @@ function compareTabs(tabpan)
 			end
 
 			v.Label:setSize(width, 20, false)
-			tabpan.TabScroller:addElement(v.Canvas)
+			--tabpan.TabScroller:addElement(v.Canvas)
 
 			v.Divider:setVisible(id > 0)
 
@@ -5313,6 +5387,8 @@ function compareTabs(tabpan)
 			v.Canvas:setVisible(false)
 		end
 	end
+
+	tabpan.TabScroller:update()
 
 end
 
@@ -5331,11 +5407,11 @@ function ctpAddTab(tabpan, text)
 	tabpan.Tabs[id].Text = text
 
 	local w, h = tabpan.Main:getSize(false)
-	tabpan.Tabs[id].Canvas = GuiStaticImage.create(0, 0, 100, 22, pane, false, tabpan.TabScroller.Menu)
+	tabpan.Tabs[id].Canvas = GuiStaticImage.create(0, 0, 100, 22, pane, false, tabpan.TabScroller)
 	tabpan.Tabs[id].Divider = GuiStaticImage.create(0, 0, 1, 22, pane, false, tabpan.Tabs[id].Canvas)
 	tabpan.Tabs[id].Label = GuiLabel.create(0, 0, 100, 20, text, false, tabpan.Tabs[id].Canvas)
 	tabpan.Tabs[id].Entrail = GuiStaticImage.create(0, 23, w, h-23, pane, false, tabpan.Main)
-	tabpan.TabScroller:addScrollElement(tabpan.Tabs[id].Canvas, "x")
+	--tabpan.TabScroller:addScrollElement(tabpan.Tabs[id].Canvas, "x")
 
 	tabpan.Tabs[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 	tabpan.Tabs[id].Entrail:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
@@ -6479,12 +6555,12 @@ function guiCreateCustomDataGrid(x, y, w, h, relative, parent)
 	DataGrid[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
 	DataGrid[id].Main = GuiStaticImage.create(1, 1, w, h, pane, false, DataGrid[id].Canvas)
 
-	DataGrid[id].Content = ScrollMenu.create(0, 25, w, h-25, false, DataGrid[id].Main)
+	--DataGrid[id].Content = ScrollMenu.create(0, 25, w, h-25, false, DataGrid[id].Main)
 
 	DataGrid[id].TitleBlock = GuiStaticImage.create(0, 0, w, 25, pane, false, DataGrid[id].Main)
 	DataGrid[id].TitleDivider = GuiStaticImage.create(0, 24, w, 1, pane, false, DataGrid[id].TitleBlock)
 
-	DataGrid[id].TitleScroller = ScrollMenu.create(0, 0, w, 24, false, DataGrid[id].TitleBlock)
+	--DataGrid[id].TitleScroller = ScrollMenu.create(0, 0, w, 24, false, DataGrid[id].TitleBlock)
 
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -6514,7 +6590,7 @@ function guiCreateCustomDataGrid(x, y, w, h, relative, parent)
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Events
 
-	addEventHandler("onClientGUIChanged", root, function()
+	--[[addEventHandler("onClientGUIChanged", root, function()
 
 		if source == DataGrid[id].Content.Menu then
 
@@ -6530,7 +6606,7 @@ function guiCreateCustomDataGrid(x, y, w, h, relative, parent)
 
 			DataGrid[id].Content.Menu:setPosition(x, y, false)
 		end
-	end)
+	end)]]
 
 
 	return DataGrid[id]
@@ -6548,11 +6624,11 @@ function cdgAddLine(dgrid)
 
 	--------------
 
-	dgrid.Lines[id].Canvas = GuiStaticImage.create(0, (id-1)*28 + 3, w, 25, pane, false, dgrid.Content.Menu)
-	dgrid.Lines[id].Divider = GuiStaticImage.create(0, 24, w, 1, pane, false, dgrid.Lines[id].Canvas)
+	--dgrid.Lines[id].Canvas = GuiStaticImage.create(0, (id-1)*28 + 3, w, 25, pane, false, dgrid.Content.Menu)
+	--dgrid.Lines[id].Divider = GuiStaticImage.create(0, 24, w, 1, pane, false, dgrid.Lines[id].Canvas)
 
-	dgrid.Content:addElement(dgrid.Lines[id].Canvas)
-	dgrid.Content:addScrollElement(dgrid.Lines[id].Canvas, "y")
+	--dgrid.Content:addElement(dgrid.Lines[id].Canvas)
+	--dgrid.Content:addScrollElement(dgrid.Lines[id].Canvas, "y")
 	
 	--------------
 
@@ -6577,7 +6653,7 @@ function cdgRemoveLine(dgrid)
 
 	local id = #dgrid.Lines
 
-	dgrid.Content:removeElement(dgrid.Lines[id].Canvas)
+	--dgrid.Content:removeElement(dgrid.Lines[id].Canvas)
 
 
 
@@ -6595,8 +6671,8 @@ function cdgAddColumn(dgrid, title, length)
 	dgrid.Columns[id] = {}
 	dgrid.Columns[id].Length = length
 
-	dgrid.Columns[id].Label = CustomLabel.create(px, 0, length, 24, title, false, dgrid.TitleScroller.Menu)
-	dgrid.Columns[id].Divider = GuiStaticImage.create(px+length+1, 0, 1, 24, pane, false, dgrid.TitleScroller.Menu)
+	--dgrid.Columns[id].Label = CustomLabel.create(px, 0, length, 24, title, false, dgrid.TitleScroller.Menu)
+	--dgrid.Columns[id].Divider = GuiStaticImage.create(px+length+1, 0, 1, 24, pane, false, dgrid.TitleScroller.Menu)
 
 	divcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain)
 
@@ -6608,7 +6684,7 @@ function cdgAddColumn(dgrid, title, length)
 	dgrid.Columns[id].Label:setColor("FFFFFF")
 
 
-	dgrid.TitleScroller:addElement(dgrid.Columns[id].Label)
+	--dgrid.TitleScroller:addElement(dgrid.Columns[id].Label)
 
 end
 
@@ -6645,23 +6721,6 @@ function cdgSetColorScheme(dgrid, scheme)
 	for _, v in pairs(dgrid.Columns) do
 		v.Divider:setProperty("ImageColours", divcol)
 	end
-end
-
-
---------------------------------------------------------------------------------------------------------------------
-
-local createImage = GuiStaticImage.create
-GuiStaticImage.create = function(x, y, w, h, image, rel, par)
-	
-	if comparetypes(par, CustomWindow) or comparetypes(par, CustomScrollPane) then
-		par = par:getFrame()
-	end
-
-	local obj = createImage(x, y, w, h, image, rel, par)
-	obj.Element = obj
-
-	return obj
-
 end
 
 --------------------------------------------------------------------------------------------------------------------

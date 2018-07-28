@@ -239,14 +239,17 @@ test_tab_d:setEnabled(false)
 local image1 = GuiStaticImage.create(40, 10, 30, 20, pane, false, tabs[1])
 local image2 = GuiStaticImage.create(72, 32, 40, 30, pane, false, tabs[1])
 local image3 = GuiStaticImage.create(114, 64, 50, 40, pane, false, tabs[1])
+local image10 = GuiStaticImage.create(166, 104, 60, 50, pane, false, tabs[1])
 
 local image4 = GuiStaticImage.create(40, 10, 30, 20, pane, false, tabs[2])
 local image5 = GuiStaticImage.create(72, 32, 40, 30, pane, false, tabs[2])
 local image6 = GuiStaticImage.create(114, 64, 50, 40, pane, false, tabs[2])
+local image11 = GuiStaticImage.create(166, 104, 60, 50, pane, false, tabs[2])
 
 local image7 = GuiStaticImage.create(40, 10, 30, 20, pane, false, tabs[5])
 local image8 = GuiStaticImage.create(72, 32, 40, 30, pane, false, tabs[5])
 local image9 = GuiStaticImage.create(114, 64, 50, 40, pane, false, tabs[5])
+local image12 = GuiStaticImage.create(166, 104, 60, 50, pane, false, tabs[5])
 
 local imagel1 = GuiStaticImage.create(26, 8, 119, 5, pane, false, demo_window)
 local imagel2 = GuiStaticImage.create(25, 9, 121, 3, pane, false, demo_window)
@@ -262,6 +265,10 @@ image6:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%
 image7:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain)) 
 image8:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain)) 
 image9:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain)) 
+
+image10:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.Main, DefaultColors.Main, DefaultColors.Main, DefaultColors.Main)) 
+image11:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.DarkMain, DefaultColors.DarkMain, DefaultColors.DarkMain, DefaultColors.DarkMain)) 
+image12:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain)) 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Labels
@@ -401,6 +408,10 @@ test_combo:addEvent("onCustomComboBoxSelectItem", function()
 	image7:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain)) 
 	image8:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain)) 
 	image9:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain)) 
+
+	image10:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main)) 
+	image11:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.DarkMain, CurrentTheme.DarkMain, CurrentTheme.DarkMain, CurrentTheme.DarkMain)) 
+	image12:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain, CurrentTheme.LightMain))
 
 	test_edit:setText("Selected theme: "..test_combo:getSelectedItem().Text)
 end)
