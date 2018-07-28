@@ -203,9 +203,6 @@ Fonts = {
 	RobotoThin = ":"..CONTENT.."/fonts/thin.ttf"
 }
 
-
-addEvent("onClientChangeStandartColor", true)
-
 function guiGetOnScreenPosition(element)
 	local x, y = guiGetPosition(element, false)
 	local child = element
@@ -235,314 +232,10 @@ function fromRGBToHEX(r, g, b, a)
 	end
 end
 
-local ScrollPaneSettings = {}
-local ScrollPaneNumber = 0
-
 --Element for onClientGUIMouseUp
 BackForMouse = GuiStaticImage.create(0, 0, 1, 1, pane, true)
 BackForMouse:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 BackForMouse:setVisible(false)
-
-function createCustomScrollPane(xz, yz, wz, hz, rel, par)
-
-	ScrollPaneNumber = ScrollPaneNumber+1 --Count of scroll panes
-	local id = ScrollPaneNumber
-
-	ScrollPaneSettings[id] = {} --Make a table of elements and parameters
-
-	ScrollPaneSettings[id]["Back"] = GuiStaticImage.create( --Back of scroll pane, this item not changing :D
-		xz, yz, wz, hz, pane, rel, par
-	)
-	ScrollPaneSettings[id]["Back"]:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0") 
-
-	ScrollPaneSettings[id]["Scroll"] = GuiStaticImage.create( --Its scroll pane - here put elements, 
-		0, 0, wz, hz, pane, rel, 
-		ScrollPaneSettings[id]["Back"]
-	)
-
-	ScrollPaneSettings[id]["Scroll"]:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	ScrollPaneSettings[id]["Scroll"]:setProperty("AbsoluteMaxSize", "w:10000000 h:10000000")
-
-	--Parameters - speed of scrolling, enabling cursor scrolling and positions for cursor scrolling
-	ScrollPaneSettings[id].Speed = 12
-	ScrollPaneSettings[id].SetScrollEnabled = false
-	ScrollPaneSettings[id].ScrollPositions = {x=0, y=0}
-	ScrollPaneSettings[id].ActialSize = {w=wz, h=hz}
-	--print(id, ScrollPaneSettings[id].ActialSize.w, ScrollPaneSettings[id].ActialSize.h)
-
-	--Wheel scrolling
-	addEventHandler("onClientMouseWheel", root, function(up)
-		
-		if source == ScrollPaneSettings[id]["Scroll"] then
-
-			local _, h1 = ScrollPaneSettings[id]["Back"]:getSize(false)
-			local _, h2 = ScrollPaneSettings[id]["Scroll"]:getSize(false)
-
-			if h1 >= h2 then return false end --If back size more than scroll size, stop scrolling
-
-			local minpos = h1 - h2 --If previous condition not true, size of scroll more than back, and minpos is negative 
-			--get position
-			local x, y = ScrollPaneSettings[id]["Scroll"]:getPosition(false)
-
-			if up == -1 then
-
-				--Scrolling
-				y = y - ScrollPaneSettings[id].Speed
-				--If minpos more than y, y now is minpos (frames of scrolling)
-				if y <= minpos then y = minpos end
-
-				--Set positions
-				ScrollPaneSettings[id]["Scroll"]:setPosition(x, y, false)
-
-			else
-				--Same
-				y = y + ScrollPaneSettings[id].Speed
-				if y >= 0 then y = 0 end
-
-				ScrollPaneSettings[id]["Scroll"]:setPosition(x, y, false)
-
-			end
-		end
-	end)
-
-	--Cursor scrolling
-	addEventHandler("onClientGUIMouseDown", root, function(_, CurX, CurY)
-		if source ~= ScrollPaneSettings[id]["Scroll"] then return false end
-		--Enabling scrolling and show back for stop mouse
-		ScrollPaneSettings[id].SetScrollEnabled = true
-		BackForMouse:setVisible(true)
-
-		--Get positions of scroll
-		local x, y = ScrollPaneSettings[id]["Scroll"]:getPosition(false)
-		--and enter it in scroll positions (like CurAxis here minus CurAxis in moving)
-		ScrollPaneSettings[id].ScrollPositions = {x=CurX-x, y=CurY-y}
-	end)
-	addEventHandler("onClientGUIMouseUp", root, function()
-		--Stop scrolling
-		ScrollPaneSettings[id].SetScrollEnabled = false
-		BackForMouse:setVisible(false)
-	end)
-
-	addEventHandler("onClientCursorMove", root, function(_, _, CurX, CurY)
-		if not ScrollPaneSettings[id].SetScrollEnabled then return false end
-
-		--Update position to like a CurAxis-CurAxis
-		local x, y = CurX-ScrollPaneSettings[id].ScrollPositions.x, CurY-ScrollPaneSettings[id].ScrollPositions.y
-
-		
-		local w1, h1 = ScrollPaneSettings[id]["Back"]:getSize(false)
-		local w2, h2 = ScrollPaneSettings[id]["Scroll"]:getSize(false)
-
-		--Check sizes
-		if w1>=w2 then x = 0 end
-		if h1>=h2 then y = 0 end
-
-		--Check axis
-		if x <= w1-w2 then x = w1-w2 end
-		if x >= 0 then x = 0 end
-		if y <= h1-h2 then y = h1-h2 end
-		if y >= 0 then y = 0 end
-
-		ScrollPaneSettings[id]["Scroll"]:setPosition(x, y, false)
-	end)
-
-	addEventHandler("onClientRender", root, function()
-		if not isElement(ScrollPaneSettings[id]["Scroll"]) then 
-			cancelEvent() 
-			return false 
-		end
-		if not ScrollPaneSettings[id]["Scroll"]:getVisible() then return false end
-		if ScrollPaneSettings[id]["Scroll"]:getVisible() then
-
-			--If scroll out of back, to check this, we load coordinates
-			local w1, h1 = ScrollPaneSettings[id]["Back"]:getSize(false)
-			local w2, h2 = ScrollPaneSettings[id]["Scroll"]:getSize(false)
-			local x, y = ScrollPaneSettings[id]["Scroll"]:getPosition(false)
-
-			--Check axis
-			if x < w1-w2 then 
-
-				x = w1-w2 
-				if x > 0 then x = 0 end
-
-				ScrollPaneSettings[id]["Scroll"]:setPosition(x, y, false)
-			end
-			if y < h1-h2 then 
-
-				y = h1-h2
-				if y > 0 then y = 0 end
-
-				ScrollPaneSettings[id]["Scroll"]:setPosition(x, y, false)
-			end
-		end
-	end)
-
-	return ScrollPaneSettings[id]["Scroll"], ScrollPaneSettings[id]["Back"] 
-end
-
-function getScrollPaneID(element)
-	local id = false
-	for i in pairs(ScrollPaneSettings) do
-		if element == ScrollPaneSettings[i]["Scroll"] then id = i end
-	end
-	return id
-end
-
-local function scrollPaneMenuSetSize(panez, w, h)
-	local panes = getScrollPaneID(panez)
-
-	--print(panes)
-	local xw, xh = ScrollPaneSettings[panes].ActialSize.w, ScrollPaneSettings[panes].ActialSize.h
-
-	if xw > w then w = xw end
-	if xh > h then h = xh end
-	panez:setSize(w, h, false)
-end
-
-local function addElementToScrollPane(panez, element)
-	local panes = getScrollPaneID(panez)
-	if panes == false then return false end
-
-	local wd, hd = panez:getSize(false)
-	local x, y = element:getPosition(false)
-	local wn, hn = element:getSize(false)
-
-	if x+wn > wd then wd = x+wn end
-	if y+hn > hd then hd = y+hn end
-
-	ScrollPaneSettings[panes].ActialSize = {w=wd, h=hd}
-	panez:setSize(wd, hd, false)
-end
-
-local function scrollPaneSetScrollSpeed(panez, speed)
-	local panes = getScrollPaneID(panez)
-	if panes == false then return false end
-
-	ScrollPaneSettings[panes].Speed = tonumber(speed) or 12
-end
-
-local function addScrollElement(panez, element, axises)
-	local panes = getScrollPaneID(panez)
-	if panes == false then return false end
-	
-	--check last argument
-	if axises == "x" or axises == 1 then axises = 1
-	elseif axises == "y" or axises == 2 then axises = 2
-	else axises = 3 end
-
-	--Wheel scrolling
-	if axises == 2 or axises == 3 then
-		addEventHandler("onClientMouseWheel", root, function(up)
-			if source == element then
-	
-				local _, h1 = ScrollPaneSettings[panes]["Back"]:getSize(false)
-				local _, h2 = ScrollPaneSettings[panes]["Scroll"]:getSize(false)
-	
-				if h1 >= h2 then return false end --If back size more than scroll size, stop scrolling
-	
-				local minpos = h1 - h2 --If previous condition not true, size of scroll more than back, and minpos is negative 
-				--get position
-				local x, y = ScrollPaneSettings[panes]["Scroll"]:getPosition(false)
-	
-				if up == -1 then
-	
-					--Scrolling
-					y = y - ScrollPaneSettings[panes].Speed
-					--If minpos more than y, y now is minpos (frames of scrolling)
-					if y <= minpos then y = minpos end
-	
-					--Set positions
-					ScrollPaneSettings[panes]["Scroll"]:setPosition(x, y, false)
-	
-				else
-					--Same
-					y = y + ScrollPaneSettings[panes].Speed
-					if y >= 0 then y = 0 end
-	
-					ScrollPaneSettings[panes]["Scroll"]:setPosition(x, y, false)
-	
-				end
-			end
-		end)
-	end
-
-	if axises == 1 then
-		addEventHandler("onClientMouseWheel", root, function(up)
-			if source == element then
-	
-				local w1 = ScrollPaneSettings[panes]["Back"]:getSize(false)
-				local w2 = ScrollPaneSettings[panes]["Scroll"]:getSize(false)
-	
-				if w1 >= w2 then return false end --If back size more than scroll size, stop scrolling
-	
-				local minpos = w1 - w2 --If previous condition not true, size of scroll more than back, and minpos is negative 
-				--get position
-				local x, y = ScrollPaneSettings[panes]["Scroll"]:getPosition(false)
-	
-				if up == -1 then
-	
-					--Scrolling
-					x = x - ScrollPaneSettings[panes].Speed
-					--If minpos more than x, x now is minpos (frames of scrolling)
-					if x <= minpos then x = minpos end
-	
-					--Set positions
-					ScrollPaneSettings[panes]["Scroll"]:setPosition(x, y, false)
-	
-				else
-					--Same
-					x = x + ScrollPaneSettings[panes].Speed
-					if x >= 0 then x = 0 end
-	
-					ScrollPaneSettings[panes]["Scroll"]:setPosition(x, y, false)
-	
-				end
-			end
-		end)
-	end
-
-	--Cursor scrolling
-	addEventHandler("onClientGUIMouseDown", root, function(_, CurX, CurY)
-		if source ~= element then return false end
-		--Enabling scrolling and show back for stop mouse
-		ScrollPaneSettings[panes].SetScrollEnabled = true
-		BackForMouse:setVisible(true)
-
-		--Get positions of scroll
-		local x, y = ScrollPaneSettings[panes]["Scroll"]:getPosition(false)
-
-		--Check for axises
-		local x1, y1 = CurX-x, CurY-y
-		if axises == 1 then y1 = y 
-		elseif axises == 2 then x1 = x end
-
-		--and enter it in scroll positions (like CurAxis here minus CurAxis in moving)
-		ScrollPaneSettings[panes].ScrollPositions = {x=x1, y=y1}
-	end)
-
-end
-
-ScrollMenu = {}
-ScrollMenu.__index = ScrollMenu
-
-function ScrollMenu.create(...)
-	local self = setmetatable({}, ScrollMenu)
-	self.Menu, self.Back = createCustomScrollPane(...)
-	return self
-end
-function ScrollMenu.addElement(self, element) addElementToScrollPane(self.Menu, element) end
-
-function ScrollMenu.setSize(self, w, h) 
-	return self.Back:setSize(w, h, false), scrollPaneMenuSetSize(self.Menu, w, h) 
-end
-function ScrollMenu.getSize(self, rel) return self.Back:getSize(rel) end
-
-function ScrollMenu.setPosition(self, x, y, rel) return self.Back:setPosition(x, y, rel) end
-function ScrollMenu.getPosition(self, rel) return self.Back:getPosition(rel) end
-
-function ScrollMenu.setSpeed(self, speed) return scrollPaneSetScrollSpeed(self.Menu, speed) end
-function ScrollMenu.addScrollElement(self, element, axis) return addScrollElement(self.Menu, element, axis) end
-
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -1744,16 +1437,21 @@ end
 
 function cspRemoveElement(spane, element)
 
+	print(element)
 	for i, v in pairs(spane.Elements) do
 		if v == element then
+			print("Found ", spane.Elements[i], spane.Elements[i] == element, #spane.Elements)
 			table.remove(spane.Elements, i)
+			print(#spane.Elements)
 			break
 		end
 	end
 
 	for i, v in pairs(spane.ScrollElements) do
 		if v == element then
+			print("Found scrollable ", spane.Elements[i], spane.Elements[i] == element, #spane.ScrollElements)
 			table.remove(spane.ScrollElements, i)
+			print(#spane.ScrollElements)
 			break
 		end
 	end
@@ -4674,13 +4372,6 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 					
 					triggerEvent("onCustomComboBoxSelectItem", ComboBoxes[id].Canvas, v)
 
-					--[[local a, b = ComboBoxes[id].List.Canvas:getSize(false)
-					local c, d = ComboBoxes[id].Entrail:getSize(false)
-					local scrollpos = ComboBoxes[id].Entrail:getVerticalScrollPosition()
-					local e, f = ComboBoxes[id].Entrail.Scroller:getSize(false)
-
-					print(a, c, a-c, " : ", b, d, b-d, " : ", scrollpos, " : ", e, f, " : ", #ComboBoxes[id].Entrail.Elements, #ComboBoxes[id].Entrail.ScrollElements)]]
-
 				end
 			end
 		end
@@ -4801,17 +4492,14 @@ function clbAddItem(combo, text)
 	combo.List.Items[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 	combo.List.Items[id].Mark:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 
-	combo.Entrail:addElement(combo.List.Items[id].Canvas)
-	--combo.Entrail:addScrollElement(combo.List.Items[id].Canvas, "y")
-
 	return combo.List.Items[id]
 end
 
 function clbRemoveItem(combo, item)
 
 	local visited = false
+	
 	for i = #combo.List.Items, 1, -1 do
-	--for i, v in ipairs(combo.List.Items) do
 	
 		local v = combo.List.Items[i]
 		if item == v or item == v.Text then
@@ -4826,15 +4514,10 @@ function clbRemoveItem(combo, item)
 		end
 	end
 
-	local w = combo.Entrail.Menu:getSize(false)
-	combo.Entrail.Menu:setSize(w, 1, false)
-
 	for i, v in pairs(combo.List.Items) do
 		
 		v.Canvas:setPosition(0, 30*(i-1), false)
 
-		--combo.Entrail:addElement(v.Canvas)
-		--combo.Entrail:addScrollElement(v.Canvas, "y")
 	end
 
 	combo.Entrail:update()
@@ -4895,6 +4578,7 @@ function clbSetSize(combo, w, h, rel)
 	combo.Arrow:setPosition(w-25, (h/2)-12, false)
 
 	local sh = combo.Height
+
 	combo.List.Canvas:setSize(w+2, sh+2, false)
 	combo.List.Vertical:setSize(w, sh+2, false)
 	combo.List.Horizontal:setSize(w+2, sh, false)
@@ -4902,12 +4586,10 @@ function clbSetSize(combo, w, h, rel)
 	combo.Entrail:setSize(w, sh, false)
 
 	for _, v in pairs(combo.List.Items) do
+		
 		v.Canvas:setSize(w, 30, false)
 		v.Label:setSize(w-8, 28, false)
 
-
-		--combo.Entrail:addElement(v.Canvas)
-		--combo.Entrail:addScrollElement(v.Canvas, "y")
 	end
 
 	combo.Entrail:update()
@@ -5374,7 +5056,6 @@ function compareTabs(tabpan)
 			end
 
 			v.Label:setSize(width, 20, false)
-			--tabpan.TabScroller:addElement(v.Canvas)
 
 			v.Divider:setVisible(id > 0)
 
@@ -6728,6 +6409,7 @@ end
 ---------------------------Events-----------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
+
 addEvent("onCustomScrollBarScrolled", true)
 addEvent("onCustomDialogClick", true)
 addEvent("onCustomWindowClose", true)

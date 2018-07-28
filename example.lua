@@ -214,6 +214,8 @@ test_combo_d:setEnabled(false)
 test_combo_s:setMaxHeight(200)
 test_combo_s:setSize(150, 70, false)
 
+test_combo_s:removeItem("Test5")
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Tab panels
 test_tab = CustomTabPanel.create(430, 280, 40, 40, false, demo_window)
