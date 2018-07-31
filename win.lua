@@ -256,7 +256,7 @@ GuiStaticImage.create = function(x, y, w, h, image, rel, par)
 end
 
 --------------------------------------------------------------------------------------------------------------------
----Comparator
+---Comparators
 
 function compareAppend(object, ...)
 
@@ -264,6 +264,10 @@ function compareAppend(object, ...)
 	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
 		args[#args]:addElement(object)
 	end
+end
+
+function compareDefaults(parent)
+	return comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane)
 end
 
 
@@ -302,7 +306,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 
 		parent = parent:getFrame()
 	end
@@ -1011,7 +1015,7 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -1547,7 +1551,7 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -1983,7 +1987,7 @@ function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -2319,7 +2323,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 	end
 
 
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -2860,7 +2864,7 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -3679,7 +3683,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -4174,7 +4178,7 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -4786,7 +4790,7 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -5392,7 +5396,7 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -6001,7 +6005,7 @@ function CustomLoading.create(x, y, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
@@ -6168,7 +6172,7 @@ function guiCreateCustomDataGrid(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane) then
+	if compareDefaults(parent) then
 		parent = parent:getFrame()
 	end
 
