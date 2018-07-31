@@ -1,4 +1,4 @@
-CONTENT = "LuaPhoneSys" --Resource name with files
+CONTENT = "LuaWinSys" --Resource name with files
 
 function comparetypes(object, metatable)
 	return getmetatable(object) == metatable
