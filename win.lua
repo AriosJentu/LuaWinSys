@@ -1,4 +1,4 @@
-CONTENT = "LuaWinSys" --Resource name with files
+CONTENT = "LuaPhoneSys" --Resource name with files
 
 function comparetypes(object, metatable)
 	return getmetatable(object) == metatable
@@ -254,6 +254,18 @@ GuiStaticImage.create = function(x, y, w, h, image, rel, par)
 	return obj
 
 end
+
+--------------------------------------------------------------------------------------------------------------------
+---Comparator
+
+function compareAppend(object, ...)
+
+	local args = {...}
+	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
+		args[#args]:addElement(object)
+	end
+end
+
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -919,12 +931,7 @@ CustomWindow.__index = CustomWindow
 
 function CustomWindow.create(...)
 	local self = setmetatable(guiCreateCustomWindow(...), CustomWindow)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
-
+	compareAppend(self, ...)
 	return self
 end
 
@@ -1464,12 +1471,7 @@ CustomScrollPane.__index = CustomScrollPane
 
 function CustomScrollPane.create(...)
 	local self = setmetatable(guiCreateCustomScrollPane(...), CustomScrollPane)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
-
+	compareAppend(self, ...)
 	return self
 end
 
@@ -1914,11 +1916,7 @@ CustomButton.__index = CustomButton
 
 function CustomButton.create(...)
 	local self = setmetatable(guiCreateCustomButton(...), CustomButton)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	self.Element = self.Main
 
@@ -2239,11 +2237,7 @@ CustomProgressBar.__index = CustomProgressBar
 
 function CustomProgressBar.create(...)
 	local self = setmetatable(guiCreateCustomProgressBar(...), CustomProgressBar)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	self.Element = self.Main
 
@@ -2796,11 +2790,7 @@ CustomScrollBar.__index = CustomScrollBar
 
 function CustomScrollBar.create(...)
 	local self = setmetatable(guiCreateCustomScrollBar(...), CustomScrollBar)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	return self
 
@@ -3531,11 +3521,7 @@ CustomEdit.__index = CustomEdit
 
 function CustomEdit.create(...)
 	local self = setmetatable(guiCreateCustomEdit(...), CustomEdit)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	self.Element = self.TextBox
 
@@ -3578,11 +3564,7 @@ CustomMemo.__index = CustomMemo
 
 function CustomMemo.create(...)
 	local self = setmetatable(guiCreateCustomMemo(...), CustomMemo)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	return self
 end
@@ -3619,11 +3601,7 @@ CustomNumberScroller.__index = CustomNumberScroller
 
 function CustomNumberScroller.create(...)
 	local self = setmetatable(guiCreateCustomNumberScroller(...), CustomNumberScroller)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	return self
 end
@@ -4129,11 +4107,7 @@ CustomCheckBox.__index = CustomCheckBox
 
 function CustomCheckBox.create(...)
 	local self = setmetatable(guiCreateCustomCheckBox(...), CustomCheckBox)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	self.Element = self.Label
 
@@ -4742,11 +4716,7 @@ CustomComboBox.__index = CustomComboBox
 
 function CustomComboBox.create(...)
 	local self = setmetatable(guiCreateCustomComboBox(...), CustomComboBox)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	self.Element = self.Main
 
@@ -5348,11 +5318,7 @@ CustomTabPanel.__index = CustomTabPanel
 
 function CustomTabPanel.create(...)
 	local self = setmetatable(guiCreateCustomTabPanel(...), CustomTabPanel)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	return self
 end
@@ -5714,11 +5680,7 @@ CustomLabel.__index = CustomLabel
 
 function CustomLabel.create(...)
 	local self = setmetatable(guiCreateCustomLabel(...), CustomLabel)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(self)
-	end
+	compareAppend(self, ...)
 
 	self.Element = self.Label
 
