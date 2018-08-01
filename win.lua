@@ -222,8 +222,13 @@ function fromPropertyToHEX(element)
     return str, str2
 end
 
-function fromRGBToHEX(r, g, b, a)
+function fromRGBToHEX(r, g, b, a, inversed)
 	if a then
+		
+		if inversed then
+			r, g, b, a = a, r, g, b
+		end
+
 		return string.format("%.2x%.2x%.2x%.2x", r, g, b, a)
 	else
 		return string.format("%.2x%.2x%.2x", r, g, b)
