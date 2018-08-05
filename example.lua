@@ -25,20 +25,20 @@ demo_window:showBar("left", 165)
 
 
 demo_window_l = CustomWindow.create(1000, 100, 300, 200, "Disabled Window", false)
-demo_window_l:setEnabled(false)
 demo_window_l:setVisible(false)
 --bindKey("n", "up", function() demo_window_l:open() end)
 
-demo_window_m = CustomWindow.create(1000, 400, 300, 200, "Not Movable Window", false)
+demo_window_m = CustomWindow.create(1000, 350, 300, 300, "Not Movable Window", false)
 demo_window_m:setVisible(false)
 demo_window_m:setCloseEnabled(true)
 demo_window_m:setMovable(false)
 demo_window_m:showBar("top", 65)
 --bindKey("m", "up", function() demo_window_m:open() end)
 
-demo_window_n = CustomWindow.create(5, 80, 90, 50, "Parented", false, demo_window_m)
+demo_window_n = CustomWindow.create(5, 80, 90, 50, "Parented", false, demo_window_l)
 demo_window_n:setCloseEnabled(true)
 demo_window_n:showBar("right", 30)
+demo_window_l:setEnabled(false)
 
 addCommandHandler("demowidgets", function()
 	if demo_window_l:getVisible() then
@@ -87,10 +87,10 @@ test_but_locked2:setEnabled(false)
 
 test_but_clicked2 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_l)
 
-test_but_locked3 = CustomButton.create(100, 80, 100, 40, "Disabled", false, demo_window_m)
+test_but_locked3 = CustomButton.create(40, 80, 100, 30, "Disabled", false, demo_window_m)
 test_but_locked3:setEnabled(false)
 
-test_but_clicked3 = CustomButton.create(100, 130, 100, 40, "Clicked", false, demo_window_m)
+test_but_clicked3 = CustomButton.create(160, 80, 100, 30, "Clicked", false, demo_window_m)
 
 CustomTooltip.create("Custom Tooltip", test_button, 0)
 
@@ -305,6 +305,40 @@ end)
 
 test_loading = CustomLoading.create(590, 50, false, demo_window)
 
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Grid Lists
+
+test_grid = CustomTableView.create(5, 125, 290, 170, false, demo_window_m)
+
+cleared_column = test_grid:addColumn()
+short_column = test_grid:addColumn("Short")
+long_column = test_grid:addColumn("Long Column", 120)
+removed_column = test_grid:addColumn("It Will Be Removed", 150)
+removed_named_column = test_grid:addColumn("It Will Be Removed Too", 150)
+another_column = test_grid:addColumn("Another", 90)
+scrolled_column = test_grid:addColumn("Scroll it to look at me", 130)
+
+test_grid:removeColumn(removed_column)
+test_grid:removeColumn("It Will Be Removed Too")
+
+for i = 1, 10 do
+	if i == 5 then
+		test_line = test_grid:addLine()
+	else
+		test_grid:addLine(26 - math.abs(5-i))
+	end
+end
+
+for i = 1, test_grid:getLinesCount() do
+	for j = 1, test_grid:getColumnsCount() do
+		test_grid:setCellText(i, j, i.." "..j)
+	end
+end
+
+test_grid:setCellText(test_line, cleared_column, "Cell")
+test_grid:setCellText(1, 1, "First")
+test_grid:setCellText(test_grid:getLinesCount(), scrolled_column, "Last")
+
 
 ---------------------------------------
 
@@ -317,9 +351,9 @@ demo_window_m:setColorScheme(BlueColorsDark)
 
 indx = 1
 
-test_checkbox:addEvent("onClientGUIClick", function()
+test_checkbox:addEvent("onCustomCheckBoxChecked", function(checked)
 
-	if test_checkbox:getChecked() then
+	if checked then
 		test_checkbox:setText("Activated")
 	else
 		test_checkbox:setText("Deactivated")
@@ -327,9 +361,9 @@ test_checkbox:addEvent("onClientGUIClick", function()
 
 end)
 
-test_checkbox_e:addEvent("onClientGUIClick", function()
+test_checkbox_e:addEvent("onCustomCheckBoxChecked", function(checked)
 
-	if test_checkbox_e:getChecked() then
+	if checked then
 		test_checkbox_e:setText("Activated")
 		test_loading:setAnimated(true)
 	else
@@ -424,3 +458,13 @@ test_numscroll:addEvent("onClientGUIChanged", function()
 
 end)
 
+test_but_clicked3:addEvent("onClientGUIClick", function()
+	local selected_line = test_grid:getSelectedLine()
+
+	if selected_line == 0 then
+		test_edit_nm:setText("Nothing selected")
+	else
+		test_edit_nm:setText(test_grid:getCellText(selected_line, 1))
+	end
+
+end)
