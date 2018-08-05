@@ -30,6 +30,12 @@ function fromHEXToRGB(color)
     end
 end
 
+function printmatrix(tab) 
+	for _, v in pairs(tab) do
+		print(unpack(v))
+	end
+end
+
 function proceedColor(main, red, green, dark)
 
 	if not dark then dark = false end
@@ -246,7 +252,7 @@ local createImage = GuiStaticImage.create
 GuiStaticImage.create = function(x, y, w, h, image, rel, par)
 	
 	local oldpar = par
-	if comparetypes(par, CustomWindow) or comparetypes(par, CustomScrollPane) then
+	if comparetypes(par, CustomWindow) or comparetypes(par, CustomScrollPane) or comparetypes(par, CustomLabel) then
 		par = par:getFrame()
 	end
 
@@ -275,6 +281,20 @@ function compareDefaults(parent)
 	return comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane)
 end
 
+function destroyGUIFromTable(tab)
+	for i, v in pairs(tab) do
+
+		if type(v) == "table" then
+			destroyGUIFromTable(v)
+		end
+
+		if isElement(v) then
+			destroyElement(v)
+		end
+
+		tab[i] = nil
+	end
+end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -1056,6 +1076,8 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 	ScrollPanels[id].Scroller:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 	ScrollPanels[id].EnablingBlock:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
 	
+	ScrollPanels[id].Scroller:setProperty("AbsoluteMaxSize", "w:10000000 h:10000000")	
+
 	ScrollPanels[id].EnablingBlock:setEnabled(false)
 	ScrollPanels[id].EnablingBlock:setVisible(false)
 
@@ -1119,6 +1141,8 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 
 			ScrollPanels[id].Scroller:setPosition(posX, posY, false)
 
+			triggerEvent("onCustomScrollPaneScrolled", ScrollPanels[id].Scroller, ScrollPanels[id]:getVerticalScrollPosition(), ScrollPanels[id]:getHorizontalScrollPosition())
+
 		end
 
 	end)
@@ -1162,16 +1186,18 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 				x = x + ScrollPanels[id].InversedHorizontal*upper*ScrollPanels[id].ScrollSpeed
 			end
 
-			if x < 0 then x = x-1 end
-			if y < 0 then y = y-1 end
-
 			if x < aw-w then x = aw-w end
 			if y < ah-h then y = ah-h end
+
+			if x < 0 then x = x-1 end
+			if y < 0 then y = y-1 end
 
 			if x > 0 then x = 0 end
 			if y > 0 then y = 0 end
 
 			ScrollPanels[id].Scroller:setPosition(x, y, false)
+
+			triggerEvent("onCustomScrollPaneScrolled", ScrollPanels[id].Scroller, ScrollPanels[id]:getVerticalScrollPosition(), ScrollPanels[id]:getHorizontalScrollPosition())
 
 		end
 	end)
@@ -1195,7 +1221,7 @@ function cspRecalcSize(spane)
 		local ax, ay = v:getPosition(false)
 		local aw, ah = v:getSize(false)
 
-		if v.getRealSize ~= nil then
+		if v.getRealSize then
 			aw, ah = v:getRealSize(false) 
 		end
 
@@ -1207,11 +1233,11 @@ function cspRecalcSize(spane)
 	maxW = math.max(maxW, w)
 	maxH = math.max(maxH, h)
 
-	if x < 0 then x = x-1 end
-	if y < 0 then y = y-1 end
-
 	if x < w-maxW then x = w-maxW end
 	if y < h-maxH then y = h-maxH end
+
+	if x < 0 then x = x-1 end
+	if y < 0 then y = y-1 end
 
 	if x > 0 then x = 0 end
 	if y > 0 then y = 0 end
@@ -1301,10 +1327,15 @@ function cspSetVerticalScrollPosition(spane, percentage)
 	local w, h = spane.Scroller:getSize(false)
 	local aw, ah = spane.Canvas:getSize(false)
 
-	y = (ah-h)*(100-percentage)/100
+	y = (ah-h-1)*percentage/100
+
+	if x < 0 then x = x-1 end
+	if y < 0 then y = y-1 end
 
 	spane.Scroller:setPosition(x, y, false)
 	cspRecalcSize(spane)
+
+	triggerEvent("onCustomScrollPaneScrolled", spane.Scroller, spane:getVerticalScrollPosition(), spane:getHorizontalScrollPosition())
 
 end
 
@@ -1317,10 +1348,15 @@ function cspSetHorizontalScrollPosition(spane, percentage)
 	local w, h = spane.Scroller:getSize(false)
 	local aw, ah = spane.Canvas:getSize(false)
 
-	x = (aw-w)*(100-percentage)/100
+	x = (aw-w)*percentage/100
+	
+	if x < 0 then x = x-1 end
+	if y < 0 then y = y-1 end
 
 	spane.Scroller:setPosition(x, y, false)
 	cspRecalcSize(spane)
+
+	triggerEvent("onCustomScrollPaneScrolled", spane.Scroller, spane:getVerticalScrollPosition(), spane:getHorizontalScrollPosition())
 
 end
 
@@ -1392,6 +1428,9 @@ function cspGetVerticalScrollPosition(spane)
 	local w, h = spane.Scroller:getSize(false)
 	local aw, ah = spane.Canvas:getSize(false)
 
+	if x < 0 then x = x-1 end
+	if y < 0 then y = y-1 end
+
 	if ah-h == 0 then 
 		return 0
 	else
@@ -1405,6 +1444,9 @@ function cspGetHorizontalScrollPosition(spane)
 	local x, y = spane.Scroller:getPosition(false)
 	local w, h = spane.Scroller:getSize(false)
 	local aw, ah = spane.Canvas:getSize(false)
+
+	if x < 0 then x = x-1 end
+	if y < 0 then y = y-1 end
 
 	if aw-w == 0 then 
 		return 0
@@ -1912,7 +1954,7 @@ end
 
 function cbAddEvent(button, event, func)
 	addEventHandler(event, root, function(...)
-		if source == button.Main then
+		if source == button.Main or source == button.Canvas then
 			func(...)
 		end
 	end)
@@ -2233,7 +2275,7 @@ end
 
 function cpbAddEvent(bar, event, func)
 	addEventHandler(event, root, function(...)
-		if source == bar.Main then
+		if source == bar.Main or source == bar.Canvas then
 			func(...)
 		end
 	end)
@@ -2545,6 +2587,8 @@ function csbSetScrollPosition(scroll, pos)
 	else
 		scroll.Edges:setPosition(0, pos * (sheight-slen) / 100, false)
 	end
+
+	triggerEvent("onCustomScrollBarScrolled", scroll.Canvas, scroll.Scroll)
 
 end
 
@@ -3517,7 +3561,7 @@ end
 
 function ctbAddEvent(textbox, event, func)
 	addEventHandler(event, root, function(...)
-		if source == textbox.TextBox or source == textbox.Up or source == textbox.Down or source == textbox.Edges then
+		if source == textbox.TextBox or source == textbox.Up or source == textbox.Down or source == textbox.Edges or source == textbox.Canvas then
 			func(...)
 		end
 	end)
@@ -3738,10 +3782,12 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	CheckBoxes[id].moveRight = function()
 		CheckBoxes[id].State = true
 		CheckBoxes[id].Animation = 1
+		triggerEvent("onCustomCheckBoxChecked", CheckBoxes[id].Main, CheckBoxes[id].State)
 	end
 	CheckBoxes[id].moveLeft = function()
 		CheckBoxes[id].State = false
 		CheckBoxes[id].Animation = 2
+		triggerEvent("onCustomCheckBoxChecked", CheckBoxes[id].Main, CheckBoxes[id].State)
 	end
 
 	addEventHandler("onClientMouseEnter", root, function()
@@ -3900,7 +3946,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 		CheckBoxes[id].LocalPosition.X = CheckBoxes[id].PhysicalPosition.X
 		CheckBoxes[id].Moving = false
 		BackForMouse:setVisible(false)
-
+			
 	end)
 
 	addEventHandler("onClientCursorMove", root, function(_, _, x, y)
@@ -4102,7 +4148,7 @@ end
 
 function ccbAddEvent(checkbox, event, func)
 	addEventHandler(event, root, function(...)
-		if source == checkbox.Entrail or source == checkbox.Main or source == checkbox.Label then
+		if source == checkbox.Entrail or source == checkbox.Main or source == checkbox.Label or source == checkbox.Canvas then
 			func(...)
 		end
 	end)
@@ -5682,6 +5728,10 @@ function clAddEvent(label, event, func)
 	end)
 end
 
+function clGetFrame(label)
+	return label.Label
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
 CustomLabel = {}
@@ -5724,6 +5774,7 @@ function CustomLabel.setColorScheme(self, ...) return clSetColorScheme(self, ...
 function CustomLabel.getColorScheme(self, ...) return clGetColorScheme(self, ...) end
 
 function CustomLabel.addEvent(self, ...) return clAddEvent(self, ...) end
+function CustomLabel.getFrame(self, ...) return clGetFrame(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -6142,16 +6193,16 @@ end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
------------------------------DataGrid-------------------------------------------------------------------------------
+-----------------------------TableView-------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 
-DataGrid = {}
-function guiCreateCustomDataGrid(x, y, w, h, relative, parent)
+TableView = {}
+function guiCreateCustomTableView(x, y, w, h, relative, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
-	local id = #DataGrid+1
+	local id = #TableView+1
 
 	if relative then
 
@@ -6181,188 +6232,1038 @@ function guiCreateCustomDataGrid(x, y, w, h, relative, parent)
 		parent = parent:getFrame()
 	end
 
-	DataGrid[id] = {}
+	TableView[id] = {}
 
-	DataGrid[id].ColorScheme = DefaultColors
-	DataGrid[id].Items = {}
-	DataGrid[id].Lines = {}
-	DataGrid[id].Columns = {}
+	TableView[id].ColorScheme = DefaultColors
+	TableView[id].Items = {}
+	TableView[id].Lines = {}
+	TableView[id].Columns = {}
+	TableView[id].Selected = 0
+	TableView[id].Indent = 5
+	TableView[id].Width = 0
 
 	if oldparent and oldparent.ColorScheme ~= nil then
-		DataGrid[id].ColorScheme = oldparent.ColorScheme
+		TableView[id].ColorScheme = oldparent.ColorScheme
 	end
 
 
-	DataGrid[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
-	DataGrid[id].Main = GuiStaticImage.create(1, 1, w, h, pane, false, DataGrid[id].Canvas)
+	-------------------------------------------------------------------------------------
+	--Creating
 
-	--DataGrid[id].Content = ScrollMenu.create(0, 25, w, h-25, false, DataGrid[id].Main)
+	TableView[id].Back = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
+	TableView[id].ShadowVert = GuiStaticImage.create(1, 0, w, h+2, pane, false, TableView[id].Back)
+	TableView[id].ShadowHorz = GuiStaticImage.create(0, 1, w+2, h, pane, false, TableView[id].Back)
 
-	DataGrid[id].TitleBlock = GuiStaticImage.create(0, 0, w, 25, pane, false, DataGrid[id].Main)
-	DataGrid[id].TitleDivider = GuiStaticImage.create(0, 24, w, 1, pane, false, DataGrid[id].TitleBlock)
+	TableView[id].Canvas = GuiStaticImage.create(1, 1, w, h, pane, false, TableView[id].Back)
 
-	--DataGrid[id].TitleScroller = ScrollMenu.create(0, 0, w, 24, false, DataGrid[id].TitleBlock)
+	TableView[id].TitleBlock = GuiStaticImage.create(0, 0, w, 23, pane, false, TableView[id].Canvas)
+	TableView[id].Divider = GuiStaticImage.create(0, 22, w, 1, pane, false, TableView[id].TitleBlock)
 
+	TableView[id].Containing = CustomScrollPane.create(0, 23, w, h-23, false, TableView[id].Canvas)
+	TableView[id].TitleScrolls = CustomScrollPane.create(0, 0, w, 23, false, TableView[id].TitleBlock)
 
-	------------------------------------------------------------------------------------------------------------------------------------------
+	TableView[id].ScrollObject = GuiStaticImage.create(0, 0, 1, 1, pane, false, TableView[id].Containing)
+
+	TableView[id].Disabled = GuiStaticImage.create(0, 0, 1, 1, pane, true, TableView[id].Back)
+
+	-------------------------------------------------------------------------------------
 	--Properties
 
-	MainCol = "CCCCCC"
-	if DataGrid[id].ColorScheme.DarkTheme then MainCol = "393939" end 
-
-	SameCol = "AAAAAA"
-	if DataGrid[id].ColorScheme.DarkTheme then SameCol = "2E2E2E" end 
-
-	LightCol = "EEEEEE"
-	if DataGrid[id].ColorScheme.DarkTheme then LightCol = "444444" end
+	MainCol = "DDDDDD"
+	if TableView[id].ColorScheme.DarkTheme then MainCol = "393939" end 
 
 	maincol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
-	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
-	objcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DataGrid[id].ColorScheme.Main, DataGrid[id].ColorScheme.Main, DataGrid[id].ColorScheme.Main, DataGrid[id].ColorScheme.Main)
-	divcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DataGrid[id].ColorScheme.SubMain, DataGrid[id].ColorScheme.SubMain, DataGrid[id].ColorScheme.SubMain, DataGrid[id].ColorScheme.SubMain)
+	objcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TableView[id].ColorScheme.DarkMain, TableView[id].ColorScheme.DarkMain, TableView[id].ColorScheme.DarkMain, TableView[id].ColorScheme.DarkMain)
+	
+	TableView[id].Back:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	TableView[id].Canvas:setProperty("ImageColours", maincol)
+	TableView[id].ShadowVert:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
+	TableView[id].ShadowHorz:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
+	TableView[id].Disabled:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
 
-	DataGrid[id].Canvas:setProperty("ImageColours", samecol)
-	DataGrid[id].Main:setProperty("ImageColours", maincol)
-	DataGrid[id].TitleBlock:setProperty("ImageColours", objcol)
-	DataGrid[id].TitleDivider:setProperty("ImageColours", divcol)
+	TableView[id].ScrollObject:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 
+	TableView[id].TitleBlock:setProperty("ImageColours", objcol)
+	TableView[id].Divider:setProperty("ImageColours", "tl:33000000 tr:33000000 bl:33000000 br:33000000")
 
+	TableView[id].ShadowVert:setEnabled(false)
+	TableView[id].ShadowHorz:setEnabled(false)
+	TableView[id].Divider:setEnabled(false)
 
-	------------------------------------------------------------------------------------------------------------------------------------------
+	TableView[id].Disabled:setVisible(false)
+
+	TableView[id].TitleScrolls:setHorizontalScrolling(true)
+
+	-------------------------------------------------------------------------------------
 	--Events
 
-	--[[addEventHandler("onClientGUIChanged", root, function()
+	addEventHandler("onClientMouseEnter", root, function()
 
-		if source == DataGrid[id].Content.Menu then
+		for k, item in pairs(TableView[id].Lines) do
+			
+			TextCol = "333333"
+			if TableView[id].ColorScheme.DarkTheme or k == TableView[id].Selected or source == item.Canvas then TextCol = "FFFFFF" end
 
-			local x = DataGrid[id].Content.Menu:getPosition(false)
-			local _, y = DataGrid[id].TitleScroller.Menu:getPosition(false)
+			if source == item.Canvas then
 
-			DataGrid[id].TitleScroller.Menu:setPosition(x, y, false)
+				linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TableView[id].ColorScheme.LightMain, TableView[id].ColorScheme.LightMain, TableView[id].ColorScheme.LightMain, TableView[id].ColorScheme.LightMain)
 
-		elseif source == DataGrid[id].TitleScroller.Menu then
+				item.Canvas:setProperty("ImageColours", linecol)
 
-			local x = DataGrid[id].TitleScroller.Menu:getPosition(false)
-			local _, y = DataGrid[id].Content.Menu:getPosition(false)
+			end
 
-			DataGrid[id].Content.Menu:setPosition(x, y, false)
+			for i in pairs(TableView[id].Columns) do
+				item.Elements[i]:setColor(TextCol)
+			end
 		end
-	end)]]
+
+	end)
+
+	addEventHandler("onClientMouseLeave", root, function()
+
+		for it_id, item in pairs(TableView[id].Lines) do
+
+			LineColor = "EEEEEE"
+			if TableView[id].ColorScheme.DarkTheme then LineColor = "444444" end 
+
+			linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LineColor, LineColor, LineColor, LineColor)
+
+			if it_id == TableView[id].Selected then
+				linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main)
+			end
+
+			item.Canvas:setProperty("ImageColours", linecol)
+
+			TextCol = "333333"
+			if TableView[id].ColorScheme.DarkTheme or it_id == TableView[id].Selected then TextCol = "FFFFFF" end
+
+			for i in pairs(TableView[id].Columns) do
+				item.Elements[i]:setColor(TextCol)
+			end
+
+		end
+
+	end)
+
+	addEventHandler("onClientGUIClick", root, function()
+
+		local vid = 0
+		local sid = TableView[id].Selected
+		
+		for t_id, item in pairs(TableView[id].Lines) do
+			
+			if source == item.Canvas then
+				vid = t_id
+			end
+		end
+
+		if vid > 0 then
+
+			if sid > 0 then
+				LineColor = "EEEEEE"
+				if TableView[id].ColorScheme.DarkTheme then LineColor = "444444" end 
+
+				DivColor = "CCCCCC"
+				if TableView[id].ColorScheme.DarkTheme then DivColor = "333333" end 
+
+				linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LineColor, LineColor, LineColor, LineColor)
+				TableView[id].Lines[sid].Canvas:setProperty("ImageColours", linecol)
+
+			end
+			
+			linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main)
+
+			TableView[id].Selected = vid
+			TableView[id].Lines[vid].Canvas:setProperty("ImageColours", linecol)
+
+		end
+	
+		for k, item in pairs(TableView[id].Lines) do
+
+			TextCol = "333333"
+			if TableView[id].ColorScheme.DarkTheme or k == TableView[id].Selected then TextCol = "FFFFFF" end
+
+			for i in pairs(TableView[id].Columns) do
+				item.Elements[i]:setColor(TextCol)
+			end
+		end
+
+	end)
+
+	TableView[id].CScrolling = false
+	TableView[id].TScrolling = false
+
+	TableView[id].Containing:addEvent("onCustomScrollPaneScrolled", function(vert, horz)
+		
+		TableView[id].CScrolling = true
+		
+		if not TableView[id].TScrolling then
+			TableView[id].TitleScrolls:setHorizontalScrollPosition(horz)
+		end
+		
+		TableView[id].CScrolling = false
+	end)
+
+	TableView[id].TitleScrolls:addEvent("onCustomScrollPaneScrolled", function(vert, horz)
+
+		TableView[id].TScrolling = true
+		
+		local w = TableView[id].Containing.Canvas:getSize(false)
+		local sw = TableView[id].Containing.Scroller:getSize(false)
+		if not TableView[id].CScrolling then
+			TableView[id].Containing:setHorizontalScrollPosition(horz)
+		end
+
+		TableView[id].TScrolling = false
+	end)
 
 
-	return DataGrid[id]
+	return TableView[id]
+end
+
+---------------------------------------------------------------------------------------------------------------
+--Update Functions
+
+function ctvUpdate(tview)
+
+
+	tview.Width = 0
+
+	local x = 0
+	for col, obj in pairs(tview.Columns) do
+
+		local color = "tl:33000000 tr:33000000 bl:33000000 br:33000000"
+		if col == 1 then color = "tl:0 tr:0 bl:0 br:0" end
+
+		obj.Divider:setProperty("ImageColours", color)
+		
+		obj.Title:setPosition(x, 0, false)
+		obj.Title:setSize(obj.Width, 23, false)
+
+		x = x + obj.Width
+
+	end
+	tview.Width = x
+
+	local y = tview.Indent
+
+	local w = tview.Canvas:getSize(false)
+
+	w = math.max(w, tview.Width)
+
+	for _, v in pairs(tview.Lines) do
+		
+		v.Canvas:setPosition(0, y, false)
+		v.Canvas:setSize(w, v.Height, false)
+		
+		v.Divider:setPosition(0, v.Height-1, false)
+		v.Divider:setSize(w, 1, false)
+
+		y = y + v.Height + tview.Indent
+	end
+
+	tview.ScrollObject:setPosition(0, y-2, false)
+	tview.Containing:update()
+	tview.TitleScrolls:update()
+
+	LineColor = "EEEEEE"
+	if tview.ColorScheme.DarkTheme then LineColor = "444444" end 
+
+	DivColor = "CCCCCC"
+	if tview.ColorScheme.DarkTheme then DivColor = "333333" end 
+
+	MainCol = "DDDDDD"
+	if tview.ColorScheme.DarkTheme then MainCol = "393939" end 
+
+	TextCol = "333333"
+	if tview.ColorScheme.DarkTheme then TextCol = "FFFFFF" end
+
+	maincol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
+	objcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", tview.ColorScheme.SubMain, tview.ColorScheme.SubMain, tview.ColorScheme.SubMain, tview.ColorScheme.SubMain)
+
+	tview.Canvas:setProperty("ImageColours", maincol)
+	tview.TitleBlock:setProperty("ImageColours", objcol)
+
+	for it_id, item in pairs(tview.Lines) do
+
+		linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LineColor, LineColor, LineColor, LineColor)
+
+		if it_id == tview.Selected then
+			linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", tview.ColorScheme.Main, tview.ColorScheme.Main, tview.ColorScheme.Main, tview.ColorScheme.Main)
+		end
+
+		item.Canvas:setProperty("ImageColours", linecol)
+
+		local x = 5	
+		for i, v in pairs(tview.Columns) do
+
+			item.Elements[i]:setPosition(x, 0, false)
+			item.Elements[i]:setSize(v.Width-5, item.Height, false)
+			item.Elements[i]:setText(tview.Items[it_id][i])
+
+			local color = TextCol
+			if it_id == tview.Selected then color = "FFFFFF" end
+
+			item.Elements[i]:setColor(color)
+
+			x = x + v.Width
+		end
+
+	end
+end
+
+function ctvBringToFront(tview)
+	tview.Back:bringToFront()
+end
+
+function ctvMoveToBack(tview)
+	tview.Back:moveToBack()
+end
+
+---------------------------------------------------------------------------------------------------------------
+--Adding Elements Functions
+
+function ctvAddLine(tview, height)
+
+	local id = #tview.Lines+1
+
+	------------------------------------------------------------------------------------
+	--Calculation
+
+	if not height or height < 22 then 
+		height = 22
+	end
+	height = height+1 --for divider
+
+	local YPos = tview.Indent
+	for _, v in pairs(tview.Lines) do
+		YPos = YPos + v.Height + tview.Indent
+	end
+
+	local width = tview.Canvas:getSize(false)
+
+
+	------------------------------------------------------------------------------------
+	--New tabs
+
+	tview.Items[id] = {}
+	tview.Lines[id] = {}
+
+	-------------------------------------------------------------------------------------
+	--Line Creation
+
+	tview.Lines[id].Height = height
+	tview.Lines[id].Elements = {}
+
+	tview.Lines[id].Canvas = GuiStaticImage.create(0, YPos, width, height, pane, false, tview.Containing)
+	tview.Lines[id].Divider = GuiStaticImage.create(0, height-1, width, 1, pane, false, tview.Lines[id].Canvas)
+
+	tview.Lines[id].Divider:setEnabled(false)
+
+	YPos = YPos + height + tview.Indent
+	tview.ScrollObject:setPosition(0, YPos, false)
+	
+	tview.Containing:update()
+
+	local x = 5
+	for i, v in pairs(tview.Columns) do
+
+		tview.Items[id][i] = ""
+
+		tview.Lines[id].Elements[i] = CustomLabel.create(x, 0, v.Width-5, height, "Sas", false, tview.Lines[id].Canvas)
+		tview.Lines[id].Elements[i]:setVerticalAlign("center")
+		tview.Lines[id].Elements[i]:setEnabled(false)
+
+		x = x + v.Width
+	end
+
+	-------------------------------------------------------------------------------------
+	--Properties
+
+	LineColor = "EEEEEE"
+	if tview.ColorScheme.DarkTheme then LineColor = "444444" end 
+
+	linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LineColor, LineColor, LineColor, LineColor)
+
+	tview.Lines[id].Canvas:setProperty("ImageColours", linecol)
+	tview.Lines[id].Divider:setProperty("ImageColours", "tl:33000000 tr:33000000 bl:33000000 br:33000000")
+
+	ctvUpdate(tview)
+			
+	return tview.Lines[id]
+end
+
+function ctvRemoveLine(tview, line)
+
+	if not line and line ~= 0 then
+		line = #tview.Lines
+	end
+
+	if line and tonumber(line) and (1 <= line and line <= #tview.Lines) then
+
+		tview.Containing:removeElement(tview.Lines[line].Canvas)
+
+		destroyElement(tview.Lines[line].Divider)
+		destroyElement(tview.Lines[line].Canvas)
+
+		for _, v in pairs(tview.Lines[line].Elements) do
+			destroyElement(v)
+		end
+
+		table.remove(tview.Items, line)
+		table.remove(tview.Lines, line)
+
+		--printmatrix(tview.Items)
+		--print()
+
+		ctvUpdate(tview)
+
+	else
+
+		local id = 0
+		
+		for t_id, tab in pairs(tview.Lines) do
+			if tab == line then
+				id = t_id
+			end
+		end
+		
+		ctvRemoveLine(tview, id)
+
+	end
+
+end
+
+function ctvAddColumn(tview, title, width)
+
+	local id = #tview.Columns+1
+
+	---------------------------------------------------------------
+	--Calculating	
+
+	if not title then 
+		title = ""
+	else
+		title = tostring(title)
+	end
+
+	if not width or width < 50 then 
+		width = 50
+	end
+	width = width+1 --for divider
+
+	local XPos = 0
+	for _, v in pairs(tview.Columns) do
+		XPos = XPos + v.Width
+	end
+
+	---------------------------------------------------------------
+	--Creation
+
+	tview.Columns[id] = {}
+	tview.Columns[id].Width = width
+
+	tview.Columns[id].Title = CustomLabel.create(XPos, 0, width, 23, title, false, tview.TitleScrolls)
+	tview.Columns[id].Divider = GuiStaticImage.create(0, 0, 1, 22, pane, false, tview.Columns[id].Title.Label)
+
+	for i, v in pairs(tview.Lines) do
+
+		tview.Items[i][id] = ""
+
+		v.Elements[id] = CustomLabel.create(XPos+5, 0, tview.Columns[id].Width-5, v.Height, "Sas", false, v.Canvas)
+		v.Elements[id]:setVerticalAlign("center")
+		v.Elements[id]:setEnabled(false)
+
+	end
+
+	--printmatrix(tview.Items)
+
+	---------------------------------------------------------------
+	--Properties
+
+	local color = "tl:33000000 tr:33000000 bl:33000000 br:33000000"
+	if id == 1 then color = "tl:0 tr:0 bl:0 br:0" end
+
+	tview.Columns[id].Divider:setProperty("ImageColours", color)
+
+	tview.Columns[id].Title:setColor("FFFFFF")
+	tview.Columns[id].Title:setAlign("center", "center")
+
+	ctvUpdate(tview)
+
+	return tview.Columns[id]
+end
+
+function ctvRemoveColumn(tview, column)
+
+	if not column then
+		column = #tview.Columns
+	end
+
+	if column and tonumber(column) and (1 <= column and column <= #tview.Columns) then
+
+
+		for i, v in pairs(tview.Lines) do
+
+			destroyElement(v.Elements[column].Label)
+
+			table.remove(tview.Items[i], column)
+			table.remove(tview.Lines[i].Elements, column)
+
+		end
+
+		tview.TitleScrolls:removeElement(tview.Columns[column].Title)
+
+		destroyElement(tview.Columns[column].Divider)
+		destroyElement(tview.Columns[column].Title.Label)
+
+		table.remove(tview.Columns, column)
+		
+		--printmatrix(tview.Items)
+		--print()
+
+		ctvUpdate(tview)
+
+	else
+
+		local id = 0
+		
+		for t_id, tab in pairs(tview.Columns) do
+			if tab == column or tab.Title:getText() == column then
+				id = t_id
+			end
+		end
+		
+		return ctvRemoveColumn(tview, id)
+	end
+
+end
+
+-------------------------------------
+--Set Functions
+
+function ctvSetPosition(tview, x, y, rel)
+	
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = label.Label.parent or nil
+
+		if parent then
+			sw, sh = parent:getSize(false)
+		end
+
+		x = x*sw
+		y = y*sh
+
+	end
+
+	tview.Back:setPosition(x-1, y-1, false)
+
+end
+
+function ctvSetSize(tview, w, h, rel)
+	
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = label.Label.parent or nil
+
+		if parent then
+			sw, sh = parent:getSize(false)
+		end
+
+		w = w*sw
+		h = h*sh
+
+	end
+
+	local c = tview.TitleBlock:getVisible() and 1 or 0
+
+	tview.Back:setSize(w+2, h+2, false)
+	tview.ShadowVert:setSize(w, h+2, false)
+	tview.ShadowHorz:setSize(w+2, h, false)
+
+	tview.Canvas:setSize(w, h, false)
+	tview.TitleBlock:setSize(w, 23, false)
+	tview.Divider:setSize(w, 1, false)
+
+	tview.Containing:setSize(w, h-c*23, false)
+	tview.TitleScrolls:setSize(w, 23, false)
+
+	ctvUpdate(tview)
+end
+
+function ctvSetEnabled(tview, bool)
+
+	tview.Disabled:setVisible(not bool)
+	tview.Back:setEnabled(bool)
+
+	tview.Disabled:bringToFront()
+
+end
+
+function ctvSetVisible(tview, bool)
+	tview.Back:setVisible(bool)
+end
+
+
+function ctvSetIndentation(tview, height)
+	tview.Indent = height
+	ctvUpdate(tview)
+end
+
+function ctvSetTitleBarVisible(tview, bool)
+
+	local w, h = tview.Canvas:getSize(false)
+	local c = bool and 1 or 0
+
+	tview.TitleBlock:setVisible(bool)
+
+	tview.Containing:setPosition(0, c*23, false)
+	tview.Containing:setSize(w, h-c*23, false)
+
+end
+
+function ctvSetSelectedLine(tview, line)
+	
+	if not line then
+		line = 0
+	end
+
+	if line and tonumber(line) and (0 <= line and line <= #tview.Lines) then
+
+		tview.Selected = line
+
+		ctvUpdate(tview)
+
+	else
+
+		local id = 0
+		
+		for t_id, tab in pairs(tview.Lines) do
+			if tab == line then
+				id = t_id
+			end
+		end
+		
+		ctvSetSelectedLine(tview, id)
+	end
+end
+
+function ctvSetLineHeight(tview, line, height)
+	
+	if not height or height < 22 then 
+		height = 22
+	end
+	height = height+1 --for divider
+
+
+	if not line then
+		line = 1
+	end
+
+	if line and tonumber(line) and (1 <= line and line <= #tview.Lines) then
+
+		tview.Lines[line].Height = height
+
+		ctvUpdate(tview)
+
+	else
+
+		local id = 0
+		
+		for t_id, tab in pairs(tview.Lines) do
+			if tab == line then
+				id = t_id
+			end
+		end
+		
+		ctvSetLineHeight(tview, id, height-1)
+	end
+
+end
+
+function ctvSetColumnWidth(tview, column, width)
+	
+	if not width or width < 50 then 
+		width = 50
+	end
+	width = width+1 --for divider
+
+
+	if not column then
+		column = 1
+	end
+
+	if column and tonumber(column) and (1 <= column and column <= #tview.Columns) then
+
+		tview.Columns[column].Width = width
+
+		ctvUpdate(tview)
+
+	else
+
+		local id = 0
+		
+		for t_col, tab in pairs(tview.Columns) do
+			if tab == column or tab.Title:getText() == column then
+				id = t_col
+			end
+		end
+		
+		ctvSetColumnWidth(tview, id, height-1)
+	end
+end
+
+function ctvSetColumnTitle(tview, column, title)
+	
+	if not title then 
+		title = ""
+	else
+		title = tostring(title)
+	end
+
+	if not column then
+		column = 1
+	end
+
+	if column and tonumber(column) and (1 <= column and column <= #tview.Columns) then
+
+		tview.Columns[column].Title:setText(title)
+
+	else
+
+		local id = 0
+		
+		for t_col, tab in pairs(tview.Columns) do
+			if tab == column or tab.Title:getText() == column then
+				id = t_col
+			end
+		end
+		
+		ctvSetColumnTitle(tview, id, title)
+	end
+end
+
+function ctvSetColorScheme(tview, scheme)
+
+	tview.ColorScheme = scheme
+	ctvUpdate(tview)
+
+end
+
+
+function ctvSetCellText(tview, line, column, text)
+
+	if not text then 
+		text = ""
+	else
+		text = tostring(text)
+	end
+
+
+	if not column then
+		column = 1
+	end
+
+	if not line then
+		line = 1
+	end
+
+	if 
+		(column and tonumber(column) and (1 <= column and column <= #tview.Columns)) and
+		(line and tonumber(line) and (1 <= line and line <= #tview.Lines))
+	then
+
+		tview.Items[line][column] = text
+		ctvUpdate(tview)
+
+	else
+
+		local cid = 1
+		
+		for t_col, tab in pairs(tview.Columns) do
+			if tab == column or tab.Title:getText() == column then
+				cid = t_col
+			end
+		end
+
+		local rid = 1
+		
+		for t_item, tab in pairs(tview.Lines) do
+			if tab == line then
+				rid = t_item
+			end
+		end
+		
+		ctvSetCellText(tview, rid, cid, text)
+	end
 end
 
 
 -------------------------------------
+--Get Functions
 
-function cdgAddLine(dgrid)
+function ctvGetEnabled(tview)
+	return tview.Back:getEnabled()
+end
 
-	local id = #dgrid.Lines+1
+function ctvGetVisible(tview)
+	return tview.Back:getVisible()
+end
 
-	local w = dgrid.TitleBlock:getSize(false)
-	dgrid.Lines[id] = {}
+function ctvGetPosition(tview, rel)
+	if rel then
+		return tview.Back:getPosition(true)
+	else
+		local x, y = tview.Back:getPosition(false)
+		return x+1, y+1
+	end
+end
 
-	--------------
+function ctvGetSize(tview, rel)
+	if rel then
+		return tview.Canvas:getSize(true)
+	else
+		return tview.Back:getSize(false)
+	end
+end
 
-	--dgrid.Lines[id].Canvas = GuiStaticImage.create(0, (id-1)*28 + 3, w, 25, pane, false, dgrid.Content.Menu)
-	--dgrid.Lines[id].Divider = GuiStaticImage.create(0, 24, w, 1, pane, false, dgrid.Lines[id].Canvas)
+function ctvGetRealSize(tview, rel)
+	return tview.Back:getSize(rel or false)
+end	
 
-	--dgrid.Content:addElement(dgrid.Lines[id].Canvas)
-	--dgrid.Content:addScrollElement(dgrid.Lines[id].Canvas, "y")
+function ctvGetColorScheme(tview)
+	return tview.ColorScheme
+end
+
+function ctvGetSelectedLine(tview)
+	return tview.Selected
+end
+
+function ctvGetIndentation(tview)
+	return tview.Selected
+end
+
+function ctvGetTitleBarVisible(tview)
+	return tview.TitleBlock:getVisible()
+end
+
+function ctvGetLineHeight(tview, line)
 	
-	--------------
-
-	SameCol = "AAAAAA"
-	if dgrid.ColorScheme.DarkTheme then SameCol = "2E2E2E" end 
-
-	LightCol = "EEEEEE"
-	if dgrid.ColorScheme.DarkTheme then LightCol = "444444" end
-
-	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
-	lightcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LightCol, LightCol, LightCol, LightCol)
-
-	dgrid.Lines[id].Canvas:setProperty("ImageColours", lightcol)
-	dgrid.Lines[id].Divider:setProperty("ImageColours", samecol)
-
-	dgrid.Lines[id].Divider:setEnabled(false)
-
-	return dgrid.Lines[id]
-end
-
-function cdgRemoveLine(dgrid)
-
-	local id = #dgrid.Lines
-
-	--dgrid.Content:removeElement(dgrid.Lines[id].Canvas)
-
-
-
-end
-
-function cdgAddColumn(dgrid, title, length)
-
-	local id = #dgrid.Columns+1
-
-	local px = 0
-	for i = 1, id-1 do
-		px = px + (dgrid.Columns[i].Length + 1)
+	if not line then
+		line = 1
 	end
 
-	dgrid.Columns[id] = {}
-	dgrid.Columns[id].Length = length
+	if line and tonumber(line) and (1 <= line and line <= #tview.Lines) then
 
-	--dgrid.Columns[id].Label = CustomLabel.create(px, 0, length, 24, title, false, dgrid.TitleScroller.Menu)
-	--dgrid.Columns[id].Divider = GuiStaticImage.create(px+length+1, 0, 1, 24, pane, false, dgrid.TitleScroller.Menu)
+		return tview.Lines[line].Height
 
-	divcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain)
+	else
 
-	dgrid.Columns[id].Divider:setEnabled(false)
-	dgrid.Columns[id].Divider:setProperty("ImageColours", divcol)
-
-	dgrid.Columns[id].Label:setEnabled(false)
-	dgrid.Columns[id].Label:setAlign("center", "center")
-	dgrid.Columns[id].Label:setColor("FFFFFF")
-
-
-	--dgrid.TitleScroller:addElement(dgrid.Columns[id].Label)
+		local id = 0
+		
+		for t_id, tab in pairs(tview.Lines) do
+			if tab == line then
+				id = t_id
+			end
+		end
+		
+		return ctvGetLineHeight(tview, id)
+	end
 
 end
 
 
-function cdgSetColorScheme(dgrid, scheme)
-
-	dgrid.ColorScheme = scheme
-
-	MainCol = "CCCCCC"
-	if dgrid.ColorScheme.DarkTheme then MainCol = "393939" end 
-
-	SameCol = "AAAAAA"
-	if dgrid.ColorScheme.DarkTheme then SameCol = "2E2E2E" end 
-
-	LightCol = "EEEEEE"
-	if dgrid.ColorScheme.DarkTheme then LightCol = "444444" end
-
-	maincol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
-	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
-	lightcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LightCol, LightCol, LightCol, LightCol)
-	objcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", dgrid.ColorScheme.Main, dgrid.ColorScheme.Main, dgrid.ColorScheme.Main, dgrid.ColorScheme.Main)
-	divcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain, dgrid.ColorScheme.SubMain)
-
-	dgrid.Canvas:setProperty("ImageColours", samecol)
-	dgrid.Main:setProperty("ImageColours", maincol)
-	dgrid.TitleBlock:setProperty("ImageColours", objcol)
-	dgrid.TitleDivider:setProperty("ImageColours", divcol)
-
-	for _, v in pairs(dgrid.Lines) do
-		v.Canvas:setProperty("ImageColours", lightcol)
-		v.Divider:setProperty("ImageColours", samecol)
+function ctvGetColumnWidth(tview, column)
+	
+	if not column then
+		column = 1
 	end
 
-	for _, v in pairs(dgrid.Columns) do
-		v.Divider:setProperty("ImageColours", divcol)
+	if column and tonumber(column) and (1 <= column and column <= #tview.Columns) then
+
+		return tview.Columns[column].Width
+
+	else
+
+		local id = 0
+		
+		for t_id, tab in pairs(tview.Columns) do
+			if tab == column or tab.Title:getText() == column then
+				id = t_id
+			end
+		end
+		
+		return ctvGetColumnWidth(tview, id)
+	end
+
+end
+
+
+function ctvGetColumnTitle(tview, column)
+	
+	if not column then
+		column = 1
+	end
+
+	if column and tonumber(column) and (1 <= column and column <= #tview.Columns) then
+
+		return tview.Columns[column].Title:getText()
+
+	else
+
+		local id = 0
+		
+		for t_id, tab in pairs(tview.Columns) do
+			if tab == column or tab.Title:getText() == column then
+				id = t_id
+			end
+		end
+		
+		return ctvGetColumnWidth(tview, id)
+	end
+
+end
+
+function ctvGetCellText(tview, line, column)
+
+	if not column then
+		column = 1
+	end
+
+	if not line then
+		line = 1
+	end
+
+	if 
+		(column and tonumber(column) and (1 <= column and column <= #tview.Columns)) and
+		(line and tonumber(line) and (1 <= line and line <= #tview.Lines))
+	then
+
+		return tview.Items[line][column]
+
+	else
+
+		local cid = 1
+		
+		for t_col, tab in pairs(tview.Columns) do
+			if tab == column or tab.Title:getText() == column then
+				cid = t_col
+			end
+		end
+
+		local rid = 1
+		
+		for t_item, tab in pairs(tview.Lines) do
+			if tab == line then
+				rid = t_item
+			end
+		end
+		
+		ctvGetCellText(tview, rid, cid)
 	end
 end
+
+function ctvGetCell(tview, line, column)
+
+	if not column then
+		column = 1
+	end
+
+	if not line then
+		line = 1
+	end
+
+	if 
+		(column and tonumber(column) and (1 <= column and column <= #tview.Columns)) and
+		(line and tonumber(line) and (1 <= line and line <= #tview.Lines))
+	then
+
+		return tview.Lines[line].Elements[column]
+
+	else
+
+		local cid = 1
+		
+		for t_col, tab in pairs(tview.Columns) do
+			if tab == column or tab.Title:getText() == column then
+				cid = t_col
+			end
+		end
+
+		local rid = 1
+		
+		for t_item, tab in pairs(tview.Lines) do
+			if tab == line then
+				cid = t_item
+			end
+		end
+
+		ctvGetCell(tview, rid, cid)
+	end
+end
+
+function ctvGetLinesCount(tview)
+	return #tview.Lines
+end
+
+function ctvGetColumnsCount(tview)
+	return #tview.Columns
+end
+----------------------------------------------------------------------------------------------------------------------------------------------
+--OOP functions
+CustomTableView = {}
+CustomTableView.__index = CustomTableView
+
+function CustomTableView.create(...)
+	local self = setmetatable(guiCreateCustomTableView(...), CustomTableView)
+	compareAppend(self, ...)
+
+	return self
+end
+
+function CustomTableView.addLine(self, ...) return ctvAddLine(self, ...) end
+function CustomTableView.removeLine(self, ...) return ctvRemoveLine(self, ...) end
+function CustomTableView.addColumn(self, ...) return ctvAddColumn(self, ...) end
+function CustomTableView.removeColumn(self, ...) return ctvRemoveColumn(self, ...) end
+
+function CustomTableView.update(self, ...) return ctvUpdate(self, ...) end
+
+function CustomTableView.setPosition(self, ...) return ctvSetPosition(self, ...) end
+function CustomTableView.setSize(self, ...) return ctvSetSize(self, ...) end
+function CustomTableView.setVisible(self, ...) return ctvSetVisible(self, ...) end
+function CustomTableView.setEnabled(self, ...) return ctvSetEnabled(self, ...) end
+function CustomTableView.setColorScheme(self, ...) return ctvSetColorScheme(self, ...) end
+function CustomTableView.setSelectedLine(self, ...) return ctvSetSelectedLine(self, ...) end
+function CustomTableView.setIndentation(self, ...) return ctvSetIndentation(self, ...) end
+function CustomTableView.setTitleBarVisible(self, ...) return ctvSetTitleBarVisible(self, ...) end
+function CustomTableView.setLineHeight(self, ...) return ctvSetLineHeight(self, ...) end
+function CustomTableView.setColumnWidth(self, ...) return ctvSetColumnWidth(self, ...) end
+function CustomTableView.setColumnTitle(self, ...) return ctvSetColumnTitle(self, ...) end
+function CustomTableView.setCellText(self, ...) return ctvSetCellText(self, ...) end
+
+function CustomTableView.bringToFront(self, ...) return ctvBringToFront(self, ...) end
+function CustomTableView.moveToBack(self, ...) return ctvMoveToBack(self, ...) end
+
+function CustomTableView.getPosition(self, ...) return ctvGetPosition(self, ...) end
+function CustomTableView.getSize(self, ...) return ctvGetSize(self, ...) end
+function CustomTableView.getRealSize(self, ...) return ctvGetRealSize(self, ...) end
+function CustomTableView.getVisible(self, ...) return ctvGetVisible(self, ...) end
+function CustomTableView.getEnabled(self, ...) return ctvGetEnabled(self, ...) end
+function CustomTableView.getColorScheme(self, ...) return ctvGetColorScheme(self, ...) end
+function CustomTableView.getSelectedLine(self, ...) return ctvGetSelectedLine(self, ...) end
+function CustomTableView.getIndentation(self, ...) return ctvGetIndentation(self, ...) end
+function CustomTableView.getTitleBarVisible(self, ...) return ctvGetTitleBarVisible(self, ...) end
+function CustomTableView.getLineHeight(self, ...) return ctvGetLineHeight(self, ...) end
+function CustomTableView.getColumnWidth(self, ...) return ctvGetColumnWidth(self, ...) end
+function CustomTableView.getColumnTitle(self, ...) return ctvGetColumnTitle(self, ...) end
+function CustomTableView.getCellText(self, ...) return ctvGetCellText(self, ...) end
+function CustomTableView.getCell(self, ...) return ctvGetCell(self, ...) end
+function CustomTableView.getLinesCount(self, ...) return ctvGetLinesCount(self, ...) end
+function CustomTableView.getColumnsCount(self, ...) return ctvGetColumnsCount(self, ...) end
+
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -6371,7 +7272,9 @@ end
 --------------------------------------------------------------------------------------------------------------------
 
 addEvent("onCustomScrollBarScrolled", true)
+addEvent("onCustomScrollPaneScrolled", true)
 addEvent("onCustomDialogClick", true)
 addEvent("onCustomWindowClose", true)
+addEvent("onCustomCheckBoxChecked", true)
 addEvent("onCustomComboBoxSelectItem", true)
 addEvent("onCustomTabPanelChangeTab", true)
