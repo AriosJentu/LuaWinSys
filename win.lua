@@ -6685,6 +6685,7 @@ function ctvAddColumn(tview, title, width)
 	if id == 1 then color = "tl:0 tr:0 bl:0 br:0" end
 
 	tview.Columns[id].Divider:setProperty("ImageColours", color)
+	tview.Columns[id].Divider:setEnabled(false)
 
 	tview.Columns[id].Title:setColor("FFFFFF")
 	tview.Columns[id].Title:setAlign("center", "center")
@@ -6981,19 +6982,27 @@ function ctvSetCellText(tview, line, column, text)
 
 	else
 
-		local cid = 1
-		
-		for t_col, tab in pairs(tview.Columns) do
-			if tab == column or tab.Title:getText() == column then
-				cid = t_col
+		local cid = column
+
+		if not (column and tonumber(column) and (1 <= column and column <= #tview.Columns)) then
+	
+			cid = 1
+			for t_col, tab in pairs(tview.Columns) do
+				if tab == column or tab.Title:getText() == column then
+					cid = t_col
+				end
 			end
 		end
 
-		local rid = 1
+		local rid = line
 		
-		for t_item, tab in pairs(tview.Lines) do
-			if tab == line then
-				rid = t_item
+		if not (line and tonumber(line) and (1 <= line and line <= #tview.Lines)) then
+			
+			rid = 1
+			for t_item, tab in pairs(tview.Lines) do
+				if tab == line then
+					rid = t_item
+				end
 			end
 		end
 		
@@ -7212,6 +7221,39 @@ end
 function ctvGetColumnsCount(tview)
 	return #tview.Columns
 end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Event
+
+function ctvAddEvent(tview, event, func)
+
+	addEventHandler(event, root, function(...)
+
+		local visited = false
+
+		for _, v in pairs(tview.Lines) do
+			if source == v.Canvas then
+				visited = true
+				break
+			end
+		end
+
+		for _, v in pairs(tview.Columns) do
+			if source == v.Title.Label then
+				visited = true
+			end
+		end
+
+		if source == tview.Canvas or source == tview.Back or source == tview.TitleBlock or visited then
+			func(...)
+		end
+
+	end)
+
+	tview.Containing:addEvent(event, func)
+	tview.TitleScrolls:addEvent(event, func)
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
 CustomTableView = {}
@@ -7263,6 +7305,8 @@ function CustomTableView.getCellText(self, ...) return ctvGetCellText(self, ...)
 function CustomTableView.getCell(self, ...) return ctvGetCell(self, ...) end
 function CustomTableView.getLinesCount(self, ...) return ctvGetLinesCount(self, ...) end
 function CustomTableView.getColumnsCount(self, ...) return ctvGetColumnsCount(self, ...) end
+
+function CustomTableView.addEvent(self, ...) return ctvAddEvent(self, ...) end
 
 
 --------------------------------------------------------------------------------------------------------------------
