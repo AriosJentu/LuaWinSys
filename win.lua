@@ -3198,7 +3198,7 @@ function guiCreateCustomMemo(x, y, w, h, text, relative, parent)
 	return guiCreateCustomEdit(x, y, w, h, text, relative, parent, "memo")
 end
 
-function guiCreateCustomNumberScroller(x, y, w, h, relative, parent)
+function guiCreateCustomSpinner(x, y, w, h, relative, parent)
 	return guiCreateCustomEdit(x, y, w, h, "0", relative, parent, "number")
 end
 
@@ -3659,49 +3659,49 @@ function CustomMemo.addEvent(self, ...) return ctbAddEvent(self, ...) end
 function CustomMemo.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 
 
-CustomNumberScroller = {}
-CustomNumberScroller.__index = CustomNumberScroller
+CustomSpinner = {}
+CustomSpinner.__index = CustomSpinner
 
-function CustomNumberScroller.create(...)
-	local self = setmetatable(guiCreateCustomNumberScroller(...), CustomNumberScroller)
+function CustomSpinner.create(...)
+	local self = setmetatable(guiCreateCustomSpinner(...), CustomSpinner)
 	compareAppend(self, ...)
 
 	return self
 end
 
-function CustomNumberScroller.setPosition(self, ...) return ctbSetPosition(self, ...) end
-function CustomNumberScroller.setSize(self, ...) return ctbSetSize(self, ...) end
-function CustomNumberScroller.setVisible(self, ...) return ctbSetVisible(self, ...) end
-function CustomNumberScroller.setEnabled(self, ...) return ctbSetEnabled(self, ...) end
-function CustomNumberScroller.setReadOnly(self, ...) return ctbSetReadOnly(self, ...) end
-function CustomNumberScroller.setText(self, ...) return ctbSetText(self, ...) end
-function CustomNumberScroller.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
+function CustomSpinner.setPosition(self, ...) return ctbSetPosition(self, ...) end
+function CustomSpinner.setSize(self, ...) return ctbSetSize(self, ...) end
+function CustomSpinner.setVisible(self, ...) return ctbSetVisible(self, ...) end
+function CustomSpinner.setEnabled(self, ...) return ctbSetEnabled(self, ...) end
+function CustomSpinner.setReadOnly(self, ...) return ctbSetReadOnly(self, ...) end
+function CustomSpinner.setText(self, ...) return ctbSetText(self, ...) end
+function CustomSpinner.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
 
-function CustomNumberScroller.setMinimal(self, ...) return ctbSetMinimal(self, ...) end
-function CustomNumberScroller.setMaximal(self, ...) return ctbSetMaximal(self, ...) end
-function CustomNumberScroller.setStepSize(self, ...) return ctbSetScrollStep(self, ...) end
+function CustomSpinner.setMinimal(self, ...) return ctbSetMinimal(self, ...) end
+function CustomSpinner.setMaximal(self, ...) return ctbSetMaximal(self, ...) end
+function CustomSpinner.setStepSize(self, ...) return ctbSetScrollStep(self, ...) end
 
-function CustomNumberScroller.bringToFront(self) return ctbBringToFront(self) end
-function CustomNumberScroller.moveToBack(self) return ctbMoveToBack(self) end
+function CustomSpinner.bringToFront(self) return ctbBringToFront(self) end
+function CustomSpinner.moveToBack(self) return ctbMoveToBack(self) end
 
-function CustomNumberScroller.getPosition(self, ...) return ctbGetPosition(self, ...) end
-function CustomNumberScroller.getSize(self, ...) return ctbGetSize(self, ...) end
-function CustomNumberScroller.getRealSize(self, ...) return ctbGetSize(self, ...) end
-function CustomNumberScroller.getVisible(self, ...) return ctbGetVisible(self, ...) end
-function CustomNumberScroller.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
-function CustomNumberScroller.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
-function CustomNumberScroller.getText(self, ...) return ctbGetText(self, ...) end
-function CustomNumberScroller.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
+function CustomSpinner.getPosition(self, ...) return ctbGetPosition(self, ...) end
+function CustomSpinner.getSize(self, ...) return ctbGetSize(self, ...) end
+function CustomSpinner.getRealSize(self, ...) return ctbGetSize(self, ...) end
+function CustomSpinner.getVisible(self, ...) return ctbGetVisible(self, ...) end
+function CustomSpinner.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
+function CustomSpinner.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
+function CustomSpinner.getText(self, ...) return ctbGetText(self, ...) end
+function CustomSpinner.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
 
-function CustomNumberScroller.getMinimal(self, ...) return ctbGetMinimal(self, ...) end
-function CustomNumberScroller.getMaximal(self, ...) return ctbGetMaximal(self, ...) end
-function CustomNumberScroller.getStepSize(self, ...) return ctbGetScrollStep(self, ...) end
+function CustomSpinner.getMinimal(self, ...) return ctbGetMinimal(self, ...) end
+function CustomSpinner.getMaximal(self, ...) return ctbGetMaximal(self, ...) end
+function CustomSpinner.getStepSize(self, ...) return ctbGetScrollStep(self, ...) end
 
-function CustomNumberScroller.setColorScheme(self, ...) return ctbSetColorScheme(self, ...) end
-function CustomNumberScroller.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
+function CustomSpinner.setColorScheme(self, ...) return ctbSetColorScheme(self, ...) end
+function CustomSpinner.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
 
-function CustomNumberScroller.addEvent(self, ...) return ctbAddEvent(self, ...) end
-function CustomNumberScroller.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
+function CustomSpinner.addEvent(self, ...) return ctbAddEvent(self, ...) end
+function CustomSpinner.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -6820,6 +6820,10 @@ end
 
 
 function ctvSetIndentation(tview, height)
+	
+	if not height or not tonumber(height) then height = 5 end
+	if height < 0 then height = 0 end
+
 	tview.Indent = height
 	ctvUpdate(tview)
 end

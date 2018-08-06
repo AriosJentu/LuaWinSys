@@ -164,22 +164,22 @@ test_memo = CustomMemo.create(170, 190, 250, 200, "Lorem ipsum dolor sit amet, c
 test_memo_l = CustomMemo.create(170, 400, 250, 80, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ", false, demo_window)
 test_memo_r = CustomMemo.create(170, 490, 250, 83, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ", false, demo_window)
 
-test_numscroll = CustomNumberScroller.create(430, 30, 150, 30, false, demo_window)
-test_numscroll_l = CustomNumberScroller.create(430, 70, 150, 30, false, demo_window)
-test_numscroll_r = CustomNumberScroller.create(630, 30, 30, 30, false, demo_window)
+test_spinner = CustomSpinner.create(430, 30, 150, 30, false, demo_window)
+test_spinner_l = CustomSpinner.create(430, 70, 150, 30, false, demo_window)
+test_spinner_r = CustomSpinner.create(630, 30, 30, 30, false, demo_window)
 
-test_numscroll_r:setSize(110, 70, false)
+test_spinner_r:setSize(110, 70, false)
 
 test_edit_l:setEnabled(false)
 test_memo_l:setEnabled(false)
-test_numscroll_l:setEnabled(false)
+test_spinner_l:setEnabled(false)
 
 test_edit_m:setMasked(true)
 
 test_edit_r:setReadOnly(true)
 test_memo_r:setReadOnly(true)
-test_numscroll_r:setReadOnly(true)
-test_numscroll_r:setText(49)
+test_spinner_r:setReadOnly(true)
+test_spinner_r:setText(49)
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -457,9 +457,9 @@ test_combo:addEvent("onCustomComboBoxSelectItem", function()
 	test_edit:setText("Selected theme: "..test_combo:getSelectedItem().Text)
 end)
 
-test_numscroll:addEvent("onClientGUIChanged", function()
+test_spinner:addEvent("onClientGUIChanged", function()
 
-	test_loading:setProgress(tonumber(test_numscroll:getText()))
+	test_loading:setProgress(tonumber(test_spinner:getText()))
 
 end)
 
