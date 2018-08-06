@@ -8,11 +8,16 @@ CurrentTheme = Themes.Light.Blue
 
 themes = {
 	["Dark Red"] = Themes.Dark.Red,
+	["Dark Green"] = Themes.Dark.Green,
 	["Dark Blue"] = Themes.Dark.Blue,
 	["Dark Purple"] = Themes.Dark.Purple,
+	["Dark Gray"] = Themes.Dark.Gray,
+
 	["Light Red"] = Themes.Light.Red,
+	["Light Green"] = Themes.Light.Green,
 	["Light Blue"] = Themes.Light.Blue,
-	["Light Purple"] = Themes.Light.Purple
+	["Light Purple"] = Themes.Light.Purple,
+	["Light Gray"] = Themes.Light.Gray,
 }
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -345,9 +350,9 @@ test_grid:setCellText(test_grid:getLinesCount(), scrolled_column, "Last")
 demo_dialog = CustomDialog.create(100, "Dialog, what attached\nto Demo Window Frame\nMultiline Automatic", {"OK", "Cancel", "Buttons", "Three", "Another"}, demo_window)
 demo_dialog_l = CustomDialog.create(200, "Local Dialog")
 
-demo_window:setColorScheme(BlueColorsDark)
+--[[demo_window:setColorScheme(Themes.Dark.Red)
 demo_window_l:setColorScheme(BlueColorsDark)
-demo_window_m:setColorScheme(BlueColorsDark)
+demo_window_m:setColorScheme(BlueColorsDark)]]
 
 indx = 1
 

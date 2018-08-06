@@ -135,28 +135,38 @@ function proceedColor(main, red, green, dark)
 end
 
 RedColorsDark = proceedColor("f94f4f", "ef2d2d", "46c169", true) --Red Theme
-BlueColorsDark = proceedColor("5278e2", "4667d0", "46c169", true) --Blue Theme
-
 RedColors = proceedColor("f94f4f", "ef2d2d", "46c169", false) --Red Theme
+
+GreenColors = proceedColor("4aba48", "347a34", "6bd06a", false) --Green Theme
+GreenColorsDark = proceedColor("4aba48", "347a34", "42aa41", true) --Green Theme
+
 BlueColors = proceedColor("5278e2", "4667d0", "46c169", false) --Blue Theme
+BlueColorsDark = proceedColor("5278e2", "4667d0", "46c169", true) --Blue Theme
 
 PurpleColors = proceedColor("743597", "582A72", "9741C6", false) --Purple Theme
 PurpleColorsDark = proceedColor("A53FC5", "200F26", "7E3396", true) --Purple Theme
 
-DefaultColors = BlueColors
+GrayColors = proceedColor("999999", "777777", "BBBBBB", false) --Gray Theme
+GrayColorsDark = proceedColor("222222", "555555", "999999", true) --Gray Theme
+
+DefaultColors = RedColors
 
 Themes = {
 	
 	Dark = {
 		Red = RedColorsDark,
+		Green = GreenColorsDark,
 		Blue = BlueColorsDark,
-		Purple = PurpleColorsDark
+		Purple = PurpleColorsDark,
+		Gray = GrayColorsDark,
 	},
 
 	Light = {
 		Red = RedColors,
+		Green = GreenColors,
 		Blue = BlueColors,
-		Purple = PurpleColors
+		Purple = PurpleColors,
+		Gray = GrayColors,
 	}
 }
 
