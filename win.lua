@@ -6927,7 +6927,7 @@ function ctvSetColumnWidth(tview, column, width)
 			end
 		end
 		
-		ctvSetColumnWidth(tview, id, height-1)
+		ctvSetColumnWidth(tview, id, width-1)
 	end
 end
 
