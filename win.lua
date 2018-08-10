@@ -276,6 +276,10 @@ GuiStaticImage.create = function(x, y, w, h, image, rel, par)
 
 end
 
+function GuiStaticImage.setColor(self, color)
+	self:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", color, color, color, color))
+end
+
 --------------------------------------------------------------------------------------------------------------------
 ---Comparators
 
@@ -391,10 +395,10 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Properties
-	Windows[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	Windows[id].Canvas:setColor("0")
 	
 	for _, Shadow in pairs(Windows[id].Shadows) do
-		Shadow:setProperty("ImageColours", "tl:22000000 tr:22000000 bl:22000000 br:22000000")
+		Shadow:setColor("22000000")
 		Shadow:setEnabled(false)
 	end
 
@@ -404,27 +408,24 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	TextColor = "444444"
 	if Windows[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
-	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", FrameColor, FrameColor, FrameColor, FrameColor)
-	--frlcol = string.format("tl:00%s tr:00%s bl:00%s br:00%s", FrameColor, FrameColor, FrameColor, FrameColor)
-	txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextColor, TextColor, TextColor, TextColor)
-	whitecol = "tl:FFFFFFFF tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF"
+	frmcol = "FF"..FrameColor
+	txtcol = "FF"..TextColor
+	whitecol = "FFFFFFFF"
 
-	Windows[id].Frame:setProperty("ImageColours", frmcol)
-	--Windows[id].Divider:setProperty("ImageColours", "tl:FFAAAAAA tr:FFAAAAAA bl:FFAAAAAA br:FFAAAAAA")
-	Windows[id].Top:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	Windows[id].Frame:setColor(frmcol)
+	Windows[id].Top:setColor("0")
 	Windows[id].Top:setProperty("AlwaysOnTop", "True")
 
-	--Windows[id].Close:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red, Windows[id].ColorScheme.Red))
-	Windows[id].Close:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	Windows[id].CloseMain:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	Windows[id].CloseAlter:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	Windows[id].Dialog:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	Windows[id].Cross:setProperty("ImageColours", txtcol)
-	Windows[id].CrossAlter:setProperty("ImageColours", whitecol)
+	Windows[id].Close:setColor("0")
+	Windows[id].CloseMain:setColor("0")
+	Windows[id].CloseAlter:setColor("0")
+	Windows[id].Dialog:setColor("0")
+	Windows[id].Cross:setColor(txtcol)
+	Windows[id].CrossAlter:setColor(whitecol)
+	Windows[id].SideBlock:setColor("FF"..Windows[id].ColorScheme.SubMain)
+	
 	Windows[id].Title:setEnabled(false)
 	Windows[id].AlterTitle:setEnabled(false)
-	Windows[id].SideBlock:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Windows[id].ColorScheme.SubMain, Windows[id].ColorScheme.SubMain, Windows[id].ColorScheme.SubMain, Windows[id].ColorScheme.SubMain))
-
 
 	Windows[id].Title:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
 	Windows[id].Title:setColor(fromHEXToRGB(TextColor))
@@ -548,7 +549,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 				if alpha >= 120 then alpha = 120 end
 				local color = string.format("%.2x000000", alpha)
-				Windows[id].Dialog:setProperty("ImageColours", "tl:"..color.." tr:"..color.." bl:"..color.." br:"..color)
+				Windows[id].Dialog:setColor(color)
 
 			end
 
@@ -572,7 +573,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 				if alpha <= 0 then alpha = 0 end
 				local color = string.format("%.2x000000", alpha)
-				Windows[id].Dialog:setProperty("ImageColours", "tl:"..color.." tr:"..color.." bl:"..color.." br:"..color)
+				Windows[id].Dialog:setColor(color)
 
 			end
 
@@ -595,18 +596,15 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	addEventHandler("onClientMouseEnter", root, function()
 		if source == Windows[id].Close then
 
-			local col = Windows[id].ColorScheme.Red
-			local wht = "FFFFFF"
-
-			Windows[id].CloseMain:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", col, col, col, col))
-			Windows[id].CloseAlter:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", wht, wht, wht, wht))
+			Windows[id].CloseMain:setColor("FF"..Windows[id].ColorScheme.Red)
+			Windows[id].CloseAlter:setColor("FFFFFFFF")
 		end
 	end)
 
 	--Close button leave
 	addEventHandler("onClientMouseLeave", root, function()
-		Windows[id].CloseMain:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-		Windows[id].CloseAlter:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+		Windows[id].CloseMain:setColor("0")
+		Windows[id].CloseAlter:setColor("0")
 	end)
 
 	--Window move - hold
@@ -913,14 +911,14 @@ function cwSetColorScheme(window, scheme)
 	TextColor = "444444"
 	if window.ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
-	ncolor = "tl:FFFFFFFF tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF"
-	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", FrameColor, FrameColor, FrameColor, FrameColor)
-	txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextColor, TextColor, TextColor, TextColor)
+	ncolor = "FFFFFFFF"
+	frmcol = "FF"..FrameColor
+	txtcol = "FF"..TextColor
 
-	window.SideBlock:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", window.ColorScheme.SubMain, window.ColorScheme.SubMain, window.ColorScheme.SubMain, window.ColorScheme.SubMain))
+	window.SideBlock:setColor("FF"..window.ColorScheme.SubMain)
 
-	window.Frame:setProperty("ImageColours", frmcol)
-	window.Cross:setProperty("ImageColours", txtcol)
+	window.Frame:setColor(frmcol)
+	window.Cross:setColor(txtcol)
 	window.Title:setColor(fromHEXToRGB(TextColor))
 
 	for _, v in ipairs(window.SchemeElements) do
@@ -1082,9 +1080,9 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Properties
 
-	ScrollPanels[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	ScrollPanels[id].Scroller:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	ScrollPanels[id].EnablingBlock:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
+	ScrollPanels[id].Canvas:setColor("0")
+	ScrollPanels[id].Scroller:setColor("0")
+	ScrollPanels[id].EnablingBlock:setColor("44000000")
 	
 	ScrollPanels[id].Scroller:setProperty("AbsoluteMaxSize", "w:10000000 h:10000000")	
 
@@ -1645,12 +1643,12 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	if Buttons[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
 	btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
-	fbtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackCol, BackCol, BackCol, BackCol)
+	fbtcol = "FF"..BackCol
 
-	Buttons[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	Buttons[id].Canvas:setColor("0")
 	Buttons[id].Main:setProperty("ImageColours", btncol)
-	Buttons[id].Vertical:setProperty("ImageColours", fbtcol)
-	Buttons[id].Horizontal:setProperty("ImageColours", fbtcol)
+	Buttons[id].Vertical:setColor(fbtcol)
+	Buttons[id].Horizontal:setColor(fbtcol)
 
 	Buttons[id].Vertical:setEnabled(false)
 	Buttons[id].Horizontal:setEnabled(false)
@@ -1681,8 +1679,8 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 			
 			source:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.SubMain, Buttons[id].ColorScheme.SubMain))
 			
-			Buttons[id].Vertical:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.Main))
-			Buttons[id].Horizontal:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.Main))
+			Buttons[id].Vertical:setColor(Buttons[id].ColorScheme.Main)
+			Buttons[id].Horizontal:setColor(Buttons[id].ColorScheme.Main)
 			Buttons[id].Text:setColor(fromHEXToRGB("FFFFFF"))
 		end
 	end)
@@ -1699,12 +1697,12 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 			if Buttons[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
 			btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
-			fbtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackCol, BackCol, BackCol, BackCol)
+			fbtcol = "FF"..BackCol
 
 			Buttons[id].Text:setColor(fromHEXToRGB(TextColor))
 			Buttons[id].Main:setProperty("ImageColours", btncol)
-			Buttons[id].Vertical:setProperty("ImageColours", fbtcol)
-			Buttons[id].Horizontal:setProperty("ImageColours", fbtcol)
+			Buttons[id].Vertical:setColor(fbtcol)
+			Buttons[id].Horizontal:setColor(fbtcol)
 	
 		end
 
@@ -1714,11 +1712,11 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	addEventHandler("onClientGUIMouseDown", root, function()
 		if source == Buttons[id].Main then
 
-			source:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Buttons[id].ColorScheme.SubMain, Buttons[id].ColorScheme.SubMain, Buttons[id].ColorScheme.SubMain, Buttons[id].ColorScheme.SubMain))
+			source:setColor("FF"..Buttons[id].ColorScheme.SubMain)
 			Buttons[id].Text:setColor(fromHEXToRGB("EEEEEE"))
 
-			Buttons[id].Vertical:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Buttons[id].ColorScheme.DarkMain, Buttons[id].ColorScheme.DarkMain, Buttons[id].ColorScheme.DarkMain, Buttons[id].ColorScheme.DarkMain))
-			Buttons[id].Horizontal:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Buttons[id].ColorScheme.DarkMain, Buttons[id].ColorScheme.DarkMain, Buttons[id].ColorScheme.DarkMain, Buttons[id].ColorScheme.DarkMain))
+			Buttons[id].Vertical:setColor("FF"..Buttons[id].ColorScheme.DarkMain)
+			Buttons[id].Horizontal:setColor("FF"..Buttons[id].ColorScheme.DarkMain)
 		
 		end
 	end)
@@ -1845,9 +1843,9 @@ function cbSetEnabled(button, bool)
 	if not bool then
 
 		button.Text:setColor(fromHEXToRGB("888888"))
-		button.Main:setProperty("ImageColours", string.format("tl:AA%s tr:AA%s bl:AA%s br:AA%s", button.ColorScheme.DarkMain, button.ColorScheme.DarkMain, button.ColorScheme.DarkMain, button.ColorScheme.DarkMain))
-		button.Vertical:setProperty("ImageColours", string.format("tl:AA%s tr:AA%s bl:AA%s br:AA%s", button.ColorScheme.DarkMain, button.ColorScheme.DarkMain, button.ColorScheme.DarkMain, button.ColorScheme.DarkMain))
-		button.Horizontal:setProperty("ImageColours", string.format("tl:AA%s tr:AA%s bl:AA%s br:AA%s", button.ColorScheme.DarkMain, button.ColorScheme.DarkMain, button.ColorScheme.DarkMain, button.ColorScheme.DarkMain))
+		button.Main:setColor("AA"..button.ColorScheme.DarkMain)
+		button.Vertical:setColor("AA"..button.ColorScheme.DarkMain)
+		button.Horizontal:setColor("AA"..button.ColorScheme.DarkMain)
 
 	else 
 
@@ -1858,12 +1856,12 @@ function cbSetEnabled(button, bool)
 		if button.ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
 		btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
-		fbtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackCol, BackCol, BackCol, BackCol)
+		fbtcol = "FF"..BackCol
 
 		button.Text:setColor(fromHEXToRGB(TextColor))
 		button.Main:setProperty("ImageColours", btncol)
-		button.Vertical:setProperty("ImageColours", fbtcol)
-		button.Horizontal:setProperty("ImageColours", fbtcol)
+		button.Vertical:setColor(fbtcol)
+		button.Horizontal:setColor(fbtcol)
 	end
 
 end
@@ -2071,15 +2069,15 @@ function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 	BackCol, MainCol = "AAAAAA", "E7E7E7"
 	if ProgressBars[id].ColorScheme.DarkTheme then BackCol, MainCol = "2F2F2F", "333333" end
 
-	bckcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackCol, BackCol, BackCol, BackCol)
-	cntcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
+	bckcol = "FF"..BackCol
+	cntcol = "FF"..MainCol
 
-	ProgressBars[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	ProgressBars[id].Canvas:setColor("0")
 
-	ProgressBars[id].Vertical:setProperty("ImageColours", bckcol)
-	ProgressBars[id].Horizontal:setProperty("ImageColours", bckcol)
+	ProgressBars[id].Vertical:setColor(bckcol)
+	ProgressBars[id].Horizontal:setColor(bckcol)
 
-	ProgressBars[id].Main:setProperty("ImageColours", cntcol)
+	ProgressBars[id].Main:setColor(cntcol)
 	ProgressBars[id].Progress:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ProgressBars[id].ColorScheme.LightMain, ProgressBars[id].ColorScheme.LightMain, ProgressBars[id].ColorScheme.Main, ProgressBars[id].ColorScheme.Main))
 
 	ProgressBars[id].Vertical:setEnabled(false)
@@ -2266,13 +2264,13 @@ function cpbSetColorScheme(bar, scheme)
 	BackCol, MainCol = "AAAAAA", "E7E7E7"
 	if bar.ColorScheme.DarkTheme then BackCol, MainCol = "2F2F2F", "333333" end
 
-	bckcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackCol, BackCol, BackCol, BackCol)
-	cntcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
+	bckcol = "FF"..BackCol
+	cntcol = "FF"..MainCol
 
-	bar.Vertical:setProperty("ImageColours", bckcol)
-	bar.Horizontal:setProperty("ImageColours", bckcol)
+	bar.Vertical:setColor(bckcol)
+	bar.Horizontal:setColor(bckcol)
 
-	bar.Main:setProperty("ImageColours", cntcol)
+	bar.Main:setColor(cntcol)
 	bar.Progress:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", bar.ColorScheme.LightMain, bar.ColorScheme.LightMain, bar.ColorScheme.Main, bar.ColorScheme.Main))
 end
 
@@ -2401,19 +2399,19 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 	TopCol, BotCol, BackCol, EdgesCol, MainCol = "F6F6F6", "EAEAEA", "AAAAAA", "BBBBBB", "E7E7E7"
 	if ScrollBars[id].ColorScheme.DarkTheme then TopCol, BotCol, BackCol, EdgesCol, MainCol = "555555", "444444", "333333", "3F3F3F", "3A3A3A" end
 
-	bckcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackCol, BackCol, BackCol, BackCol)
-	maicol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
-	edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgesCol, EdgesCol, EdgesCol, EdgesCol)
+	bckcol = "FF"..BackCol
+	maicol = "FF"..MainCol
+	edgcol = "FF"..EdgesCol
 	btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
 
-	ScrollBars[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	ScrollBars[id].Canvas:setColor("0")
 
-	ScrollBars[id].Vertical:setProperty("ImageColours", bckcol)
-	ScrollBars[id].Horizontal:setProperty("ImageColours", bckcol)
+	ScrollBars[id].Vertical:setColor(bckcol)
+	ScrollBars[id].Horizontal:setColor(bckcol)
 
-	ScrollBars[id].Main:setProperty("ImageColours", maicol)
+	ScrollBars[id].Main:setColor(maicol)
 
-	ScrollBars[id].Edges:setProperty("ImageColours", edgcol)
+	ScrollBars[id].Edges:setColor(edgcol)
 	ScrollBars[id].Entrail:setProperty("ImageColours", btncol)
 
 	ScrollBars[id].Vertical:setEnabled(false)
@@ -2435,7 +2433,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 	addEventHandler("onClientMouseEnter", root, function()
 		if source == ScrollBars[id].Edges then
 			if not ScrollBars[id].ScrollEnabled then
-				ScrollBars[id].Edges:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.LightMain))
+				ScrollBars[id].Edges:setColor("FF"..ScrollBars[id].ColorScheme.LightMain)
 				ScrollBars[id].Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.Main, ScrollBars[id].ColorScheme.Main))
 			end
 			ScrollBars[id].Entered = true
@@ -2449,10 +2447,10 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 				TopCol, BotCol, EdgesCol = "F6F6F6", "EAEAEA", "BBBBBB"
 				if ScrollBars[id].ColorScheme.DarkTheme then TopCol, BotCol, EdgesCol = "555555", "444444", "3F3F3F" end
 
-				edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgesCol, EdgesCol, EdgesCol, EdgesCol)
+				edgcol = "FF"..EdgesCol
 				btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
 			
-				ScrollBars[id].Edges:setProperty("ImageColours", edgcol)
+				ScrollBars[id].Edges:setColor(edgcol)
 				ScrollBars[id].Entrail:setProperty("ImageColours", btncol)
 			end
 
@@ -2469,7 +2467,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			ScrollBars[id].PhysicalPosition.X, ScrollBars[id].PhysicalPosition.Y = ScrollBars[id].Edges:getPosition(false)
 			ScrollBars[id].LocalPosition.X, ScrollBars[id].LocalPosition.Y = ScrollBars[id].Edges:getPosition(false)
 
-			ScrollBars[id].Edges:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ScrollBars[id].ColorScheme.SubMain, ScrollBars[id].ColorScheme.SubMain, ScrollBars[id].ColorScheme.SubMain, ScrollBars[id].ColorScheme.SubMain))
+			ScrollBars[id].Edges:setColor("FF"..ScrollBars[id].ColorScheme.SubMain)
 			ScrollBars[id].Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ScrollBars[id].ColorScheme.Main, ScrollBars[id].ColorScheme.Main, ScrollBars[id].ColorScheme.SubMain, ScrollBars[id].ColorScheme.SubMain))
 			
 			ScrollBars[id].ScrollEnabled = true
@@ -2482,17 +2480,17 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 		
 		if ScrollBars[id].Canvas:getEnabled() then
 			if ScrollBars[id].Entered then
-				ScrollBars[id].Edges:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.LightMain))
+				ScrollBars[id].Edges:setColor("FF"..ScrollBars[id].ColorScheme.LightMain)
 				ScrollBars[id].Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.LightMain, ScrollBars[id].ColorScheme.Main, ScrollBars[id].ColorScheme.Main))
 			else
 			
 				TopCol, BotCol, EdgesCol = "F6F6F6", "EAEAEA", "BBBBBB"
 				if ScrollBars[id].ColorScheme.DarkTheme then TopCol, BotCol, EdgesCol = "555555", "444444", "3F3F3F" end
 
-				edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgesCol, EdgesCol, EdgesCol, EdgesCol)
+				edgcol = "FF"..EdgesCol
 				btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
 			
-				ScrollBars[id].Edges:setProperty("ImageColours", edgcol)
+				ScrollBars[id].Edges:setColor(edgcol)
 				ScrollBars[id].Entrail:setProperty("ImageColours", btncol)
 
 			end
@@ -2709,18 +2707,18 @@ function csbSetEnabled(scroll, bool)
 	TopCol, BotCol, BackCol, EdgesCol, MainCol = "F6F6F6", "EAEAEA", "AAAAAA", "BBBBBB", "E7E7E7"
 	if scroll.ColorScheme.DarkTheme then TopCol, BotCol, BackCol, EdgesCol, MainCol = "555555", "444444", "333333", "3F3F3F", "3A3A3A" end
 	
-	bckcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackCol, BackCol, BackCol, BackCol)
-	maicol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
-	edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgesCol, EdgesCol, EdgesCol, EdgesCol)
+	bckcol = "FF"..BackCol
+	maicol = "FF"..MainCol
+	edgcol = "FF"..EdgesCol
 	btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
 
-	scroll.Vertical:setProperty("ImageColours", bckcol)
-	scroll.Horizontal:setProperty("ImageColours", bckcol)
+	scroll.Vertical:setColor(bckcol)
+	scroll.Horizontal:setColor(bckcol)
 
 	if bool then
 
-		scroll.Main:setProperty("ImageColours", maicol)
-		scroll.Edges:setProperty("ImageColours", edgcol)
+		scroll.Main:setColor(maicol)
+		scroll.Edges:setColor(edgcol)
 		scroll.Entrail:setProperty("ImageColours", btncol)
 
 	else
@@ -2728,12 +2726,12 @@ function csbSetEnabled(scroll, bool)
 		TopCol, BotCol, EdgesCol, MainCol = "CCCCCC", "BBBBBB", "999999", "B7B7B7"
 		if scroll.ColorScheme.DarkTheme then TopCol, BotCol, EdgesCol, MainCol = "3A3A3A", "333333", "222222", "2F2F2F" end
 
-		maicol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
-		edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgesCol, EdgesCol, EdgesCol, EdgesCol)
+		maicol = "FF"..MainCol
+		edgcol = "FF"..EdgesCol
 		btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
 
-		scroll.Main:setProperty("ImageColours", maicol)
-		scroll.Edges:setProperty("ImageColours", edgcol)
+		scroll.Main:setColor(maicol)
+		scroll.Edges:setColor(edgcol)
 		scroll.Entrail:setProperty("ImageColours", btncol)
 
 	end
@@ -2973,20 +2971,21 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	WinColor, EdgeCol, TextCol = "EEEEEE", "CCCCCC", "444444"
 	if EditBoxes[id].ColorScheme.DarkTheme then WinColor, EdgeCol, TextCol = "444444", "333333", "EEEEEE" end
 
-	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", WinColor, WinColor, WinColor, WinColor)
-	edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgeCol, EdgeCol, EdgeCol, EdgeCol)
-	txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextCol, TextCol, TextCol, TextCol)
+	frmcol = "FF"..WinColor
+	edgcol = "FF"..EdgeCol
+	txtcol = "FF"..TextCol
 
 
-	EditBoxes[id].Canvas:setProperty("ImageColours", frmcol)
-	EditBoxes[id].Edge:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	EditBoxes[id].Canvas:setColor(frmcol)
+	EditBoxes[id].Edge:setColor("0")
+
 	for _, v in pairs(EditBoxes[id].Sides) do
-		v:setProperty("ImageColours", frmcol)
+		v:setColor(frmcol)
 		v:setEnabled(false)
 	end
 
 	for _, v in pairs(EditBoxes[id].Edges) do
-		v:setProperty("ImageColours", edgcol)
+		v:setColor(edgcol)
 		v:setEnabled(false)
 	end
 
@@ -2998,8 +2997,8 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	EditBoxes[id].TextBox:setProperty("ForceVertScrollbar", "True")
 
 
-	EditBoxes[id].Up:setProperty("ImageColours", txtcol)
-	EditBoxes[id].Down:setProperty("ImageColours", txtcol)
+	EditBoxes[id].Up:setColor(txtcol)
+	EditBoxes[id].Down:setColor(txtcol)
 
 	EditBoxes[id].Edge:setEnabled(objtype == "number")
 	EditBoxes[id].Edge:setVisible(objtype == "number")
@@ -3031,7 +3030,7 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	local move_count = 0
 	addEventHandler("onClientMouseEnter", root, function()
 		if source == EditBoxes[id].Up or source == EditBoxes[id].Down then
-			source:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EditBoxes[id].ColorScheme.Main, EditBoxes[id].ColorScheme.Main, EditBoxes[id].ColorScheme.Main, EditBoxes[id].ColorScheme.Main))
+			source:setColor("FF"..EditBoxes[id].ColorScheme.Main)
 		end
 	end)
 
@@ -3039,12 +3038,12 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 		if EditBoxes[id].Edge:getEnabled() then
 
 			TextCol = "444444"
-	
 			if EditBoxes[id].ColorScheme.DarkTheme then TextCol = "EEEEEE" end
-			txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextCol, TextCol, TextCol, TextCol)
+
+			txtcol = "FF"..TextCol
 	
-			EditBoxes[id].Up:setProperty("ImageColours", txtcol)
-			EditBoxes[id].Down:setProperty("ImageColours", txtcol)
+			EditBoxes[id].Up:setColor(txtcol)
+			EditBoxes[id].Down:setColor(txtcol)
 		end
 	end)
 
@@ -3277,8 +3276,8 @@ function ctbSetReadOnly(textbox, boolean)
 			textcol = "FF666666"
 			if textbox.ColorScheme.DarkTheme then textcol = "FFAAAAAA" end
 
-			textbox.Up:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", textcol, textcol, textcol, textcol))
-			textbox.Down:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", textcol, textcol, textcol, textcol))
+			textbox.Up:setColor(textcol)
+			textbox.Down:setColor(textcol)
 			
 			if textbox.Type == "number" then
 				textbox.Edge:setEnabled(false)
@@ -3294,13 +3293,13 @@ function ctbSetReadOnly(textbox, boolean)
 			TextCol = "444444"
 			if textbox.ColorScheme.DarkTheme then TextCol = "EEEEEE" end
 
-			txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextCol, TextCol, TextCol, TextCol)
+			txtcol = "FF"..TextCol
 
 			textbox.TextBox:setProperty("NormalTextColour", "FF444444")
 			textbox.TextBox:setProperty("ReadOnlyBGColour", "FFFFFFFF")
 
-			textbox.Up:setProperty("ImageColours", txtcol)
-			textbox.Down:setProperty("ImageColours", txtcol)
+			textbox.Up:setColor(txtcol)
+			textbox.Down:setColor(txtcol)
 			
 			if textbox.Type == "number" then
 				textbox.Edge:setEnabled(true)
@@ -3326,8 +3325,8 @@ function ctbSetEnabled(textbox, boolean)
 		textcol = "FF666666"
 		if textbox.ColorScheme.DarkTheme then textcol = "FFAAAAAA" end
 
-		textbox.Up:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", textcol, textcol, textcol, textcol))
-		textbox.Down:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", textcol, textcol, textcol, textcol))
+		textbox.Up:setColor(textcol)
+		textbox.Down:setColor(textcol)
 
 		if textbox.Type == "number" then
 			textbox.Edge:setEnabled(false)
@@ -3343,13 +3342,13 @@ function ctbSetEnabled(textbox, boolean)
 		TextCol = "444444"
 		if textbox.ColorScheme.DarkTheme then TextCol = "EEEEEE" end
 
-		txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextCol, TextCol, TextCol, TextCol)
+		txtcol = "FF"..TextCol
 
 		textbox.TextBox:setProperty("NormalTextColour", "FF444444")
 		textbox.TextBox:setProperty("ReadOnlyBGColour", "FFFFFFFF")
 
-		textbox.Up:setProperty("ImageColours", txtcol)
-		textbox.Down:setProperty("ImageColours", txtcol)
+		textbox.Up:setColor(txtcol)
+		textbox.Down:setColor(txtcol)
 		
 		if textbox.Type == "number" then
 			textbox.Edge:setEnabled(true)
@@ -3437,12 +3436,12 @@ function ctbPutOnSide(textbox, bool)
 	WinColor = "EEEEEE"
 	if scheme.DarkTheme then WinColor = "444444" end
 
-	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", WinColor, WinColor, WinColor, WinColor)
-	sbmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", scheme.SubMain, scheme.SubMain, scheme.SubMain, scheme.SubMain)
+	frmcol = "FF"..WinColor
+	sbmcol = "FF"..scheme.SubMain
 
 	for _, v in pairs(textbox.Sides) do
 		
-		v:setProperty("ImageColours", textbox.IsOnSideBlock and sbmcol or frmcol)
+		v:setColor(textbox.IsOnSideBlock and sbmcol or frmcol)
 		v:setEnabled(false)
 	end
 end
@@ -3519,25 +3518,25 @@ function ctbSetColorScheme(textbox, scheme)
 	WinColor, EdgeCol, TextCol = "EEEEEE", "CCCCCC", "444444"
 	if textbox.ColorScheme.DarkTheme then WinColor, EdgeCol, TextCol = "444444", "333333", "EEEEEE" end
 
-	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", WinColor, WinColor, WinColor, WinColor)
-	sbmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", textbox.ColorScheme.SubMain, textbox.ColorScheme.SubMain, textbox.ColorScheme.SubMain, textbox.ColorScheme.SubMain)
-	edgcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", EdgeCol, EdgeCol, EdgeCol, EdgeCol)
-	txtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TextCol, TextCol, TextCol, TextCol)
+	frmcol = "FF"..WinColor
+	sbmcol = "FF"..textbox.ColorScheme.SubMain
+	edgcol = "FF"..EdgeCol
+	txtcol = "FF"..TextCol
 
-	textbox.Canvas:setProperty("ImageColours", frmcol)
-	textbox.Up:setProperty("ImageColours", txtcol)
-	textbox.Down:setProperty("ImageColours", txtcol)
+	textbox.Canvas:setColor(frmcol)
+	textbox.Up:setColor(txtcol)
+	textbox.Down:setColor(txtcol)
 	textbox.TextBox:setProperty("ActiveSelectionColour", "FF"..textbox.ColorScheme.Main)
 
 	for _, v in pairs(textbox.Sides) do
 		
-		v:setProperty("ImageColours", textbox.IsOnSideBlock and sbmcol or frmcol)
+		v:setColor(textbox.IsOnSideBlock and sbmcol or frmcol)
 		v:setEnabled(false)
 
 	end
 
 	for _, v in pairs(textbox.Edges) do
-		v:setProperty("ImageColours", edgcol)
+		v:setColor(edgcol)
 		v:setEnabled(false)
 	end
 
@@ -3550,12 +3549,12 @@ function ctbSetColorScheme(textbox, scheme)
 	WinColor = "EEEEEE"
 	if scheme.DarkTheme then WinColor = "444444" end
 
-	frmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", WinColor, WinColor, WinColor, WinColor)
-	sbmcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", scheme.SubMain, scheme.SubMain, scheme.SubMain, scheme.SubMain)
+	frmcol = "FF"..WinColor
+	sbmcol = "FF"..scheme.SubMain
 
 	for _, v in pairs(textbox.Sides) do
-		
-		v:setProperty("ImageColours", textbox.IsOnSideBlock and sbmcol or frmcol)
+
+		v:setColor(textbox.IsOnSideBlock and sbmcol or frmcol)
 		v:setEnabled(false)
 	end
 
@@ -3764,8 +3763,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Properties
-	CheckBoxes[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	--CheckBoxes[id].Main:setProperty("ImageColours", "tl:FFF3F3F3 tr:FFF3F3F3 bl:FFF3F3F3 br:FFF3F3F3")
+	CheckBoxes[id].Canvas:setColor("0")
 	CheckBoxes[id].Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CheckBoxes[id].ColorScheme.RedLight, CheckBoxes[id].ColorScheme.RedLight, CheckBoxes[id].ColorScheme.Red, CheckBoxes[id].ColorScheme.Red))
 
 	BackColor = "FFFFFF"
@@ -3774,7 +3772,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	TextColor = "555555"
 	if CheckBoxes[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
-	CheckBoxes[id].Main:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackColor, BackColor, BackColor, BackColor))
+	CheckBoxes[id].Main:setColor("FF"..BackColor)
 
 	CheckBoxes[id].Label:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
 	CheckBoxes[id].Label:setColor(fromHEXToRGB(TextColor))
@@ -4086,12 +4084,12 @@ function ccbSetEnabled(checkbox, bool)
 		if checkbox.ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
 		checkbox.Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", color, color, color2, color2))
-		checkbox.Main:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackColor, BackColor, BackColor, BackColor))
+		checkbox.Main:setColor("FF"..BackColor)
 		checkbox.Label:setColor(fromHEXToRGB(TextColor))
 
 	else
 		checkbox.Entrail:setProperty("ImageColours", "tl:FFBBBBBB tr:FFBBBBBB bl:FFAAAAAA br:FFAAAAAA")
-		checkbox.Main:setProperty("ImageColours", "tl:FFDDDDDD tr:FFDDDDDD bl:FFDDDDDD br:FFDDDDDD")
+		checkbox.Main:setColor("FFDDDDDD")
 		checkbox.Label:setColor(fromHEXToRGB("999999"))		
 	end
 end
@@ -4290,27 +4288,27 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	if ComboBoxes[id].ColorScheme.DarkTheme then LMainCol = "505050" end 
 
 	btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
-	fbtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackCol, BackCol, BackCol, BackCol)
-	arrcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ButCol, ButCol, ButCol, ButCol)
-	lmncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LMainCol, LMainCol, LMainCol, LMainCol)
+	fbtcol = "FF"..BackCol
+	arrcol = "FF"..ButCol
+	lmncol = "FF"..LMainCol
 
-	ComboBoxes[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	ComboBoxes[id].List.Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	ComboBoxes[id].Canvas:setColor("0")
+	ComboBoxes[id].List.Canvas:setColor("0")
 
 	ComboBoxes[id].Main:setProperty("ImageColours", btncol)
-	ComboBoxes[id].List.Main:setProperty("ImageColours", lmncol)
+	ComboBoxes[id].List.Main:setColor(lmncol)
 
-	ComboBoxes[id].Vertical:setProperty("ImageColours", fbtcol)
-	ComboBoxes[id].Horizontal:setProperty("ImageColours", fbtcol)
-	ComboBoxes[id].List.Vertical:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
-	ComboBoxes[id].List.Horizontal:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
+	ComboBoxes[id].Vertical:setColor(fbtcol)
+	ComboBoxes[id].Horizontal:setColor(fbtcol)
+	ComboBoxes[id].List.Vertical:setColor("44000000")
+	ComboBoxes[id].List.Horizontal:setColor("44000000")
 
 	ComboBoxes[id].Label:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
 	ComboBoxes[id].Label:setHorizontalAlign("center")
 	ComboBoxes[id].Label:setVerticalAlign("center")
 	ComboBoxes[id].Label:setColor(fromHEXToRGB(TextColor))
 
-	ComboBoxes[id].Arrow:setProperty("ImageColours", arrcol)
+	ComboBoxes[id].Arrow:setColor(arrcol)
 
 	ComboBoxes[id].Vertical:setEnabled(false)
 	ComboBoxes[id].Horizontal:setEnabled(false)
@@ -4346,7 +4344,7 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 
 		if source == ComboBoxes[id].Main then
 			ComboBoxes[id].Label:setColor(fromHEXToRGB(ComboBoxes[id].ColorScheme.Main))
-			ComboBoxes[id].Arrow:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main))
+			ComboBoxes[id].Arrow:setColor("FF"..ComboBoxes[id].ColorScheme.Main)
 		end
 
 		TextColor = "444444"
@@ -4355,10 +4353,10 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 		for _, v in pairs(ComboBoxes[id].List.Items) do
 			if source == v.Canvas then
 				v.Label:setColor(fromHEXToRGB("FFFFFF"))
-				v.Canvas:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main))
+				v.Canvas:setColor("FF"..ComboBoxes[id].ColorScheme.Main)
 			else
 				v.Label:setColor(fromHEXToRGB(TextColor))
-				v.Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+				v.Canvas:setColor("0")
 			
 			end
 		end
@@ -4374,10 +4372,10 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 			TextColor = "444444"
 			if ComboBoxes[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end
 			
-			arrcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ButCol, ButCol, ButCol, ButCol)
+			arrcol = "FF"..ButCol
 		
 			ComboBoxes[id].Label:setColor(fromHEXToRGB(TextColor))
-			ComboBoxes[id].Arrow:setProperty("ImageColours", arrcol)
+			ComboBoxes[id].Arrow:setColor(arrcol)
 		end
 	end)
 
@@ -4392,11 +4390,11 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 
 					for _, val in pairs(ComboBoxes[id].List.Items) do
 						val.Selected = false
-						val.Mark:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+						val.Mark:setColor("0")
 					end
 
 					v.Selected = true
-					v.Mark:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main, ComboBoxes[id].ColorScheme.Main)) 
+					v.Mark:setColor("FF"..ComboBoxes[id].ColorScheme.Main) 
 					
 					triggerEvent("onCustomComboBoxSelectItem", ComboBoxes[id].Canvas, v)
 
@@ -4517,8 +4515,8 @@ function clbAddItem(combo, text)
 	combo.List.Items[id].Label:setVerticalAlign("center")
 	combo.List.Items[id].Label:setColor(fromHEXToRGB(TextColor))
 
-	combo.List.Items[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	combo.List.Items[id].Mark:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	combo.List.Items[id].Canvas:setColor("0")
+	combo.List.Items[id].Mark:setColor("0")
 
 	return combo.List.Items[id]
 end
@@ -4568,9 +4566,9 @@ function clbSetSelectedItem(combo, item)
 		end
 	
 		if v.Selected then
-			v.Mark:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", combo.ColorScheme.Main, combo.ColorScheme.Main, combo.ColorScheme.Main, combo.ColorScheme.Main)) 
+			v.Mark:setColor("FF"..combo.ColorScheme.Main) 
 		else
-			v.Mark:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+			v.Mark:setColor("0")
 		end
 	end
 	if not visited then
@@ -4641,16 +4639,16 @@ function clbSetEnabled(combo, bool)
 	if combo.ColorScheme.DarkTheme then ButCol = "EEEEEE" end 
 
 	btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
-	arrcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ButCol, ButCol, ButCol, ButCol)
+	arrcol = "FF"..ButCol
 
 	if bool then
 		combo.Main:setProperty("ImageColours", btncol)
 		combo.Label:setColor(fromHEXToRGB(TextColor))
-		combo.Arrow:setProperty("ImageColours", arrcol)
+		combo.Arrow:setColor(arrcol)
 	else
 		combo.Main:setProperty("ImageColours", "tl:FFCCCCCC tr:FFCCCCCC bl:FFBBBBBB br:FFBBBBBB")
 		combo.Label:setColor(fromHEXToRGB("888888"))
-		combo.Arrow:setProperty("ImageColours", "tl:FF888888 tr:FF888888 bl:FF888888 br:FF888888")
+		combo.Arrow:setColor("FF888888")
 	end
 end
 
@@ -4723,28 +4721,27 @@ function clbSetColorScheme(combo, scheme)
 
 	clbSetEnabled(combo, clbGetEnabled(combo))
 
-	TopCol, BotCol, BackCol = "FFFFFF", "EEEEEE", "CCCCCC"
-	if combo.ColorScheme.DarkTheme then TopCol, BotCol, BackCol = "555555", "444444", "333333" end
+	BackCol = "CCCCCC"
+	if combo.ColorScheme.DarkTheme then BackCol = "333333" end
 
 	if objtocol then
-		objtocol:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", combo.ColorScheme.Main, combo.ColorScheme.Main, combo.ColorScheme.Main, combo.ColorScheme.Main))
+		objtocol:setColor("FF"..combo.ColorScheme.Main)
 	end
 
 	LMainCol = "F7F7F7"
 	if combo.ColorScheme.DarkTheme then LMainCol = "505050" end 
 
-	btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
-	fbtcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", BackCol, BackCol, BackCol, BackCol)
-	lmncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LMainCol, LMainCol, LMainCol, LMainCol)
+	fbtcol = "FF"..BackCol
+	lmncol = "FF"..LMainCol
 
-	combo.List.Main:setProperty("ImageColours", lmncol)
+	combo.List.Main:setColor(lmncol)
 
-	combo.Vertical:setProperty("ImageColours", fbtcol)
-	combo.Horizontal:setProperty("ImageColours", fbtcol)
+	combo.Vertical:setColor(fbtcol)
+	combo.Horizontal:setColor(fbtcol)
 
 	for _, v in pairs(combo.List.Items) do
 		if v.Selected then
-			v.Mark:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", combo.ColorScheme.Main, combo.ColorScheme.Main, combo.ColorScheme.Main, combo.ColorScheme.Main)) 
+			v.Mark:setColor("FF"..combo.ColorScheme.Main) 
 		end
 	end
 end
@@ -4887,17 +4884,17 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 	SameCol = "BBBBBB"
 	if TabPanels[id].ColorScheme.DarkTheme then SameCol = "222222" end 
 
-	maincol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
-	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
+	maincol = "FF"..MainCol
+	samecol = "FF"..SameCol
 
-	TabPanels[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	TabPanels[id].Canvas:setColor("0")
 
-	TabPanels[id].Vertical:setProperty("ImageColours", "tl:22000000 tr:22000000 bl:22000000 br:22000000")
-	TabPanels[id].Horizontal:setProperty("ImageColours", "tl:22000000 tr:22000000 bl:22000000 br:22000000")
+	TabPanels[id].Vertical:setColor("22000000")
+	TabPanels[id].Horizontal:setColor("22000000")
 
-	TabPanels[id].Main:setProperty("ImageColours", maincol)
-	TabPanels[id].TitleBlock:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	TabPanels[id].TitleDivider:setProperty("ImageColours", samecol)
+	TabPanels[id].Main:setColor(maincol)
+	TabPanels[id].TitleBlock:setColor("0")
+	TabPanels[id].TitleDivider:setColor(samecol)
 
 	TabPanels[id].CurrentTab = nil
 	TabPanels[id].Animation = 0 -- 1 - swipe left, 2 - swipe right
@@ -4968,6 +4965,7 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 	end)
 
 	addEventHandler("onClientGUIClick", root, function()
+
 		for _, v in pairs(TabPanels[id].Tabs) do
 			if source == v.Canvas and v ~= TabPanels[id].CurrentTab and v.Enabled then
 				for _, val in pairs(TabPanels[id].Tabs) do
@@ -4979,7 +4977,7 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 					if TabPanels[id].ColorScheme.DarkTheme then TextCol = "EEEEEE" end
 					
 					TabPanels[id].CurrentTab.Entrail:setVisible(true)
-					TabPanels[id].CurrentTab.Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+					TabPanels[id].CurrentTab.Canvas:setColor("0")
 					TabPanels[id].CurrentTab.Label:setColor(fromHEXToRGB(TextCol))
 
 				end
@@ -4992,7 +4990,7 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 
 				v.Entrail:setVisible(true) -- make animated
 				v.Label:setColor(fromHEXToRGB("FFFFFF"))
-				v.Canvas:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TabPanels[id].ColorScheme.Main, TabPanels[id].ColorScheme.Main, TabPanels[id].ColorScheme.Main, TabPanels[id].ColorScheme.Main)) 
+				v.Canvas:setColor("FF"..TabPanels[id].ColorScheme.Main) 
 				
 				triggerEvent("onCustomTabPanelChangeTab", TabPanels[id].Main, v.Text)
 
@@ -5055,8 +5053,8 @@ function compareTabs(tabpan)
 	SameCol = "BBBBBB"
 	if tabpan.ColorScheme.DarkTheme then SameCol = "222222" end 
 
-	discol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DisCol, DisCol, DisCol, DisCol)
-	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
+	discol = "FF"..DisCol
+	samecol = "FF"..SameCol
 
 	local id = 0
 	for _, v in pairs(tabpan.Tabs) do
@@ -5064,17 +5062,17 @@ function compareTabs(tabpan)
 
 			v.Canvas:setSize(width, 22, false)
 			v.Canvas:setPosition(width*id, 0, false)
-			v.Divider:setProperty("ImageColours", samecol)
+			v.Divider:setColor(samecol)
 
 			if not v.Enabled then
-				v.Canvas:setProperty("ImageColours", discol)
+				v.Canvas:setColor(discol)
 				v.Label:setColor(fromHEXToRGB("888888"))
 			else 
 				if v == tabpan.CurrentTab then
-					v.Canvas:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", tabpan.ColorScheme.Main, tabpan.ColorScheme.Main, tabpan.ColorScheme.Main, tabpan.ColorScheme.Main)) 
+					v.Canvas:setColor("FF"..tabpan.ColorScheme.Main) 
 					v.Label:setColor(fromHEXToRGB("FFFFFF"))
 				else
-					v.Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+					v.Canvas:setColor("0")
 					v.Label:setColor(fromHEXToRGB(TextCol))
 				end
 			end
@@ -5104,7 +5102,7 @@ function ctpAddTab(tabpan, text)
 	SameCol = "BBBBBB"
 	if tabpan.ColorScheme.DarkTheme then SameCol = "222222" end 
 
-	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
+	samecol = "FF"..SameCol
 
 	tabpan.Tabs[id] = {}
 	tabpan.Tabs[id].Visible = true
@@ -5118,9 +5116,9 @@ function ctpAddTab(tabpan, text)
 	tabpan.Tabs[id].Entrail = GuiStaticImage.create(0, 23, w, h-23, pane, false, tabpan.Main)
 	--tabpan.TabScroller:addScrollElement(tabpan.Tabs[id].Canvas, "x")
 
-	tabpan.Tabs[id].Canvas:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	tabpan.Tabs[id].Entrail:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	tabpan.Tabs[id].Divider:setProperty("ImageColours", samecol)
+	tabpan.Tabs[id].Canvas:setColor("0")
+	tabpan.Tabs[id].Entrail:setColor("0")
+	tabpan.Tabs[id].Divider:setColor(samecol)
 
 	tabpan.Tabs[id].Label:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
 	tabpan.Tabs[id].Label:setColor(fromHEXToRGB("444444"))
@@ -5345,11 +5343,11 @@ function ctpSetColorScheme(tabpan, scheme)
 	SameCol = "BBBBBB"
 	if tabpan.ColorScheme.DarkTheme then SameCol = "222222" end 
 
-	maincol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
-	samecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", SameCol, SameCol, SameCol, SameCol)
+	maincol = "FF"..MainCol
+	samecol = "FF"..SameCol
 
-	tabpan.Main:setProperty("ImageColours", maincol)
-	tabpan.TitleDivider:setProperty("ImageColours", samecol)
+	tabpan.Main:setColor(maincol)
+	tabpan.TitleDivider:setColor(samecol)
 
 end
 
@@ -5964,9 +5962,9 @@ function CustomTooltip.create(text, element, timetoshow)
 	local label = CustomLabel.create(2, 2, wdth, hght, text, false, main)
 
 
-	back:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	shad1:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
-	shad2:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
+	back:setColor("0")
+	shad1:setColor("44000000")
+	shad2:setColor("44000000")
 	back:setProperty("AlwaysOnTop", "True")
 	back:setEnabled(false)
 	back:setVisible(false)
@@ -5987,7 +5985,7 @@ function CustomTooltip.create(text, element, timetoshow)
 			color = "FF444444"
 		end
 		
-		main:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", color, color, color, color))
+		main:setColor(color)
 		label:setColorScheme(scheme)
 
 	end
@@ -6087,14 +6085,14 @@ function CustomLoading.create(x, y, relative, parent)
 
 	self.Circles = {}
 
-	local color = "tl:FFAAAAAA tr:FFAAAAAA bl:FFAAAAAA br:FFAAAAAA"
+	local color = "FFAAAAAA"
 	if self.ColorScheme.DarkTheme then
-		color = "tl:FFEEEEEE tr:FFEEEEEE bl:FFEEEEEE br:FFEEEEEE"
+		color = "FFEEEEEE"
 	end
 	
 	for i = 0, 330, 30 do	
 		self.Circles[#self.Circles+1] = GuiStaticImage.create(15 + 10*math.cos(math.rad(i)) - 1, 15 + 10*math.sin(math.rad(i)) - 1, 3, 3, Images.Loading, false, self.Back)
-		self.Circles[#self.Circles]:setProperty("ImageColours", color)
+		self.Circles[#self.Circles]:setColor(color)
 		self.Circles[#self.Circles]:setEnabled(false)
 	end
 
@@ -6112,7 +6110,7 @@ function CustomLoading.create(x, y, relative, parent)
 		end
 	end)
 
-	self.Back:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	self.Back:setColor("0")
 
 	if comparetypes(oldparent, CustomWindow) or comparetypes(oldparent, CustomScrollPane) then
 		oldparent:addElement(self)
@@ -6133,16 +6131,16 @@ function CustomLoading.setProgress(self, percentage)
 
 	for i = 0, 330, 30 do
 
-		local color = "tl:FFAAAAAA tr:FFAAAAAA bl:FFAAAAAA br:FFAAAAAA"
+		local color = "FFAAAAAA"
 		if self.ColorScheme.DarkTheme then
-			color = "tl:FFEEEEEE tr:FFEEEEEE bl:FFEEEEEE br:FFEEEEEE"
+			color = "FFEEEEEE"
 		end
 		
 		if 360-(i+1) <= percentage*3.6 then
-			color = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", self.ColorScheme.Main, self.ColorScheme.Main, self.ColorScheme.Main, self.ColorScheme.Main)
+			color = "FF"..self.ColorScheme.Main
 		end
 
-		self.Circles[math.floor(i/30)+1]:setProperty("ImageColours", color)
+		self.Circles[math.floor(i/30)+1]:setColor(color)
 	end
 
 end
@@ -6282,19 +6280,19 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 	MainCol = "DDDDDD"
 	if TableView[id].ColorScheme.DarkTheme then MainCol = "393939" end 
 
-	maincol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
-	objcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TableView[id].ColorScheme.DarkMain, TableView[id].ColorScheme.DarkMain, TableView[id].ColorScheme.DarkMain, TableView[id].ColorScheme.DarkMain)
+	maincol = "FF"..MainCol
+	objcol = "FF"..TableView[id].ColorScheme.DarkMain
 	
-	TableView[id].Back:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
-	TableView[id].Canvas:setProperty("ImageColours", maincol)
-	TableView[id].ShadowVert:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
-	TableView[id].ShadowHorz:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
-	TableView[id].Disabled:setProperty("ImageColours", "tl:44000000 tr:44000000 bl:44000000 br:44000000")
+	TableView[id].Back:setColor("0")
+	TableView[id].Canvas:setColor(maincol)
+	TableView[id].ShadowVert:setColor("44000000")
+	TableView[id].ShadowHorz:setColor("44000000")
+	TableView[id].Disabled:setColor("44000000")
 
-	TableView[id].ScrollObject:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
+	TableView[id].ScrollObject:setColor("0")
 
-	TableView[id].TitleBlock:setProperty("ImageColours", objcol)
-	TableView[id].Divider:setProperty("ImageColours", "tl:33000000 tr:33000000 bl:33000000 br:33000000")
+	TableView[id].TitleBlock:setColor(objcol)
+	TableView[id].Divider:setColor("33000000")
 
 	TableView[id].ShadowVert:setEnabled(false)
 	TableView[id].ShadowHorz:setEnabled(false)
@@ -6316,9 +6314,9 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 
 			if source == item.Canvas then
 
-				linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TableView[id].ColorScheme.LightMain, TableView[id].ColorScheme.LightMain, TableView[id].ColorScheme.LightMain, TableView[id].ColorScheme.LightMain)
+				linecol = "FF"..TableView[id].ColorScheme.LightMain
 
-				item.Canvas:setProperty("ImageColours", linecol)
+				item.Canvas:setColor(linecol)
 
 			end
 
@@ -6336,13 +6334,13 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 			LineColor = "EEEEEE"
 			if TableView[id].ColorScheme.DarkTheme then LineColor = "444444" end 
 
-			linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LineColor, LineColor, LineColor, LineColor)
+			linecol = "FF"..LineColor
 
 			if it_id == TableView[id].Selected then
-				linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main)
+				linecol = "FF"..TableView[id].ColorScheme.Main
 			end
 
-			item.Canvas:setProperty("ImageColours", linecol)
+			item.Canvas:setColor(linecol)
 
 			TextCol = "333333"
 			if TableView[id].ColorScheme.DarkTheme or it_id == TableView[id].Selected then TextCol = "FFFFFF" end
@@ -6376,15 +6374,15 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 				DivColor = "CCCCCC"
 				if TableView[id].ColorScheme.DarkTheme then DivColor = "333333" end 
 
-				linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LineColor, LineColor, LineColor, LineColor)
-				TableView[id].Lines[sid].Canvas:setProperty("ImageColours", linecol)
+				linecol = "FF"..LineColor
+				TableView[id].Lines[sid].Canvas:setColor(linecol)
 
 			end
 			
-			linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main, TableView[id].ColorScheme.Main)
+			linecol = "FF"..TableView[id].ColorScheme.Main
 
 			TableView[id].Selected = vid
-			TableView[id].Lines[vid].Canvas:setProperty("ImageColours", linecol)
+			TableView[id].Lines[vid].Canvas:setColor(linecol)
 
 		end
 	
@@ -6442,10 +6440,10 @@ function ctvUpdate(tview)
 	local x = 0
 	for col, obj in pairs(tview.Columns) do
 
-		local color = "tl:33000000 tr:33000000 bl:33000000 br:33000000"
-		if col == 1 then color = "tl:0 tr:0 bl:0 br:0" end
+		local color = "33000000"
+		if col == 1 then color = "0" end
 
-		obj.Divider:setProperty("ImageColours", color)
+		obj.Divider:setColor(color)
 		
 		obj.Title:setPosition(x, 0, false)
 		obj.Title:setSize(obj.Width, 23, false)
@@ -6488,21 +6486,21 @@ function ctvUpdate(tview)
 	TextCol = "333333"
 	if tview.ColorScheme.DarkTheme then TextCol = "FFFFFF" end
 
-	maincol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", MainCol, MainCol, MainCol, MainCol)
-	objcol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", tview.ColorScheme.SubMain, tview.ColorScheme.SubMain, tview.ColorScheme.SubMain, tview.ColorScheme.SubMain)
+	maincol = "FF"..MainCol
+	objcol = "FF"..tview.ColorScheme.SubMain
 
-	tview.Canvas:setProperty("ImageColours", maincol)
-	tview.TitleBlock:setProperty("ImageColours", objcol)
+	tview.Canvas:setColor(maincol)
+	tview.TitleBlock:setColor(objcol)
 
 	for it_id, item in pairs(tview.Lines) do
 
-		linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LineColor, LineColor, LineColor, LineColor)
+		linecol = "FF"..LineColor
 
 		if it_id == tview.Selected then
-			linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", tview.ColorScheme.Main, tview.ColorScheme.Main, tview.ColorScheme.Main, tview.ColorScheme.Main)
+			linecol = "FF"..tview.ColorScheme.Main
 		end
 
-		item.Canvas:setProperty("ImageColours", linecol)
+		item.Canvas:setColor(linecol)
 
 		local x = 5	
 		for i, v in pairs(tview.Columns) do
@@ -7169,23 +7167,31 @@ function ctvGetCellText(tview, line, column)
 
 	else
 
-		local cid = 1
-		
-		for t_col, tab in pairs(tview.Columns) do
-			if tab == column or tab.Title:getText() == column then
-				cid = t_col
+		local cid = column
+
+		if not (column and tonumber(column) and (1 <= column and column <= #tview.Columns)) then
+	
+			cid = 1
+			for t_col, tab in pairs(tview.Columns) do
+				if tab == column or tab.Title:getText() == column then
+					cid = t_col
+				end
 			end
 		end
 
-		local rid = 1
+		local rid = line
 		
-		for t_item, tab in pairs(tview.Lines) do
-			if tab == line then
-				rid = t_item
+		if not (line and tonumber(line) and (1 <= line and line <= #tview.Lines)) then
+			
+			rid = 1
+			for t_item, tab in pairs(tview.Lines) do
+				if tab == line then
+					rid = t_item
+				end
 			end
 		end
 		
-		ctvGetCellText(tview, rid, cid)
+		return ctvGetCellText(tview, rid, cid)
 	end
 end
 
@@ -7204,27 +7210,36 @@ function ctvGetCell(tview, line, column)
 		(line and tonumber(line) and (1 <= line and line <= #tview.Lines))
 	then
 
+		print("HERE")
 		return tview.Lines[line].Elements[column]
 
 	else
 
-		local cid = 1
-		
-		for t_col, tab in pairs(tview.Columns) do
-			if tab == column or tab.Title:getText() == column then
-				cid = t_col
+		local cid = column
+
+		if not (column and tonumber(column) and (1 <= column and column <= #tview.Columns)) then
+	
+			cid = 1
+			for t_col, tab in pairs(tview.Columns) do
+				if tab == column or tab.Title:getText() == column then
+					cid = t_col
+				end
 			end
 		end
 
-		local rid = 1
+		local rid = line
 		
-		for t_item, tab in pairs(tview.Lines) do
-			if tab == line then
-				cid = t_item
+		if not (line and tonumber(line) and (1 <= line and line <= #tview.Lines)) then
+			
+			rid = 1
+			for t_item, tab in pairs(tview.Lines) do
+				if tab == line then
+					rid = t_item
+				end
 			end
 		end
 
-		ctvGetCell(tview, rid, cid)
+		return ctvGetCell(tview, rid, cid)
 	end
 end
 
