@@ -7,8 +7,6 @@
 	<script src="example.lua" type="client"/>
 	<script src="editor.lua" type="client"/>
 
-	<script src="test.lua" type="client"/>
-
 	<file src="images/pane.png"/>
 	<file src="images/cross.png"/>
 	<file src="images/point.png"/>

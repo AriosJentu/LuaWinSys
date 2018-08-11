@@ -269,10 +269,11 @@ local Widgets = {}
 local Types = {}
 local Sorted = set({"Variable Name", "Position X", "Position Y", "Width", "Height", "Visible", "Enabled", "Color Scheme"})
 
-function addWidget(name, class, properties)
+function addWidget(name, class, classname, properties)
 
 	Widgets[name] = {}
-	Widgets[name].Name = class
+	Widgets[name].Class = class
+	Widgets[name].ClassName = classname
 	Widgets[name].Properties = {
 		["Variable Name"]	= "",
 		["Position X"] 		= {0, 0, Width},
@@ -341,7 +342,9 @@ end
 --Spinner for [Property = {value, minimal, maximal}]
 --Buttons = {"Button1", "Button2"}
 
-addWidget("Window", "CustomWindow", {
+---------------------------------------------------------------------------------------------------
+--Window
+addWidget("Window", CustomWindow, "CustomWindow", {
 	["Title"] 					= "Title",
 	["Movable"] 				= true,
 	["Enabled Close Button"] 	= false,
@@ -349,30 +352,40 @@ addWidget("Window", "CustomWindow", {
 	["Side Bar Position"] 		= "top",
 })
 
-addWidget("Scroll Pane", "CustomScrollPane", {
+---------------------------------------------------------------------------------------------------
+--ScrollPane
+addWidget("Scroll Pane", CustomScrollPane, "CustomScrollPane", {
 	["Inversed Vertical Scrolling"] 	= false,
 	["Inversed Horizontal Scrolling"] 	= false,
 	["Horizontal Scrolling with mouse"] = false,
 	["Scroll Speed"] 					= {10, 2, 20},
 })
 
-addWidget("Button", "CustomButton", {
+---------------------------------------------------------------------------------------------------
+--Button
+addWidget("Button", CustomButton, "CustomButton", {
 	["Text"] 	= "Button",
 	["Image"] 	= "",
 })
 
-addWidget("Progress Bar", "CustomProgressBar", {
+---------------------------------------------------------------------------------------------------
+--Progress Bar
+addWidget("Progress Bar", CustomProgressBar, "CustomProgressBar", {
 	["Progress"] = {0, 0, 100},
 })
 removeWidgetProperty("Progress Bar", "Enabled")
 
-addWidget("Scroll Bar", "CustomScrollBar", {
+---------------------------------------------------------------------------------------------------
+--Scroll Bar
+addWidget("Scroll Bar", CustomScrollBar, "CustomScrollBar", {
 	["Scroller Length"] = {5, 5, 100},
 	["Scroll Speed"] 	= {2, 2, 30},
 	["Progress"] 		= {0, 0, 100},
 })
 
-addWidget("Edit Box", "CustomEdit", {
+---------------------------------------------------------------------------------------------------
+--Edit Box
+addWidget("Edit Box", CustomEdit, "CustomEdit", {
 	["Text"] 			= "Edit Box",
 	["Read Only"] 		= false,
 	["Maximal Length"] 	= {144, 1, 10000},
@@ -380,12 +393,16 @@ addWidget("Edit Box", "CustomEdit", {
 	["Is On Side Bar"] 	= false,
 })
 
-addWidget("Memo Box", "CustomMemo", {
+---------------------------------------------------------------------------------------------------
+--Memo Box
+addWidget("Memo Box", CustomMemo, "CustomMemo", {
 	["Text"] 		= "Memo Box",
 	["Read Only"] 	= false,
 })
 
-addWidget("Spinner Box", "CustomSpinner", {
+---------------------------------------------------------------------------------------------------
+--Spinner
+addWidget("Spinner Box", CustomSpinner, "CustomSpinner", {
 	["Text"] 			= "0",
 	["Read Only"] 		= false,
 	["Minimal Value"] 	= {0, -10000, 10000},
@@ -393,18 +410,24 @@ addWidget("Spinner Box", "CustomSpinner", {
 	["Step"] 			= {1, 0.01, 1000},
 })
 
-addWidget("Check Box", "CustomCheckBox", {
+---------------------------------------------------------------------------------------------------
+--Check Box
+addWidget("Check Box", CustomCheckBox, "CustomCheckBox", {
 	["Text"] 	= "Check Box",
 	["Checked"] = false,
 })
 
-addWidget("Combo Box", "CustomComboBox", {
+---------------------------------------------------------------------------------------------------
+--Combo Box
+addWidget("Combo Box", CustomComboBox, "CustomComboBox", {
 	["Text"] 			= "Check Box",
 	["Maximal Height"] 	= {30, 30, Height-50},
 	["Items"] 			= {"Add Item", "Remove Item"}
 })
 
-addWidget("Tabbed Panel", "CustomTabPanel", {
+---------------------------------------------------------------------------------------------------
+--Tabbed Panel
+addWidget("Tabbed Panel", CustomTabPanel, "CustomTabPanel", {
 	["Tabs"] 				= {"Add Tab", "Remove Tab"},
 	["Minimal Tabs Length"] = {100, 50, Width},
 	["Tab Text"]			= "Tab",
@@ -412,7 +435,9 @@ addWidget("Tabbed Panel", "CustomTabPanel", {
 	["Visible Tab"] 		= true,
 })
 
-addWidget("Label", "CustomLabel", {
+---------------------------------------------------------------------------------------------------
+--Label
+addWidget("Label", CustomLabel, "CustomLabel", {
 	["Text"] 				= "Label",
 	["Color"] 				= "EEEEEE",
 	["Schematical Color"]	= false,
@@ -423,23 +448,31 @@ addWidget("Label", "CustomLabel", {
 	["Font size"]			= {9, 8, 100},
 })
 
-addWidget("Dialog", "CustomDialog", {})
+---------------------------------------------------------------------------------------------------
+--Dialog
+addWidget("Dialog", CustomDialog, "CustomDialog", {})
 removeWidgetProperties("Dialog")
 addWidgetProperties("Dialog", {
 	["Color Scheme"] = {Values=themes}
 })
 
-addWidget("Tool Tip", "CustomToolTip", {})
+---------------------------------------------------------------------------------------------------
+--Tooltip
+addWidget("Tool Tip", CustomToolTip, "CustomToolTip", {})
 removeWidgetProperties("Tool Tip")
 
-addWidget("Loading Bar", "CustomLoading", {
+---------------------------------------------------------------------------------------------------
+--Loading Bar
+addWidget("Loading Bar", CustomLoading, "CustomLoading", {
 	["Progress"] = {0, 0, 100},
 	["Animated"] = false,
 })
 removeWidgetProperty("Loading Bar", "Width")
 removeWidgetProperty("Loading Bar", "Height")
 
-addWidget("Table View", "CustomTableView", {
+---------------------------------------------------------------------------------------------------
+--Table View
+addWidget("Table View", CustomTableView, "CustomTableView", {
 	["Lines"] 				= {"Add Line", "Remove Line"},
 	["Columns"] 			= {"Add Column", "Remove Column"},
 	["Indentation"] 		= {5, 0, 20},
@@ -450,6 +483,12 @@ addWidget("Table View", "CustomTableView", {
 	["Cell Text"]			= "",
 })
 
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+
 local WidgetProperties = {}
 
 local index = 0
@@ -457,7 +496,6 @@ for _, name in pairs(Sorted) do
 
 	WidgetProperties[name] = {}
 	local types = Types[name].type
-	print(name)
 
 	local width = 190
 	if types == "button" or types == "spin" then
@@ -468,6 +506,8 @@ for _, name in pairs(Sorted) do
 
 	local height = 30
 	if types == "button" then height = 60 end
+
+	WidgetProperties[name].Type = types
 
 	WidgetProperties[name].Canvas = GuiStaticImage.create(0, 2 + index*30, 250, height-2, pane, false, PropertiesScroll)
 	WidgetProperties[name].Divider = GuiStaticImage.create(0, height-3, 250, 1, pane, false, WidgetProperties[name].Canvas)
@@ -515,7 +555,133 @@ for _, name in pairs(Sorted) do
 	WidgetProperties[name].Divider:setEnabled(false)
 	WidgetProperties[name].Label:setEnabled(false)
 
+	WidgetProperties[name].Canvas:setVisible(false)
+
 	index = index + math.floor(height/30)
 
-	print(types, "::", name)
 end
+
+function selectType(name)
+
+
+	for _, v in pairs(WidgetProperties) do
+		v.Canvas:setVisible(false)
+		v.Canvas:setPosition(0, 0, false)
+	end
+
+	if name and Widgets[name] then
+		
+		local index = 0
+		for _, prop in pairs(Sorted) do
+
+			if Widgets[name].Properties[prop] then
+
+				WidgetProperties[prop].Canvas:setVisible(true)
+
+				WidgetProperties[prop].Canvas:setPosition(0, 2+index*30, false)
+
+				index = index + 1
+				if WidgetProperties[prop].Type == "button" then
+					index = index + 1
+				end
+			end
+		end
+		PropertiesScroll:update()
+	end
+end
+
+
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+
+local CurrentTool = "Select Tool"
+local CurrentParent = nil
+local SelectedItem = nil
+local Objects = {}
+
+WidgetList:addEvent("onClientGUIClick", function()
+
+	local str = WidgetList:getCellText(WidgetList:getSelectedLine(), 1)
+	if str == "Select Tool" then
+		selectType()
+		CurrentTool = str
+	else 
+		CurrentTool = str:sub(8)
+		selectType(CurrentTool)
+	end
+
+end)
+
+function drawObject()
+
+	local id = #Objects+1
+	Objects[id] = {}
+
+	local Parent = CurrentParent
+	if Parent == nil then Parent = EditorFrame end
+
+	local LastArgs = {CurrentTool, false, Parent}
+	if 
+		CurrentTool == "Scroll Pane" or 
+		CurrentTool == "Progress Bar" or 
+		CurrentTool == "Scroll Bar" or 
+		CurrentTool == "Spinner" or
+		CurrentTool == "Tabbed Panel" or
+		CurrentTool == "Loading Bar" or
+		CurrentTool == "Tabbed View"
+	then
+		LastArgs = {false, CurrentParent}
+	end
+
+	if CurrentTool ~= "Loading Bar" then
+		Objects[id].Object = Widgets[CurrentTool].Class.create(0, 0, 0, 0, unpack(LastArgs))
+	else
+		Objects[id].Object = Widgets[CurrentTool].Class.create(0, 0, unpack(LastArgs))
+	end
+	SelectedItem = Objects[id].Object
+	
+end
+
+local Drawing = false
+local CursorPositions = {X=0, Y=0}
+addEventHandler("onClientGUIMouseDown", root, function(_, x, y)
+
+	if source == EditorFrame then
+		if CurrentTool ~= "Select Tool" and CurrentTool ~= "Tool Tip" and CurrentTool ~= "Dialog" then
+
+			drawObject()
+			CursorPositions = {X=x, Y=y}
+
+			Drawing = true
+		end
+	end
+end)
+
+addEventHandler("onClientGUIMouseUp", root, function()
+	Drawing = false
+	CursorPositions = {X=0, Y=0}	
+end)
+
+addEventHandler("onClientCursorMove", root, function(_, _, x, y)
+
+	if Drawing then
+		
+		local width = math.abs(x - CursorPositions.X)
+		local height = math.abs(y - CursorPositions.Y)
+
+		local ax = math.min(x, CursorPositions.X)
+		local ay = math.min(y, CursorPositions.Y)
+
+		SelectedItem:setPosition(ax, ay, false)
+
+		if CurrentTool ~= "Loading Bar" then
+			SelectedItem:setSize(width, height, false)
+		end
+	end
+
+
+end)
+

@@ -689,7 +689,7 @@ function cwSetSize(window, w, h, relative)
 
 	window.Shadows.Central:setSize(w+2, h+2, false)
 	window.Shadows.Vertical:setSize(w, h+4, false)
-	window.Shadows.Horizontal:setSize(w+2, h, false)
+	window.Shadows.Horizontal:setSize(w+4, h, false)
 
 	window.Frame:setSize(w, h, false)
 	window.Top:setSize(w, 22, false)
@@ -737,8 +737,8 @@ function cwSetPosition(window, x, y, rel, replace)
 	end
 
 	if replace then
-		Windows[id].Positions.X = x
-		Windows[id].Positions.Y = y
+		window.Positions.X = x
+		window.Positions.Y = y
 	end
 	return window.Canvas:setPosition(x-2, y-2, false)
 
@@ -5789,10 +5789,14 @@ function CustomLabel.getFrame(self, ...) return clGetFrame(self, ...) end
 CustomDialog = {}
 CustomDialog.__index = CustomDialog
 
+Dialogs = {}
+
 local LabelForGettingSizes = CustomLabel.create(0, 0, 0, 0, "", false)
 function CustomDialog.create(rwidth, text, buttons, window)
 
-	local self = setmetatable({}, CustomDialog)
+	local id = #Dialogs+1
+
+	Dialogs[id] = setmetatable({}, CustomDialog)
 
 	local w, h
 	local maxw = 0
@@ -5885,14 +5889,14 @@ function CustomDialog.create(rwidth, text, buttons, window)
 
 	dialog:addElement(dialog.Label)
 
-	self.Dialog = dialog
+	Dialogs[id].Dialog = dialog
 
 	if window then
 		window:addElement(dialog)
-		window.DialogList[#window.DialogList+1] = self
+		window.DialogList[#window.DialogList+1] = Dialogs[id]
 	end
 
-	return self
+	return Dialogs[id]
 end
 
 function CustomDialog.open(self) 
@@ -6049,9 +6053,11 @@ end
 CustomLoading = {}
 CustomLoading.__index = CustomLoading
 
+Loadings = {}
 function CustomLoading.create(x, y, relative, parent)
 
-	self = setmetatable({}, CustomLoading)
+	local id = #Loadings+1
+	Loadings[id] = setmetatable({}, CustomLoading)
 
 	if relative then
 
@@ -6069,50 +6075,50 @@ function CustomLoading.create(x, y, relative, parent)
 		parent = parent:getFrame()
 	end
 
-	self.Back = GuiStaticImage.create(x, y, 30, 30, pane, false, parent)
-	self.ColorScheme = DefaultColors
-	self.Progress = 0
-	self.Animated = true
-	self.Element = self.Back
+	Loadings[id].Back = GuiStaticImage.create(x, y, 30, 30, pane, false, parent)
+	Loadings[id].ColorScheme = DefaultColors
+	Loadings[id].Progress = 0
+	Loadings[id].Animated = true
+	Loadings[id].Element = Loadings[id].Back
 
 	if oldparent and oldparent.ColorScheme ~= nil then
-		self.ColorScheme = oldparent.ColorScheme
+		Loadings[id].ColorScheme = oldparent.ColorScheme
 	end
 
-	self.Circles = {}
+	Loadings[id].Circles = {}
 
 	local color = "FFAAAAAA"
-	if self.ColorScheme.DarkTheme then
+	if Loadings[id].ColorScheme.DarkTheme then
 		color = "FFEEEEEE"
 	end
 	
 	for i = 0, 330, 30 do	
-		self.Circles[#self.Circles+1] = GuiStaticImage.create(15 + 10*math.cos(math.rad(i)) - 1, 15 + 10*math.sin(math.rad(i)) - 1, 3, 3, Images.Loading, false, self.Back)
-		self.Circles[#self.Circles]:setColor(color)
-		self.Circles[#self.Circles]:setEnabled(false)
+		Loadings[id].Circles[#Loadings[id].Circles+1] = GuiStaticImage.create(15 + 10*math.cos(math.rad(i)) - 1, 15 + 10*math.sin(math.rad(i)) - 1, 3, 3, Images.Loading, false, Loadings[id].Back)
+		Loadings[id].Circles[#Loadings[id].Circles]:setColor(color)
+		Loadings[id].Circles[#Loadings[id].Circles]:setEnabled(false)
 	end
 
 	local angle = 0
 	addEventHandler("onClientRender", root, function()
 
-		if self.Back :getVisible() and self.Animated then
+		if Loadings[id].Back:getVisible() and Loadings[id].Animated then
 			angle = angle+4
 			if angle >= 360 then angle = 0 end
 
-			for i, v in pairs(self.Circles) do
+			for i, v in pairs(Loadings[id].Circles) do
 
 				v:setPosition(15 + 10*math.cos(math.rad( (i-1)*30 - angle )) - 1, 15 + 10*math.sin(math.rad( (i-1)*30 - angle )) - 1, false)
 			end
 		end
 	end)
 
-	self.Back:setColor("0")
+	Loadings[id].Back:setColor("0")
 
 	if comparetypes(oldparent, CustomWindow) or comparetypes(oldparent, CustomScrollPane) then
-		oldparent:addElement(self)
+		oldparent:addElement(Loadings[id])
 	end
 
-	return self
+	return Loadings[id]
 end
 
 function CustomLoading.setProgress(self, percentage)
