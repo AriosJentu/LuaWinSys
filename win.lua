@@ -30,12 +30,6 @@ function fromHEXToRGB(color)
     end
 end
 
-function printmatrix(tab) 
-	for _, v in pairs(tab) do
-		print(unpack(v))
-	end
-end
-
 function proceedColor(main, red, green, dark)
 
 	if not dark then dark = false end
@@ -121,6 +115,7 @@ function proceedColor(main, red, green, dark)
 	local GreenLightColor = string.format("%.2x%.2x%.2x", r, g, b)
 
 	return {
+
 		Main = MainColor,
 		Red = RedColor,
 		Green = GreenColor,
@@ -132,6 +127,7 @@ function proceedColor(main, red, green, dark)
 		GreenLight = GreenLightColor,
 		DarkTheme = dark
 	}
+
 end
 
 RedColorsDark = proceedColor("f94f4f", "ef2d2d", "46c169", true) --Red Theme
@@ -6591,10 +6587,10 @@ function ctvAddLine(tview, height)
 	LineColor = "EEEEEE"
 	if tview.ColorScheme.DarkTheme then LineColor = "444444" end 
 
-	linecol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", LineColor, LineColor, LineColor, LineColor)
+	linecol = "FF"..LineColor
 
-	tview.Lines[id].Canvas:setProperty("ImageColours", linecol)
-	tview.Lines[id].Divider:setProperty("ImageColours", "tl:33000000 tr:33000000 bl:33000000 br:33000000")
+	tview.Lines[id].Canvas:setColor(linecol)
+	tview.Lines[id].Divider:setColor("33000000")
 
 	ctvUpdate(tview)
 			
@@ -6620,9 +6616,6 @@ function ctvRemoveLine(tview, line)
 
 		table.remove(tview.Items, line)
 		table.remove(tview.Lines, line)
-
-		--printmatrix(tview.Items)
-		--print()
 
 		ctvUpdate(tview)
 
@@ -6689,10 +6682,10 @@ function ctvAddColumn(tview, title, width)
 	---------------------------------------------------------------
 	--Properties
 
-	local color = "tl:33000000 tr:33000000 bl:33000000 br:33000000"
-	if id == 1 then color = "tl:0 tr:0 bl:0 br:0" end
+	local color = "33000000"
+	if id == 1 then color = "0" end
 
-	tview.Columns[id].Divider:setProperty("ImageColours", color)
+	tview.Columns[id].Divider:setColor(color)
 	tview.Columns[id].Divider:setEnabled(false)
 
 	tview.Columns[id].Title:setColor("FFFFFF")
@@ -6884,7 +6877,7 @@ function ctvSetLineHeight(tview, line, height)
 
 	else
 
-		local id = 0
+		local id = 1
 		
 		for t_id, tab in pairs(tview.Lines) do
 			if tab == line then
@@ -6917,7 +6910,7 @@ function ctvSetColumnWidth(tview, column, width)
 
 	else
 
-		local id = 0
+		local id = 1
 		
 		for t_col, tab in pairs(tview.Columns) do
 			if tab == column or tab.Title:getText() == column then
@@ -6947,7 +6940,7 @@ function ctvSetColumnTitle(tview, column, title)
 
 	else
 
-		local id = 0
+		local id = 1
 		
 		for t_col, tab in pairs(tview.Columns) do
 			if tab == column or tab.Title:getText() == column then
@@ -7083,7 +7076,7 @@ function ctvGetLineHeight(tview, line)
 
 	else
 
-		local id = 0
+		local id = 1
 		
 		for t_id, tab in pairs(tview.Lines) do
 			if tab == line then
@@ -7109,7 +7102,7 @@ function ctvGetColumnWidth(tview, column)
 
 	else
 
-		local id = 0
+		local id = 1
 		
 		for t_id, tab in pairs(tview.Columns) do
 			if tab == column or tab.Title:getText() == column then
@@ -7135,7 +7128,7 @@ function ctvGetColumnTitle(tview, column)
 
 	else
 
-		local id = 0
+		local id = 1
 		
 		for t_id, tab in pairs(tview.Columns) do
 			if tab == column or tab.Title:getText() == column then
@@ -7210,7 +7203,6 @@ function ctvGetCell(tview, line, column)
 		(line and tonumber(line) and (1 <= line and line <= #tview.Lines))
 	then
 
-		print("HERE")
 		return tview.Lines[line].Elements[column]
 
 	else
