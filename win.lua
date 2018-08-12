@@ -360,6 +360,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].MaxX = nw
 	Windows[id].MaxY = nh
 	Windows[id].SideBlockLocation = "none"
+	Windows[id].SideBlockLength = 0
 
 	--Shadows
 	Windows[id].Shadows = {}
@@ -760,6 +761,7 @@ function cwShowBar(window, location, length)
 	end
 
 	window.SideBlockLocation = location
+	window.SideBlockLength = length
 
 	w, h = cwGetSize(window, false)
 	x, y = 0, 0

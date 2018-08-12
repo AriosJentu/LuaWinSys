@@ -1,0 +1,10 @@
+LabelTool = Tool.create("Label", CustomLabel, "CustomLabel")
+
+LabelTool:addProperty("Text", "edit", "Label", "setText", "getText")
+LabelTool:addProperty("Color", "edit", "EEEEEE", "setColor", "getColor")
+LabelTool:addProperty("Vertical Align", "combo", {Value={["Top"]="top", ["Center"]="center", ["Bottom"]="bottom"}}, "setVerticalAlign")
+LabelTool:addProperty("Horizontal Align", "combo", {Value={["Left"]="left", ["Center"]="center", ["Right"]="right"}}, "setHorizontalAlign")
+LabelTool:addProperty("Schematical Color", "check", false, "setSchematicalColor")
+LabelTool:addProperty("Hoverable", "check", false, "setHoverable")
+LabelTool:addProperty("Font", "combo", {Value=Fonts}, "setFont")
+LabelTool:addProperty("Font Size", "spin", {9, 8, 100}, "setFont")
