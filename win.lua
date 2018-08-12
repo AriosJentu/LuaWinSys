@@ -793,7 +793,14 @@ function cwShowBar(window, location, length)
 	window.AlterTitle:setPosition(-x, -y, false)
 	window.CloseAlter:setPosition(-x, -y, false)
 
+end
 
+function cwSetSideBarLength(window, length)
+	cwShowBar(window, window.SideBlockLocation, length)
+end
+
+function cwSetSideBarLocation(window, location)
+	cwShowBar(window, location, window.SideBlockLength)
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -978,6 +985,8 @@ function CustomWindow.setPosition(self, ...) return cwSetPosition(self, ...) end
 function CustomWindow.setText(self, ...) return cwSetTitle(self, ...) end
 function CustomWindow.setTitle(self, ...) return cwSetTitle(self, ...) end
 function CustomWindow.setMovable(self, ...) return cwSetMovable(self, ...) end
+function CustomWindow.setSideBarLength(self, ...) return cwSetSideBarLength(self, ...) end
+function CustomWindow.setSideBarPosition(self, ...) return cwSetSideBarLocation(self, ...) end
 
 function CustomWindow.bringToFront(self) return cwBringToFront(self) end
 function CustomWindow.moveToBack(self) return cwMoveToBack(self) end
@@ -991,6 +1000,8 @@ function CustomWindow.getPosition(self, ...) return cwGetPosition(self, ...) end
 function CustomWindow.getText(self, ...) return cwGetTitle(self, ...) end
 function CustomWindow.getTitle(self, ...) return cwGetTitle(self, ...) end
 function CustomWindow.getMovable(self, ...) return cwGetMovable(self, ...) end
+function CustomWindow.getSideBarLength(self) return self.SideBlockLength end
+function CustomWindow.getSideBarPosition(self) return self.SideBlockLocation end
 
 function CustomWindow.getFrame(self, ...) return cwGetFrame(self, ...) end
 function CustomWindow.getHeader(self, ...) return cwGetHeader(self, ...) end
@@ -1470,6 +1481,14 @@ function cspIsHorizontalScrolling(spane)
 	return spane.IsHorizontal
 end
 
+function cspIsVerticalInversed(spane)
+	return spane.InversedVertical == -1
+end
+
+function cspIsHorizontalInversed(spane)
+	return spane.InversedHorizontal == -1
+end
+
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event functions
@@ -1555,6 +1574,8 @@ function CustomScrollPane.getScrollSpeed(self, ...) return cspGetScrollSpeed(sel
 function CustomScrollPane.getVerticalScrollPosition(self, ...) return cspGetVerticalScrollPosition(self, ...) end
 function CustomScrollPane.getHorizontalScrollPosition(self, ...) return cspGetHorizontalScrollPosition(self, ...) end
 function CustomScrollPane.isHorizontalScrolling(self, ...) return cspIsHorizontalScrolling(self, ...) end
+function CustomScrollPane.isVerticalScrollInversed(self, ...) return cspIsVerticalInversed(self, ...) end
+function CustomScrollPane.isHorizontalScrollInversed(self, ...) return cspIsHorizontalInversed(self, ...) end
 
 function CustomScrollPane.setColorScheme(self, ...) return cspSetColorScheme(self, ...) end
 function CustomScrollPane.getColorScheme(self, ...) return cspGetColorScheme(self, ...) end
@@ -3506,6 +3527,10 @@ function ctbGetScrollStep(textbox)
 	return textbox.ScrollSpeed
 end
 
+function ctbIsOnSide(textbox)
+	return textbox.IsOnSideBlock
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme Functions
 
@@ -3617,6 +3642,7 @@ function CustomEdit.getColorScheme(self, ...) return ctbGetColorScheme(self, ...
 
 function CustomEdit.addEvent(self, ...) return ctbAddEvent(self, ...) end
 function CustomEdit.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
+function CustomEdit.isOnSide(self, ...) return ctbIsOnSide(self, ...) end
 
 
 CustomMemo = {}
@@ -3654,6 +3680,7 @@ function CustomMemo.getColorScheme(self, ...) return ctbGetColorScheme(self, ...
 
 function CustomMemo.addEvent(self, ...) return ctbAddEvent(self, ...) end
 function CustomMemo.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
+function CustomMemo.isOnSide(self, ...) return ctbIsOnSide(self, ...) end
 
 
 CustomSpinner = {}
@@ -3699,6 +3726,7 @@ function CustomSpinner.getColorScheme(self, ...) return ctbGetColorScheme(self, 
 
 function CustomSpinner.addEvent(self, ...) return ctbAddEvent(self, ...) end
 function CustomSpinner.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
+function CustomSpinner.isOnSide(self, ...) return ctbIsOnSide(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -4650,6 +4678,18 @@ function clbSetEnabled(combo, bool)
 	end
 end
 
+function clbSetItemText(combo, item, text)
+	
+	for i = #combo.List.Items, 1, -1 do
+		local v = combo.List.Items[i]
+		if item == v or item == v.Text then
+			v.Text = text
+			v.Label:setText(text)
+			break
+		end
+	end
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -4701,6 +4741,16 @@ end
 
 function clbGetEnabled(combo)
 	return combo.Canvas:getEnabled()
+end
+
+function clbGetItemText(combo, item)
+	
+	for i = #combo.List.Items, 1, -1 do
+		local v = combo.List.Items[i]
+		if item == v or item == v.Text then
+			return v.Text
+		end
+	end
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -4791,6 +4841,7 @@ function CustomComboBox.setSelectedItem(self, ...) return clbSetSelectedItem(sel
 function CustomComboBox.addItem(self, ...) return clbAddItem(self, ...) end
 function CustomComboBox.removeItem(self, ...) return clbRemoveItem(self, ...) end
 function CustomComboBox.setMaxHeight(self, ...) return clbSetMaxHeight(self, ...) end
+function CustomComboBox.setItemText(self, ...) return clbSetItemText(self, ...) end
 
 function CustomComboBox.bringToFront(self) return clbBringToFront(self) end
 function CustomComboBox.moveToBack(self) return clbMoveToBack(self) end
@@ -4802,6 +4853,7 @@ function CustomComboBox.getVisible(self, ...) return clbGetVisible(self, ...) en
 function CustomComboBox.getEnabled(self, ...) return clbGetEnabled(self, ...) end
 function CustomComboBox.getSelectedItem(self, ...) return clbGetSelectedItem(self, ...) end
 function CustomComboBox.getMaxHeight(self, ...) return clbGetMaxHeight(self, ...) end
+function CustomComboBox.getItemText(self, ...) return clbGetItemText(self, ...) end
 
 function CustomComboBox.setColorScheme(self, ...) return clbSetColorScheme(self, ...) end
 function CustomComboBox.getColorScheme(self, ...) return clbGetColorScheme(self, ...) end
@@ -5133,6 +5185,26 @@ function ctpAddTab(tabpan, text)
 
 end
 
+function ctpRemoveTab(tabpan, tab)
+		
+	for i, v in pairs(tabpan.Tabs) do
+		if v.Text == tab or v.Entrail == tab then
+
+			tabpan.TabScroller:removeElement(v.Canvas)
+			
+			destroyElement(v.Entrail)
+			destroyElement(v.Label)
+			destroyElement(v.Divider)
+			destroyElement(v.Canvas)
+
+			table.remove(tabpan.Tabs, i)
+		end
+	end
+
+	compareTabs(tabpan)
+
+end
+
 function ctpSetTabEnabled(tabpan, tab, bool)
 
 	for _, v in pairs(tabpan.Tabs) do
@@ -5388,7 +5460,6 @@ function CustomTabPanel.setPosition(self, ...) return ctpSetPosition(self, ...) 
 function CustomTabPanel.setSize(self, ...) return ctpSetSize(self, ...) end
 function CustomTabPanel.setVisible(self, ...) return ctpSetVisible(self, ...) end
 function CustomTabPanel.setEnabled(self, ...) return ctpSetEnabled(self, ...) end
-function CustomTabPanel.addTab(self, ...) return ctpAddTab(self, ...) end
 function CustomTabPanel.setTabEnabled(self, ...) return ctpSetTabEnabled(self, ...) end
 function CustomTabPanel.setTabVisible(self, ...) return ctpSetTabVisible(self, ...) end
 function CustomTabPanel.setTabText(self, ...) return ctpSetTabText(self, ...) end
@@ -5415,6 +5486,8 @@ function CustomTabPanel.setColorScheme(self, ...) return ctpSetColorScheme(self,
 function CustomTabPanel.getColorScheme(self, ...) return ctpGetColorScheme(self, ...) end
 
 function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self, ...) end
+function CustomTabPanel.addTab(self, ...) return ctpAddTab(self, ...) end
+function CustomTabPanel.removeTab(self, ...) return ctpRemoveTab(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -5462,6 +5535,10 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 	Labels[id].ColorScheme = DefaultColors
 	Labels[id].IsHoverable = false
 	Labels[id].IsSchematical = false
+	Labels[id].VertAlign = "top"
+	Labels[id].HorzAlign = "left"
+	Labels[id].Font = Fonts.OpenSansRegular
+	Labels[id].FontSize = 9
 
 	if oldparent and oldparent.ColorScheme ~= nil then
 		Labels[id].ColorScheme = oldparent.ColorScheme
@@ -5472,7 +5549,7 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 	TextColor = "444444"
 	if Labels[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
-	Labels[id].Label:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
+	Labels[id].Label:setFont(GuiFont.create(Labels[id].Font, Labels[id].FontSize))
 	Labels[id].Label:setColor(fromHEXToRGB(TextColor))
 
 	addEventHandler("onClientMouseEnter", root, function()
@@ -5614,10 +5691,12 @@ function clSetHoverable(label, bool)
 end
 
 function clSetVerticalAlign(label, align)
+	label.VertAlign = align
 	label.Label:setVerticalAlign(align)
 end
 
 function clSetHorizontalAlign(label, align)
+	label.HorzAlign = align
 	label.Label:setHorizontalAlign(align)
 end
 
@@ -5632,12 +5711,19 @@ end
 
 function clSetFont(label, font, size)
 
-	if (font ~= tostring(font)) then
-		label.Label:setFont(font)
-	else
-		if not size or not tonumber(size) then size = 9 end
-		label.Label:setFont(GuiFont.create(font, size))
-	end
+	if not size or not tonumber(size) then size = label.FontSize end
+	label.Font = font
+	label.FontSize = size
+
+	label.Label:setFont(GuiFont.create(font, size))
+end
+
+function clSetFontSize(label, size)
+
+	if not size or not tonumber(size) then size = 9 end
+	label.FontSize = size
+	
+	label.Label:setFont(GuiFont.create(label.Font, size))
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -5694,6 +5780,30 @@ end
 
 function clGetColor(label)
 	return label.Label:getColor()
+end
+
+function clGetVerticalAlign(label)
+	return label.VertAlign
+end
+
+function clGetHorizontalAlign(label)
+	return label.HorzAlign
+end
+
+function clGetFont(label)
+	return label.Font
+end
+
+function clGetFontSize(label)
+	return label.FontSize
+end
+
+function clIsSchematicalColor(label)
+	return label.IsSchematical
+end
+
+function clIsHoverable(label)
+	return label.IsHoverable
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -5764,6 +5874,7 @@ function CustomLabel.setVerticalAlign(self, ...) return clSetVerticalAlign(self,
 function CustomLabel.setHorizontalAlign(self, ...) return clSetHorizontalAlign(self, ...) end
 function CustomLabel.setAlign(self, ...) return clSetAlign(self, ...) end
 function CustomLabel.setFont(self, ...) return clSetFont(self, ...) end
+function CustomLabel.setFontSize(self, ...) return clSetFontSize(self, ...) end
 
 function CustomLabel.bringToFront(self) return clBringToFront(self) end
 function CustomLabel.moveToBack(self) return clMoveToBack(self) end
@@ -5775,6 +5886,12 @@ function CustomLabel.getRealSize(self, ...) return clGetSize(self, ...) end
 function CustomLabel.getPosition(self, ...) return clGetPosition(self, ...) end
 function CustomLabel.getText(self, ...) return clGetText(self, ...) end
 function CustomLabel.getColor(self, ...) return clGetColor(self, ...) end
+function CustomLabel.getVerticalAlign(self, ...) return clGetVerticalAlign(self, ...) end
+function CustomLabel.getHorizontalAlign(self, ...) return clGetHorizontalAlign(self, ...) end
+function CustomLabel.getFont(self, ...) return clSetFont(self, ...) end
+function CustomLabel.getFontSize(self, ...) return clSetFontSize(self, ...) end
+function CustomLabel.isSchematicalColor(self, ...) return clIsSchematicalColor(self, ...) end
+function CustomLabel.isHoverable(self, ...) return clIsHoverable(self, ...) end
 
 function CustomLabel.setColorScheme(self, ...) return clSetColorScheme(self, ...) end
 function CustomLabel.getColorScheme(self, ...) return clGetColorScheme(self, ...) end

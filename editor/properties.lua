@@ -39,7 +39,7 @@ for _, name in pairs(SortedProperties) do
 		WidgetProperties[name].Combo = CustomComboBox.create(width+2, 1, 245-width, height-6, "Select", false, WidgetProperties[name].Canvas)
 
 		local s = 0
-		for v in pairs(PropertiesTypes[name].vals) do
+		for v in pairs(PropertiesTypes[name].vals.Value) do
 			WidgetProperties[name].Combo:addItem(v)
 			s = s+1
 		end

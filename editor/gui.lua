@@ -48,14 +48,6 @@ WidgetList:setIndentation(2)
 Column = WidgetList:addColumn("Tools and Widgets")
 WidgetList:setColumnWidth(Column, 170)
 
-SelectTool = WidgetList:addLine()
-WidgetList:setSelectedLine(SelectTool)
-WidgetList:setLineHeight(SelectTool, 30)
-
-Cell = WidgetList:getCell(SelectTool, Column)
-WidgetList:setCellText(SelectTool, Column, "Select Tool")
-Cell:setAlign("center", "center")
-
 -------------------------------------------------------
 
 PropertiesList = GuiStaticImage.create(0, 0, 250, 300, pane, false, RightBlock)

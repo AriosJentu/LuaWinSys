@@ -233,11 +233,13 @@ for i = 1, 5 do
 	dtabs[i] = test_tab_d:addTab("Tab "..i)
 end
 
+test_tab:removeTab(tabs[2])
+
 test_tab:setSize(310, 140, false)
-test_tab:setSelectedTab("Tab 2")
+test_tab:setSelectedTab("Tab 5")
 test_tab:setTabEnabled("Tab 3", false)
 test_tab:setTabVisible("Tab 4", false)
-test_tab:setTabsMinLength(200)
+test_tab:setTabsMinLength(100)
 test_tab_d:setTabsMinLength(150)
 test_tab_d:setSelectedTab("Tab 3")
 
@@ -248,10 +250,10 @@ local image2 = GuiStaticImage.create(72, 32, 40, 30, pane, false, tabs[1])
 local image3 = GuiStaticImage.create(114, 64, 50, 40, pane, false, tabs[1])
 local image10 = GuiStaticImage.create(166, 104, 60, 50, pane, false, tabs[1])
 
-local image4 = GuiStaticImage.create(40, 10, 30, 20, pane, false, tabs[2])
-local image5 = GuiStaticImage.create(72, 32, 40, 30, pane, false, tabs[2])
-local image6 = GuiStaticImage.create(114, 64, 50, 40, pane, false, tabs[2])
-local image11 = GuiStaticImage.create(166, 104, 60, 50, pane, false, tabs[2])
+local image4 = GuiStaticImage.create(40, 10, 30, 20, pane, false, tabs[3])
+local image5 = GuiStaticImage.create(72, 32, 40, 30, pane, false, tabs[3])
+local image6 = GuiStaticImage.create(114, 64, 50, 40, pane, false, tabs[3])
+local image11 = GuiStaticImage.create(166, 104, 60, 50, pane, false, tabs[3])
 
 local image7 = GuiStaticImage.create(40, 10, 30, 20, pane, false, tabs[5])
 local image8 = GuiStaticImage.create(72, 32, 40, 30, pane, false, tabs[5])

@@ -7,3 +7,4 @@ SpinnerBoxTool:addProperty("Read Only", "check", false, "setReadOnly", "getReadO
 SpinnerBoxTool:addProperty("Minimal Value", "spin", {0, -10000, 10000}, "setMinimal", "getMinimal")
 SpinnerBoxTool:addProperty("Maximal Value", "spin", {100, -10000, 10000}, "setMaximal", "getMaximal")
 SpinnerBoxTool:addProperty("Step", "spin", {1, 0.01, 1000}, "setStepSize", "getStepSize")
+SpinnerBoxTool:addProperty("Is On Side Bar", "check", false, "putOnSide", "isOnSide")
