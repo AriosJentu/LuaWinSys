@@ -2,7 +2,7 @@ function CustomTabPanel.draw(tab) return CustomTabPanel.create(tab.X, tab.Y, tab
 
 TabPanelTool = Tool.create("Tabbed Panel", CustomTabPanel, "CustomTabPanel")
 
-TabPanelTool:addProperty("Minimal Tabs Length", "spin", {100, 50, Width/2}, "setTabsMinLength", "getTabsMinLength")
+TabPanelTool:addProperty("Minimal Tabs Length", "spin", {100, 50, Width/2, 1}, "setTabsMinLength", "getTabsMinLength")
 TabPanelTool:addProperty("Tabs", "button", {"Add Tab", "Remove Tab"}, "addTab", "removeTab")
 TabPanelTool:addProperty("Tab Variable", "edit", "")
 TabPanelTool:addProperty("Tab Text", "edit", "Tab", "setTabText", "getTabText")

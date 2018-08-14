@@ -33,6 +33,7 @@ for _, name in pairs(SortedProperties) do
 		
 		WidgetProperties[name].Spin:setMinimal(PropertiesTypes[name].vals[2])
 		WidgetProperties[name].Spin:setMaximal(PropertiesTypes[name].vals[3])
+		WidgetProperties[name].Spin:setStepSize(PropertiesTypes[name].vals[4])
 
 	elseif types == "combo" then
 

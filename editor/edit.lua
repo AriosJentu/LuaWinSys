@@ -4,6 +4,6 @@ EditBoxTool = Tool.create("Edit Box", CustomEdit, "CustomEdit")
 
 EditBoxTool:addProperty("Text", "edit", "Edit Box", "setText", "getText")
 EditBoxTool:addProperty("Read Only", "check", false, "setReadOnly", "getReadOnly")
-EditBoxTool:addProperty("Maximal Length", "spin", {144, 1, 10000}, "setMaxLength", "getMaxLength")
+EditBoxTool:addProperty("Maximal Length", "spin", {144, 1, 10000, 1}, "setMaxLength", "getMaxLength")
 EditBoxTool:addProperty("Masked", "check", false, "setMasked", "getMasked")
 EditBoxTool:addProperty("Is On Side Bar", "check", false, "putOnSide", "isOnSide")

@@ -2,5 +2,5 @@ function CustomProgressBar.draw(tab) return CustomProgressBar.create(tab.X, tab.
 
 ProgressBarTool = Tool.create("Progress Bar", CustomProgressBar, "CustomProgressBar")
 
-ProgressBarTool:addProperty("Progress", "spin", {0, 0, 100}, "setProgress", "getProgress")
+ProgressBarTool:addProperty("Progress", "spin", {0, 0, 100, 1}, "setProgress", "getProgress")
 ProgressBarTool:removeProperty("Enabled")

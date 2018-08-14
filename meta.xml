@@ -9,6 +9,7 @@
 	<script src="editor/utilities.lua" type="shared"/>
 	<script src="editor/gui.lua" type="client"/>
 	<script src="editor/tools.lua" type="client"/>
+	<script src="editor/objects.lua" type="client"/>
 
 	<script src="editor/window.lua" type="client"/>
 	<script src="editor/spane.lua" type="client"/>
@@ -28,6 +29,7 @@
 	<script src="editor/loading.lua" type="client"/>
 
 	<script src="editor/properties.lua" type="client"/>
+	<script src="editor/draw.lua" type="client"/>
 
 	<file src="images/pane.png"/>
 	<file src="images/cross.png"/>

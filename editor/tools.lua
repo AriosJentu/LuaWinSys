@@ -84,10 +84,14 @@ function Tool.create(tool, class, classname)
 	Cell:setAlign("center", "center")
 
 	WidgetList:addEvent("onClientGUIClick", function()
+
 		local toolname = WidgetList:getCellText(WidgetList:getSelectedLine(), 1)
+
 		if toolname == Tool[id].Tool or toolname == "Create "..Tool[id].Tool then
+			
 			CurrentTool = Tool[id]
 			Tool[id]:showProperties()
+
 		end
 	end)
 
@@ -145,6 +149,14 @@ function Tool.showProperties(self)
 
 		PropertiesScroll:update()
 
+	end
+end
+
+function Tool.getFromName(name)
+	for _, v in pairs(Tool) do
+		if v.Tool == name then
+			return v
+		end
 	end
 end
 

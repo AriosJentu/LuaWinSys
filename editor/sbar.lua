@@ -2,6 +2,6 @@ function CustomScrollBar.draw(tab) return CustomScrollBar.create(tab.X, tab.Y, t
 
 ScrollBarTool = Tool.create("Scroll Bar", CustomScrollBar, "CustomScrollBar")
 
-ScrollBarTool:addProperty("Scroller Length", "spin", {5, 5, 100}, "setScrollLength", "getScrollLength")
-ScrollBarTool:addProperty("Scroller Speed", "spin", {2, 2, 30}, "setScrollSpeed", "getScrollSpeed")
-ScrollBarTool:addProperty("Progress", "spin", {0, 0, 100}, "setScrollPosition", "getScrollPosition")
+ScrollBarTool:addProperty("Scroller Length", "spin", {5, 5, 100, 1}, "setScrollLength", "getScrollLength")
+ScrollBarTool:addProperty("Scroller Speed", "spin", {2, 2, 30, 1}, "setScrollSpeed", "getScrollSpeed")
+ScrollBarTool:addProperty("Progress", "spin", {0, 0, 100, 1}, "setScrollPosition", "getScrollPosition")

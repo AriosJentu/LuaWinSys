@@ -1,3 +1,5 @@
+function CustomLabel.draw(tab) return CustomLabel.create(tab.X, tab.Y, tab.W, tab.H, tab.Text, tab.Rel, tab.Parent) end
+
 LabelTool = Tool.create("Label", CustomLabel, "CustomLabel")
 
 LabelTool:addProperty("Text", "edit", "Label", "setText", "getText")
@@ -7,4 +9,4 @@ LabelTool:addProperty("Horizontal Align", "combo", {Value={["Left"]="left", ["Ce
 LabelTool:addProperty("Schematical Color", "check", false, "setSchematicalColor", "isSchematicalColor")
 LabelTool:addProperty("Hoverable", "check", false, "setHoverable", "isHoverable")
 LabelTool:addProperty("Font", "combo", {Value=Fonts}, "setFont", "getFont")
-LabelTool:addProperty("Font Size", "spin", {9, 8, 100}, "setFontSize", "getFontSize")
+LabelTool:addProperty("Font Size", "spin", {9, 8, 100, 1}, "setFontSize", "getFontSize")

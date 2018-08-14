@@ -4,6 +4,14 @@ function comparetypes(object, metatable)
 	return getmetatable(object) == metatable
 end
 
+function multiplecompare(object, types)
+	local bool = false
+	for _, v in pairs(types) do
+		bool = bool or comparetypes(object, v)
+	end
+	return bool
+end
+
 function string:split(sep)
 
 	local tab = {}
@@ -253,18 +261,43 @@ BackForMouse:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 BackForMouse:setVisible(false)
 
 --------------------------------------------------------------------------------------------------------------------
+---Comparators
+
+function compareAppend(object, ...)
+
+	local args = {...}
+	local par = args[#args]
+	if multiplecompare(par, {CustomWindow, CustomScrollPane}) then
+		par:addElement(object)
+	end
+end
+
+function compareDefaults(parent)
+	return multiplecompare(parent, {
+		CustomWindow, 
+		CustomScrollPane, 
+		CustomButton, 
+		CustomLabel, 
+		CustomProgressBar, 
+		CustomComboBox, 
+		CustomCheckBox, 
+		CustomTabPanel
+	})
+end
+
+--------------------------------------------------------------------------------------------------------------------
 
 local createImage = GuiStaticImage.create
 GuiStaticImage.create = function(x, y, w, h, image, rel, par)
 	
 	local oldpar = par
-	if comparetypes(par, CustomWindow) or comparetypes(par, CustomScrollPane) or comparetypes(par, CustomLabel) then
+	if compareDefaults(par) then
 		par = par:getFrame()
 	end
 
 	local obj = createImage(x, y, w, h, image, rel, par)
 
-	if comparetypes(oldpar, CustomScrollPane) then
+	if multiplecompare(oldpar, {CustomWindow, CustomScrollPane}) then
 		oldpar:addElement(obj)
 	end
 
@@ -274,21 +307,6 @@ end
 
 function GuiStaticImage.setColor(self, color)
 	self:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", color, color, color, color))
-end
-
---------------------------------------------------------------------------------------------------------------------
----Comparators
-
-function compareAppend(object, ...)
-
-	local args = {...}
-	if comparetypes(args[#args], CustomWindow) or comparetypes(args[#args], CustomScrollPane) then
-		args[#args]:addElement(object)
-	end
-end
-
-function compareDefaults(parent)
-	return comparetypes(parent, CustomWindow) or comparetypes(parent, CustomScrollPane)
 end
 
 function destroyGUIFromTable(tab)
@@ -928,7 +946,9 @@ function cwSetColorScheme(window, scheme)
 
 	for _, v in ipairs(window.SchemeElements) do
 
-		v:setColorScheme(scheme)
+		if v.ColorScheme then
+			v:setColorScheme(scheme)
+		end
 
 	end
 
@@ -942,8 +962,9 @@ function cwAddSchemeElement(window, element)
 
 	cnt = #window.SchemeElements
 	window.SchemeElements[cnt+1] = element
-	element:setColorScheme(window.ColorScheme)
-
+	if element.ColorScheme then
+		element:setColorScheme(window.ColorScheme)
+	end
 end
 
 function cwAddSchemeElements(window, elements)
@@ -1960,6 +1981,10 @@ function cbGetVisible(button)
 	return button.Canvas:getVisible()
 end
 
+function cbGetImage(button)
+	return button.ImageLocation
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme editor
 
@@ -1974,6 +1999,10 @@ end
 
 function cbGetColorScheme(button)
 	return button.ColorScheme
+end
+
+function cbGetFrame(button)
+	return button.Main
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -2017,11 +2046,13 @@ function CustomButton.getSize(self, ...) return cbGetSize(self, ...) end
 function CustomButton.getRealSize(self, ...) return cbGetRealSize(self, ...) end
 function CustomButton.getPosition(self, ...) return cbGetPosition(self, ...) end
 function CustomButton.getText(self, ...) return cbGetText(self, ...) end
+function CustomButton.getImage(self, ...) return cbGetImage(self, ...) end
 
 function CustomButton.setColorScheme(self, ...) return cbSetColorScheme(self, ...) end
 function CustomButton.getColorScheme(self, ...) return cbGetColorScheme(self, ...) end
 
 function CustomButton.addEvent(self, ...) return cbAddEvent(self, ...) end
+function CustomButton.getFrame(self, ...) return cbGetFrame(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -2273,6 +2304,10 @@ function cpbGetVisible(bar)
 	return bar.Canvas:getVisible()
 end
 
+function cpbGetFrame(bar)
+	return bar.Main
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme Functions
 
@@ -2340,6 +2375,7 @@ function CustomProgressBar.setColorScheme(self, ...) return cpbSetColorScheme(se
 function CustomProgressBar.getColorScheme(self, ...) return cpbGetColorScheme(self, ...) end
 
 function CustomProgressBar.addEvent(self, ...) return cpbAddEvent(self, ...) end
+function CustomProgressBar.getFrame(self, ...) return cpbGetFrame(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -3439,8 +3475,7 @@ function ctbSetMaximal(textbox, maximal)
 end
 
 function ctbSetScrollStep(textbox, stepsize)
-
-	if stepsize <= 0 then
+	if not stepsize or stepsize <= 0 then
 		stepsize = 1
 	end
 	textbox.ScrollSpeed = stepsize
@@ -4162,6 +4197,10 @@ function ccbGetChecked(checkbox)
 	return checkbox.State
 end
 
+function ccbGetFrame(checkbox)
+	return checkbox.Label
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme function
 
@@ -4225,6 +4264,7 @@ function CustomCheckBox.setColorScheme(self, ...) return ccbSetColorScheme(self,
 function CustomCheckBox.getColorScheme(self, ...) return ccbGetColorScheme(self, ...) end
 
 function CustomCheckBox.addEvent(self, ...) return ccbAddEvent(self, ...) end
+function CustomCheckBox.getFrame(self, ...) return ccbGetFrame(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -4575,6 +4615,14 @@ function clbRemoveItem(combo, item)
 	combo.Entrail:update()
 end
 
+function clbClear(combo)
+	for _, v in pairs(combo.List.Items) do
+		clbRemoveItem(combo, v)
+	end
+end
+
+--------------------------------------------------------------------------------------------------
+
 function clbSetSelectedItem(combo, item)
 
 	local visited = false
@@ -4727,7 +4775,7 @@ function clbGetSize(combo, rel)
 	if rel then
 		return combo.Canvas:getSize(true)
 	else
-		return combo.Menu:getSize(false)
+		return combo.Main:getSize(false)
 	end
 end
 
@@ -4751,6 +4799,21 @@ function clbGetItemText(combo, item)
 			return v.Text
 		end
 	end
+end
+
+function clbGetItemsCount(combo)
+	return #combo.List.Items
+end
+
+function clbGetItems(combo)
+
+	local items = {}
+	
+	for _, v in pairs(combo.List.Items) do
+		items[#items+1] = v.Text
+	end
+
+	return items
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -4798,6 +4861,10 @@ function clbGetColorScheme(combo)
 	return combo.ColorScheme
 end
 
+function clbGetFrame(combo)
+	return combo.Main
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event Functions
 
@@ -4838,15 +4905,13 @@ function CustomComboBox.setSize(self, ...) return clbSetSize(self, ...) end
 function CustomComboBox.setVisible(self, ...) return clbSetVisible(self, ...) end
 function CustomComboBox.setEnabled(self, ...) return clbSetEnabled(self, ...) end
 function CustomComboBox.setSelectedItem(self, ...) return clbSetSelectedItem(self, ...) end
-function CustomComboBox.addItem(self, ...) return clbAddItem(self, ...) end
-function CustomComboBox.removeItem(self, ...) return clbRemoveItem(self, ...) end
 function CustomComboBox.setMaxHeight(self, ...) return clbSetMaxHeight(self, ...) end
 function CustomComboBox.setItemText(self, ...) return clbSetItemText(self, ...) end
 
 function CustomComboBox.bringToFront(self) return clbBringToFront(self) end
 function CustomComboBox.moveToBack(self) return clbMoveToBack(self) end
 
-function CustomComboBox.getPosition(self, ...) return clbGetPosition(self.CoboBox, ...) end
+function CustomComboBox.getPosition(self, ...) return clbGetPosition(self, ...) end
 function CustomComboBox.getSize(self, ...) return clbGetSize(self, ...) end
 function CustomComboBox.getRealSize(self, ...) return clbGetRealSize(self, ...) end
 function CustomComboBox.getVisible(self, ...) return clbGetVisible(self, ...) end
@@ -4854,11 +4919,18 @@ function CustomComboBox.getEnabled(self, ...) return clbGetEnabled(self, ...) en
 function CustomComboBox.getSelectedItem(self, ...) return clbGetSelectedItem(self, ...) end
 function CustomComboBox.getMaxHeight(self, ...) return clbGetMaxHeight(self, ...) end
 function CustomComboBox.getItemText(self, ...) return clbGetItemText(self, ...) end
+function CustomComboBox.getItemsCount(self, ...) return clbGetItemsCount(self, ...) end
+function CustomComboBox.getItems(self, ...) return clbGetItems(self, ...) end
 
 function CustomComboBox.setColorScheme(self, ...) return clbSetColorScheme(self, ...) end
 function CustomComboBox.getColorScheme(self, ...) return clbGetColorScheme(self, ...) end
 
 function CustomComboBox.addEvent(self, ...) return clbAddEvent(self, ...) end
+function CustomComboBox.getFrame(self, ...) return clbGetFrame(self, ...) end
+
+function CustomComboBox.addItem(self, ...) return clbAddItem(self, ...) end
+function CustomComboBox.removeItem(self, ...) return clbRemoveItem(self, ...) end
+function CustomComboBox.clear(self, ...) return clbClear(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -5367,7 +5439,7 @@ function ctpGetSize(tabpan, rel)
 	if rel then
 		return tabpan.Canvas:getSize(true)
 	else
-		return tabpan.Menu:getSize(false)
+		return tabpan.Main:getSize(false)
 	end
 end
 
@@ -5380,7 +5452,11 @@ function ctpGetTabsMinLength(tabpan)
 end
 
 function ctpGetSelectedTab(tabpan)
-	return tabpan.CurrentTab.Entrail
+	if tabpan.CurrentTab then
+		return tabpan.CurrentTab.Entrail
+	else
+		return nil
+	end
 end
 
 function ctpGetTabFromText(tabpan, text)
@@ -5486,6 +5562,8 @@ function CustomTabPanel.setColorScheme(self, ...) return ctpSetColorScheme(self,
 function CustomTabPanel.getColorScheme(self, ...) return ctpGetColorScheme(self, ...) end
 
 function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self, ...) end
+function CustomTabPanel.getFrame(self, ...) return ctpGetSelectedTab(self, ...) end
+
 function CustomTabPanel.addTab(self, ...) return ctpAddTab(self, ...) end
 function CustomTabPanel.removeTab(self, ...) return ctpRemoveTab(self, ...) end
 
@@ -5806,6 +5884,10 @@ function clIsHoverable(label)
 	return label.IsHoverable
 end
 
+function clGetFrame(label)
+	return label.Label
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Theme editor
 
@@ -5842,10 +5924,6 @@ function clAddEvent(label, event, func)
 			func(...)
 		end
 	end)
-end
-
-function clGetFrame(label)
-	return label.Label
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -6054,9 +6132,13 @@ end
 CustomTooltip = {}
 CustomTooltip.__index = CustomTooltip
 
+Tooltips = {}
+
 function CustomTooltip.create(text, element, timetoshow)
 
-	local self = setmetatable({}, CustomTooltip)
+	local id = #Tooltips+1
+
+	Tooltips[id] = setmetatable({}, CustomTooltip)
 	if not timetoshow or not tonumber(timetoshow) or timetoshow < 0 then
 		timetoshow = 1
 	end
@@ -6070,6 +6152,8 @@ function CustomTooltip.create(text, element, timetoshow)
 	end
 
 	local hght = (guiLabelGetFontHeight(LabelForGettingSizes.Label)+2)*(#objects)
+
+	Tooltips[id].ShowTime = timetoshow
 
 	wdth = wdth+4
 	hght = hght+4
@@ -6114,10 +6198,10 @@ function CustomTooltip.create(text, element, timetoshow)
 		isEntered = true
 		back:setPosition(ax+1, ay-hght-6, false)
 		
-		if timetoshow < 5/100 then
+		if Tooltips[id].ShowTime < 5/100 then
 			show()
 		else 
-			tooltiptimer = setTimer(show, timetoshow*1000, 1)
+			tooltiptimer = setTimer(show, Tooltips[id].ShowTime*1000, 1)
 		end
 
 	end)
@@ -6161,6 +6245,16 @@ function CustomTooltip.create(text, element, timetoshow)
 		end
 
 	end)
+
+	return Tooltips[id]
+end
+
+function CustomTooltip.setShowTime(self, time)
+	self.ShowTime = time
+end
+
+function CustomTooltip.getShowTime(self)
+	return self.ShowTime
 end
 
 --------------------------------------------------------------------------------------------------------------------
