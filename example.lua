@@ -25,7 +25,9 @@ themes = {
 demo_window = CustomWindow.create(100, 100, 750, 580, "Widgets List", false)
 demo_window:setVisible(false)
 demo_window:setCloseEnabled(true)
-demo_window:showBar("left", 165)
+--demo_window:showBar("left", 165)
+demo_window:setSideBarLength(165)
+demo_window:setSideBarPosition("left")
 --bindKey("b", "up", function() demo_window:open() end)
 
 
