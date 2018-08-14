@@ -980,7 +980,7 @@ end
 
 function cwAddEvent(window, event, func)
 	addEventHandler(event, root, function(...)
-		if source == window.Frame or source == window.Canvas then
+		if source == window.Frame or source == window.Canvas or source == window.Top or source == window.Dialog then
 			func(...)
 		end
 	end)
@@ -6793,7 +6793,7 @@ function ctvAddLine(tview, height)
 
 		tview.Items[id][i] = ""
 
-		tview.Lines[id].Elements[i] = CustomLabel.create(x, 0, v.Width-5, height, "Sas", false, tview.Lines[id].Canvas)
+		tview.Lines[id].Elements[i] = CustomLabel.create(x, 0, v.Width-5, height, "", false, tview.Lines[id].Canvas)
 		tview.Lines[id].Elements[i]:setVerticalAlign("center")
 		tview.Lines[id].Elements[i]:setEnabled(false)
 
@@ -6826,12 +6826,13 @@ function ctvRemoveLine(tview, line)
 
 		tview.Containing:removeElement(tview.Lines[line].Canvas)
 
+		for i, v in pairs(tview.Lines[line].Elements) do
+			destroyElement(v.Label)
+			table.remove(tview.Lines[line].Elements, i)
+		end
+
 		destroyElement(tview.Lines[line].Divider)
 		destroyElement(tview.Lines[line].Canvas)
-
-		for _, v in pairs(tview.Lines[line].Elements) do
-			destroyElement(v)
-		end
 
 		table.remove(tview.Items, line)
 		table.remove(tview.Lines, line)
@@ -6851,8 +6852,14 @@ function ctvRemoveLine(tview, line)
 		ctvRemoveLine(tview, id)
 
 	end
-
 end
+
+function ctvClearLines(tview)
+	for line = #tview.Lines, 1, -1 do
+		ctvRemoveLine(tview, line)
+	end
+end
+
 
 function ctvAddColumn(tview, title, width)
 
@@ -7508,6 +7515,7 @@ end
 
 function CustomTableView.addLine(self, ...) return ctvAddLine(self, ...) end
 function CustomTableView.removeLine(self, ...) return ctvRemoveLine(self, ...) end
+function CustomTableView.clearLines(self, ...) return ctvClearLines(self, ...) end
 function CustomTableView.addColumn(self, ...) return ctvAddColumn(self, ...) end
 function CustomTableView.removeColumn(self, ...) return ctvRemoveColumn(self, ...) end
 

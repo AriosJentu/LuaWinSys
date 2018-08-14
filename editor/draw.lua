@@ -36,6 +36,8 @@ addEventHandler("onClientGUIMouseDown", root, function(_, x, y)
 			CurrentObject:updateSizes("Width", 0)
 			CurrentObject:updateSizes("Height", 0)
 
+			CurrentObject:updateProperties()
+
 			Drawing = true
 		end
 
@@ -62,6 +64,8 @@ addEventHandler("onClientCursorMove", root, function(_, _, x, y)
 		CurrentObject:updatePositions("Position Y", ay)
 		CurrentObject:updateSizes("Width", width)
 		CurrentObject:updateSizes("Height", height)
+
+		CurrentObject:updateProperties()
 	end
 
 

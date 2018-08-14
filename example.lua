@@ -223,6 +223,7 @@ test_combo_s:setMaxHeight(200)
 test_combo_s:setSize(150, 70, false)
 
 test_combo_s:removeItem("Test5")
+test_combo_s:setItemText("Test6", "Example")
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Tab panels
@@ -349,6 +350,7 @@ test_grid:setCellText(test_line, cleared_column, "Cell")
 test_grid:setCellText(1, 1, "First")
 test_grid:setCellText(test_grid:getLinesCount(), scrolled_column, "Last")
 
+test_grid:removeLine(1)
 
 ---------------------------------------
 
