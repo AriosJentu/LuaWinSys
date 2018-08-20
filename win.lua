@@ -267,7 +267,7 @@ function compareAppend(object, ...)
 
 	local args = {...}
 	local par = args[#args]
-	if multiplecompare(par, {CustomWindow, CustomScrollPane}) then
+	if multiplecompare(par, {CustomWindow, CustomScrollPane, CustomLabel}) then
 		par:addElement(object)
 	end
 end
@@ -297,7 +297,7 @@ GuiStaticImage.create = function(x, y, w, h, image, rel, par)
 
 	local obj = createImage(x, y, w, h, image, rel, par)
 
-	if multiplecompare(oldpar, {CustomWindow, CustomScrollPane}) then
+	if multiplecompare(oldpar, {CustomWindow, CustomScrollPane, CustomLabel}) then
 		oldpar:addElement(obj)
 	end
 
@@ -962,6 +962,7 @@ function cwAddSchemeElement(window, element)
 
 	cnt = #window.SchemeElements
 	window.SchemeElements[cnt+1] = element
+
 	if element.ColorScheme then
 		element:setColorScheme(window.ColorScheme)
 	end
@@ -1671,7 +1672,7 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	Buttons[id].Main = GuiStaticImage.create(1, 1, w, h, pane, false, Buttons[id].Canvas)
 	Buttons[id].Image = GuiStaticImage.create(0, 0, 1, 1, pane, false, Buttons[id].Main)
 	Buttons[id].ImageLocation = nil
-	Buttons[id].Text = GuiLabel.create(0, 0, 1, 1, text or "", false, Buttons[id].Main)
+	Buttons[id].Label = CustomLabel.create(0, 0, 1, 1, text or "", false, Buttons[id].Main)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Properties
@@ -1693,19 +1694,19 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	Buttons[id].Vertical:setEnabled(false)
 	Buttons[id].Horizontal:setEnabled(false)
 	Buttons[id].Image:setEnabled(false)
-	Buttons[id].Text:setEnabled(false)
+	Buttons[id].Label:setEnabled(false)
 
 	Buttons[id].Image:setVisible(false)
-	Buttons[id].Text:setVisible(text and text ~= "")
+	Buttons[id].Label:setVisible(text and text ~= "")
 
-	Buttons[id].Text:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
-	Buttons[id].Text:setColor(fromHEXToRGB(TextColor))
+	Buttons[id].Label:setFont(Fonts.OpenSansRegular, 9)
+	Buttons[id].Label:setColor(fromHEXToRGB(TextColor))
 
 	if text and text ~= "" then
-		Buttons[id].Text:setPosition(0, 0, false)
-		Buttons[id].Text:setSize(w, h-3, false)
-		Buttons[id].Text:setHorizontalAlign("center")
-		Buttons[id].Text:setVerticalAlign("center")
+		Buttons[id].Label:setPosition(0, 0, false)
+		Buttons[id].Label:setSize(w, h-3, false)
+		Buttons[id].Label:setHorizontalAlign("center")
+		Buttons[id].Label:setVerticalAlign("center")
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -1715,13 +1716,13 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	addEventHandler("onClientMouseEnter", root, function()
 		if source == Buttons[id].Main then
 			--source:setProperty("ImageColours", "tl:FFEEEEEE tr:FFEEEEEE bl:FFDDDDDD br:FFDDDDDD")
-			--Buttons[id].Text:setColor(fromHEXToRGB(Buttons[id].ColorScheme.Main))
+			--Buttons[id].Label:setColor(fromHEXToRGB(Buttons[id].ColorScheme.Main))
 			
 			source:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.Main, Buttons[id].ColorScheme.SubMain, Buttons[id].ColorScheme.SubMain))
 			
 			Buttons[id].Vertical:setColor(Buttons[id].ColorScheme.Main)
 			Buttons[id].Horizontal:setColor(Buttons[id].ColorScheme.Main)
-			Buttons[id].Text:setColor(fromHEXToRGB("FFFFFF"))
+			Buttons[id].Label:setColor(fromHEXToRGB("FFFFFF"))
 		end
 	end)
 
@@ -1739,7 +1740,7 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 			btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
 			fbtcol = "FF"..BackCol
 
-			Buttons[id].Text:setColor(fromHEXToRGB(TextColor))
+			Buttons[id].Label:setColor(fromHEXToRGB(TextColor))
 			Buttons[id].Main:setProperty("ImageColours", btncol)
 			Buttons[id].Vertical:setColor(fbtcol)
 			Buttons[id].Horizontal:setColor(fbtcol)
@@ -1753,7 +1754,7 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 		if source == Buttons[id].Main then
 
 			source:setColor("FF"..Buttons[id].ColorScheme.SubMain)
-			Buttons[id].Text:setColor(fromHEXToRGB("EEEEEE"))
+			Buttons[id].Label:setColor(fromHEXToRGB("EEEEEE"))
 
 			Buttons[id].Vertical:setColor("FF"..Buttons[id].ColorScheme.DarkMain)
 			Buttons[id].Horizontal:setColor("FF"..Buttons[id].ColorScheme.DarkMain)
@@ -1794,9 +1795,9 @@ function cbSetImage(button, image)
 
 	if image == nil then
 
-		button.Text:setPosition(0, 0, false)
-		button.Text:setSize(w, h-3, false)
-		button.Text:setHorizontalAlign("center")
+		button.Label:setPosition(0, 0, false)
+		button.Label:setSize(w, h-3, false)
+		button.Label:setHorizontalAlign("center")
 		button.Image:setVisible(false)
 		button.ImageLocation = nil
 
@@ -1810,14 +1811,14 @@ function cbSetImage(button, image)
 
 		local x, y = math.floor(w/2-img_w/2), math.floor(h/2-img_h/2)
 		
-		if button.Text:getText() ~= "" then
+		if button.Label:getText() ~= "" then
 
 			x = math.floor(h/2-img_w/2)
 
-			button.Text:setPosition(x+img_w+2, 0, false)
+			button.Label:setPosition(x+img_w+2, 0, false)
 			local ax = x+img_w
-			button.Text:setSize(w-ax > 0 and w-ax or 10, h-3, false)
-			button.Text:setHorizontalAlign("left")
+			button.Label:setSize(w-ax > 0 and w-ax or 10, h-3, false)
+			button.Label:setHorizontalAlign("left")
 		end
 
 		button.Image:setPosition(x, y, false)
@@ -1828,8 +1829,8 @@ end
 
 function cbSetText(button, text)
 
-	button.Text:setText(text or "")
-	button.Text:setVisible(text and text ~= "")
+	button.Label:setText(text or "")
+	button.Label:setVisible(text and text ~= "")
 	cbSetImage(button, button.ImageLocation)
 
 end
@@ -1882,7 +1883,7 @@ function cbSetEnabled(button, bool)
 
 	if not bool then
 
-		button.Text:setColor(fromHEXToRGB("888888"))
+		button.Label:setColor(fromHEXToRGB("888888"))
 		button.Main:setColor("AA"..button.ColorScheme.DarkMain)
 		button.Vertical:setColor("AA"..button.ColorScheme.DarkMain)
 		button.Horizontal:setColor("AA"..button.ColorScheme.DarkMain)
@@ -1898,7 +1899,7 @@ function cbSetEnabled(button, bool)
 		btncol = string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", TopCol, TopCol, BotCol, BotCol)
 		fbtcol = "FF"..BackCol
 
-		button.Text:setColor(fromHEXToRGB(TextColor))
+		button.Label:setColor(fromHEXToRGB(TextColor))
 		button.Main:setProperty("ImageColours", btncol)
 		button.Vertical:setColor(fbtcol)
 		button.Horizontal:setColor(fbtcol)
@@ -1924,7 +1925,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
 function cbGetText(button)
-	return button.Text:getText()
+	return button.Label:getText()
 end
 
 function cbGetPosition(button, rel)
@@ -2986,6 +2987,8 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	EditBoxes[id] = {}
 	EditBoxes[id].ColorScheme = DefaultColors
 	EditBoxes[id].IsOnSideBlock = false
+	EditBoxes[id].ColorSide = false
+
 	EditBoxes[id].Canvas = GuiStaticImage.create(x, y, w, h, pane, false, parent)
 
 	if oldparent and oldparent.ColorScheme ~= nil then
@@ -3500,6 +3503,23 @@ function ctbPutOnSide(textbox, bool)
 	end
 end
 
+function ctbSetSidesColor(textbox, color)
+
+	textbox.ColorSide = tostring(color)
+
+	if textbox.ColorSide:len() ~= 6 or tonumber(textbox.ColorSide, 16) == nil then
+		textbox.ColorSide = false
+	end
+
+	if textbox.ColorSide ~= false then
+		for _, v in pairs(textbox.Sides) do
+			
+			v:setColor(textbox.ColorSide)
+			v:setEnabled(false)
+		end
+	end
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -3564,6 +3584,10 @@ end
 
 function ctbIsOnSide(textbox)
 	return textbox.IsOnSideBlock
+end
+
+function ctbGetSidesColor(textbox)
+	return textbox.ColorSide
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -3657,6 +3681,7 @@ function CustomEdit.setMaxLength(self, ...) return ctbSetMaxLength(self, ...) en
 function CustomEdit.setText(self, ...) return ctbSetText(self, ...) end
 function CustomEdit.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
 function CustomEdit.setMasked(self, ...) return ctbSetMasked(self, ...) end
+function CustomEdit.setSidesColor(self, ...) return ctbSetSidesColor(self, ...) end
 
 function CustomEdit.bringToFront(self) return ctbBringToFront(self) end
 function CustomEdit.moveToBack(self) return ctbMoveToBack(self) end
@@ -3671,6 +3696,7 @@ function CustomEdit.getMaxLength(self, ...) return ctbGetMaxLength(self, ...) en
 function CustomEdit.getText(self, ...) return ctbGetText(self, ...) end
 function CustomEdit.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
 function CustomEdit.getMasked(self, ...) return ctbGetMasked(self, ...) end
+function CustomEdit.getSidesColor(self, ...) return ctbGetSidesColor(self, ...) end
 
 function CustomEdit.setColorScheme(self, ...) return ctbSetColorScheme(self, ...) end
 function CustomEdit.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
@@ -3812,7 +3838,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	CheckBoxes[id] = {}
 	CheckBoxes[id].ColorScheme = DefaultColors
 	CheckBoxes[id].Canvas = GuiStaticImage.create(x, y, w, h, pane, false, parent)
-	CheckBoxes[id].Label = GuiLabel.create(0, 0, w-44, h, text, false, CheckBoxes[id].Canvas)
+	CheckBoxes[id].Label = CustomLabel.create(0, 0, w-44, h, text, false, CheckBoxes[id].Canvas)
 
 	CheckBoxes[id].Main = GuiStaticImage.create(w-42, (h/2)-10, 40, 20, Images.Check, false, CheckBoxes[id].Canvas)
 
@@ -3835,8 +3861,8 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 
 	CheckBoxes[id].Main:setColor("FF"..BackColor)
 
-	CheckBoxes[id].Label:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
-	CheckBoxes[id].Label:setColor(fromHEXToRGB(TextColor))
+	CheckBoxes[id].Label:setFont(Fonts.OpenSansRegular, 9)
+	CheckBoxes[id].Label:setColor(TextColor)
 	CheckBoxes[id].Label:setVerticalAlign("center")
 
 	CheckBoxes[id].State = false
@@ -5617,6 +5643,7 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 	Labels[id].HorzAlign = "left"
 	Labels[id].Font = Fonts.OpenSansRegular
 	Labels[id].FontSize = 9
+	Labels[id].Attached = {}
 
 	if oldparent and oldparent.ColorScheme ~= nil then
 		Labels[id].ColorScheme = oldparent.ColorScheme
@@ -5671,6 +5698,17 @@ end
 
 function clSetText(label, text)
 	label.Label:setText(text)
+
+	if label.Cell then
+		for it_id, item in pairs(label.TView.Lines) do
+			for i, v in pairs(label.TView.Columns) do
+				if item.Elements[i] == label then
+					label.TView.Items[it_id][i] = text
+					break
+				end
+			end
+		end
+	end
 end
 
 function clSetPosition(label, x, y, rel)
@@ -5909,6 +5947,12 @@ function clSetColorScheme(label, scheme)
 	if label.IsSchematical then
 		clSetSchematicalColor(label, true)
 	end
+
+	for _, item in pairs(label.Attached) do
+		if item.ColorScheme then
+			item:setColorScheme(scheme)
+		end
+	end
 end
 
 function clGetColorScheme(label)
@@ -5924,6 +5968,26 @@ function clAddEvent(label, event, func)
 			func(...)
 		end
 	end)
+end
+
+function clAddElement(label, element)
+
+	local len = #label.Attached+1
+	label.Attached[len] = element
+
+	print("Visited", element.ColorScheme)
+	if element.ColorScheme then
+		element:setColorScheme(label.ColorScheme)
+	end
+end
+
+function clRemoveElement(label, element)
+	for i, v in pairs(label.Attached) do
+		if v == element then
+			table.remove(label.Attached, i)
+			break
+		end
+	end
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -5976,6 +6040,9 @@ function CustomLabel.getColorScheme(self, ...) return clGetColorScheme(self, ...
 
 function CustomLabel.addEvent(self, ...) return clAddEvent(self, ...) end
 function CustomLabel.getFrame(self, ...) return clGetFrame(self, ...) end
+
+function CustomLabel.addElement(self, ...) return clAddElement(self, ...) end
+function CustomLabel.removeElement(self, ...) return clRemoveElement(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -6527,6 +6594,9 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 			TextCol = "333333"
 			if TableView[id].ColorScheme.DarkTheme or k == TableView[id].Selected or source == item.Canvas then TextCol = "FFFFFF" end
 
+			NTextCol = "333333"
+			if TableView[id].ColorScheme.DarkTheme then NTextCol = "FFFFFF" end
+
 			if source == item.Canvas then
 
 				linecol = "FF"..TableView[id].ColorScheme.LightMain
@@ -6537,6 +6607,16 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 
 			for i in pairs(TableView[id].Columns) do
 				item.Elements[i]:setColor(TextCol)
+
+				for _, v in pairs(item.Elements[i].Attached) do
+					if multiplecompare(v, {CustomLabel, CustomCheckBox}) then
+						v.Label:setColor(TextCol)
+					else
+						if v.Label then
+							v.Label:setColor(NTextCol)
+						end
+					end
+				end
 			end
 		end
 
@@ -6560,10 +6640,22 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 			TextCol = "333333"
 			if TableView[id].ColorScheme.DarkTheme or it_id == TableView[id].Selected then TextCol = "FFFFFF" end
 
+			NTextCol = "333333"
+			if TableView[id].ColorScheme.DarkTheme then NTextCol = "FFFFFF" end
+
 			for i in pairs(TableView[id].Columns) do
 				item.Elements[i]:setColor(TextCol)
+				
+				for _, v in pairs(item.Elements[i].Attached) do
+					if multiplecompare(v, {CustomLabel, CustomCheckBox}) then
+						v.Label:setColor(TextCol)
+					else
+						if v.Label then
+							v.Label:setColor(NTextCol)
+						end
+					end
+				end
 			end
-
 		end
 
 	end)
@@ -6606,8 +6698,21 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 			TextCol = "333333"
 			if TableView[id].ColorScheme.DarkTheme or k == TableView[id].Selected then TextCol = "FFFFFF" end
 
+			NTextCol = "333333"
+			if TableView[id].ColorScheme.DarkTheme then NTextCol = "FFFFFF" end
+
 			for i in pairs(TableView[id].Columns) do
 				item.Elements[i]:setColor(TextCol)
+				
+				for _, v in pairs(item.Elements[i].Attached) do
+					if multiplecompare(v, {CustomLabel, CustomCheckBox}) then
+						v.Label:setColor(TextCol)
+					else
+						if v.Label then
+							v.Label:setColor(NTextCol)
+						end
+					end
+				end
 			end
 		end
 
@@ -6723,6 +6828,13 @@ function ctvUpdate(tview)
 			item.Elements[i]:setPosition(x, 0, false)
 			item.Elements[i]:setSize(v.Width-5, item.Height, false)
 			item.Elements[i]:setText(tview.Items[it_id][i])
+			item.Elements[i].ColorScheme = tview.ColorScheme
+
+			for _, sv in pairs(item.Elements[i].Attached) do
+				if sv.ColorScheme then
+					sv:setColorScheme(tview.ColorScheme)
+				end
+			end
 
 			local color = TextCol
 			if it_id == tview.Selected then color = "FFFFFF" end
@@ -6796,6 +6908,9 @@ function ctvAddLine(tview, height)
 		tview.Lines[id].Elements[i] = CustomLabel.create(x, 0, v.Width-5, height, "", false, tview.Lines[id].Canvas)
 		tview.Lines[id].Elements[i]:setVerticalAlign("center")
 		tview.Lines[id].Elements[i]:setEnabled(false)
+		tview.Lines[id].Elements[i].Cell = true
+		tview.Lines[id].Elements[i].TView = tview
+		tview.Lines[id].Elements[i].ColorScheme = tview.ColorScheme
 
 		x = x + v.Width
 	end
@@ -6900,6 +7015,9 @@ function ctvAddColumn(tview, title, width)
 		v.Elements[id] = CustomLabel.create(XPos+5, 0, tview.Columns[id].Width-5, v.Height, "Sas", false, v.Canvas)
 		v.Elements[id]:setVerticalAlign("center")
 		v.Elements[id]:setEnabled(false)
+		v.Elements[id].Elements[i].Cell = true
+		v.Elements[id].Elements[i].TView = tview
+		v.Elements[id].Elements[i].ColorScheme = tview.ColorScheme
 
 	end
 
