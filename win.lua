@@ -3514,9 +3514,11 @@ function ctbSetSidesColor(textbox, color)
 	if textbox.ColorSide ~= false then
 		for _, v in pairs(textbox.Sides) do
 			
-			v:setColor(textbox.ColorSide)
+			v:setColor("FF"..textbox.ColorSide)
 			v:setEnabled(false)
 		end
+	else
+		textbox:putOnSide(textbox:isOnSide())
 	end
 end
 
@@ -3870,6 +3872,13 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	CheckBoxes[id].LocalPosition = {X=0, DX=0}
 	CheckBoxes[id].PhysicalPosition = {X=0}
 	CheckBoxes[id].Animation = 0 -- 1 - open, 2 - close
+	CheckBoxes[id].OnTableView = false
+
+	if comparetypes(oldparent, CustomLabel) then
+		if oldparent.Cell then
+			CheckBoxes[id].OnTableView = true
+		end
+	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Events
@@ -3892,7 +3901,8 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	end)
 
 	addEventHandler("onClientMouseLeave", root, function()
-		if CheckBoxes[id].Canvas:getEnabled() then
+
+		if CheckBoxes[id].Canvas:getEnabled() and not CheckBoxes[id].OnTableView then
 
 			TextColor = "555555"
 			if CheckBoxes[id].ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
@@ -5643,6 +5653,7 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 	Labels[id].HorzAlign = "left"
 	Labels[id].Font = Fonts.OpenSansRegular
 	Labels[id].FontSize = 9
+	Labels[id].Cell = false
 	Labels[id].Attached = {}
 
 	if oldparent and oldparent.ColorScheme ~= nil then
@@ -5975,7 +5986,6 @@ function clAddElement(label, element)
 	local len = #label.Attached+1
 	label.Attached[len] = element
 
-	print("Visited", element.ColorScheme)
 	if element.ColorScheme then
 		element:setColorScheme(label.ColorScheme)
 	end
@@ -6597,9 +6607,17 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 			NTextCol = "333333"
 			if TableView[id].ColorScheme.DarkTheme then NTextCol = "FFFFFF" end
 
+			if k == TableView[id].Selected then
+				LineColor = TableView[id].ColorScheme.Main
+			else
+				LineColor = "EEEEEE"
+				if TableView[id].ColorScheme.DarkTheme then LineColor = "444444" end 
+			end
+
 			if source == item.Canvas then
 
-				linecol = "FF"..TableView[id].ColorScheme.LightMain
+				LineColor = TableView[id].ColorScheme.LightMain
+				linecol = "FF"..LineColor
 
 				item.Canvas:setColor(linecol)
 
@@ -6611,6 +6629,11 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 				for _, v in pairs(item.Elements[i].Attached) do
 					if multiplecompare(v, {CustomLabel, CustomCheckBox}) then
 						v.Label:setColor(TextCol)
+
+					elseif multiplecompare(v, {CustomEdit, CustomMemo, CustomSpinner}) then
+
+						v:setSidesColor(LineColor)
+
 					else
 						if v.Label then
 							v.Label:setColor(NTextCol)
@@ -6632,7 +6655,8 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 			linecol = "FF"..LineColor
 
 			if it_id == TableView[id].Selected then
-				linecol = "FF"..TableView[id].ColorScheme.Main
+				LineColor = TableView[id].ColorScheme.Main
+				linecol = "FF"..LineColor
 			end
 
 			item.Canvas:setColor(linecol)
@@ -6647,8 +6671,15 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 				item.Elements[i]:setColor(TextCol)
 				
 				for _, v in pairs(item.Elements[i].Attached) do
+
 					if multiplecompare(v, {CustomLabel, CustomCheckBox}) then
+
 						v.Label:setColor(TextCol)
+
+					elseif multiplecompare(v, {CustomEdit, CustomMemo, CustomSpinner}) then
+
+						v:setSidesColor(LineColor)
+
 					else
 						if v.Label then
 							v.Label:setColor(NTextCol)
@@ -6686,7 +6717,8 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 
 			end
 			
-			linecol = "FF"..TableView[id].ColorScheme.Main
+			LineColor = TableView[id].ColorScheme.Main
+			linecol = "FF"..LineColor
 
 			TableView[id].Selected = vid
 			TableView[id].Lines[vid].Canvas:setColor(linecol)
@@ -6706,7 +6738,14 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 				
 				for _, v in pairs(item.Elements[i].Attached) do
 					if multiplecompare(v, {CustomLabel, CustomCheckBox}) then
+						
 						v.Label:setColor(TextCol)
+
+					elseif multiplecompare(v, {CustomEdit, CustomMemo, CustomSpinner}) then
+
+						v:setSidesColor(LineColor)
+						triggerEvent("onClientMouseLeave", item.Elements[i].Label)
+
 					else
 						if v.Label then
 							v.Label:setColor(NTextCol)
@@ -6837,14 +6876,16 @@ function ctvUpdate(tview)
 			end
 
 			local color = TextCol
-			if it_id == tview.Selected then color = "FFFFFF" end
+			if it_id == tview.Selected then 
+				color = "FFFFFF" 
+			end
 
 			item.Elements[i]:setColor(color)
 
 			x = x + v.Width
 		end
-
 	end
+	triggerEvent("onClientGUIClick", root)
 end
 
 function ctvBringToFront(tview)
