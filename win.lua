@@ -4506,21 +4506,27 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 
 	end)
 
-	addEventHandler("onClientGUIMouseUp", root, function()
-		if source == ComboBoxes[id].Main and not ComboBoxes[id].Opened then
-		
+	ComboBoxes[id].OpenList = function()
 			local x, y = guiGetOnScreenPosition(ComboBoxes[id].Canvas)
 			ComboBoxes[id].List.Canvas:setPosition(x, y, false)
 			ComboBoxes[id].List.Canvas:setVisible(true)
 			ComboBoxes[id].setComboSize(1)
 			ComboBoxes[id].Animation = 1	
-			ComboBoxes[id].Opened = true	
-		
-		else
+			ComboBoxes[id].Opened = true
+	end
+
+	ComboBoxes[id].CloseList = function()
 			local mheight = math.min(ComboBoxes[id].Elements*30 + 1, ComboBoxes[id].Height)
 			ComboBoxes[id].Opened = false
 			ComboBoxes[id].setComboSize(mheight)
 			ComboBoxes[id].Animation = 2
+	end
+
+	addEventHandler("onClientGUIMouseUp", root, function()
+		if source == ComboBoxes[id].Main and not ComboBoxes[id].Opened then
+			ComboBoxes[id].OpenList()
+		else
+			ComboBoxes[id].CloseList()
 		end
 	end)
 
@@ -4732,12 +4738,15 @@ function clbSetSize(combo, w, h, rel)
 end
 
 function clbSetVisible(combo, bool)
+	combo.CloseList()
 	combo.Canvas:setVisible(bool or false)
 end
 
 function clbSetEnabled(combo, bool)
 	combo.Canvas:setEnabled(bool or false)
 	combo.Animation = 2
+
+	combo.CloseList()
 
 	TopCol, BotCol, BackCol = "FFFFFF", "EEEEEE", "CCCCCC"
 	if combo.ColorScheme.DarkTheme then TopCol, BotCol, BackCol = "555555", "444444", "333333" end
