@@ -6704,6 +6704,7 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 
 		local vid = 0
 		local sid = TableView[id].Selected
+		if sid > TableView[id]:getLinesCount() then sid = 0 end
 		
 		for t_id, item in pairs(TableView[id].Lines) do
 			
@@ -6989,6 +6990,10 @@ function ctvRemoveLine(tview, line)
 
 	if line and tonumber(line) and (1 <= line and line <= #tview.Lines) then
 
+		if line == tview:getSelectedLine() then
+			tview:setSelectedLine()
+		end
+
 		tview.Containing:removeElement(tview.Lines[line].Canvas)
 
 		for i, v in pairs(tview.Lines[line].Elements) do
@@ -7002,20 +7007,23 @@ function ctvRemoveLine(tview, line)
 		table.remove(tview.Items, line)
 		table.remove(tview.Lines, line)
 
+
 		ctvUpdate(tview)
 
 	else
 
-		local id = 0
-		
-		for t_id, tab in pairs(tview.Lines) do
-			if tab == line then
-				id = t_id
+		if line ~= 0 then
+			local id = 0
+			
+			for t_id, tab in pairs(tview.Lines) do
+				if tab == line then
+					id = t_id
+				end
 			end
+			
+			ctvRemoveLine(tview, id)
 		end
 		
-		ctvRemoveLine(tview, id)
-
 	end
 end
 
