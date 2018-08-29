@@ -260,6 +260,18 @@ BackForMouse = GuiStaticImage.create(0, 0, 1, 1, pane, true)
 BackForMouse:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 BackForMouse:setVisible(false)
 
+addEventHandler("onClientGUIMouseEnter", root, function()
+	BackForMouse:moveToBack()
+end)
+
+addEventHandler("onClientGUIMouseLeave", root, function()
+	BackForMouse:moveToBack()
+end)
+
+addEventHandler("onClientGUIClick", root, function()
+	BackForMouse:moveToBack()
+end)
+
 --------------------------------------------------------------------------------------------------------------------
 ---Comparators
 
@@ -1123,6 +1135,7 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Events
 
+	local BFMState = BackForMouse:getVisible()
 	addEventHandler("onClientGUIMouseDown", root, function(button, x, y)
 
 		local canScroll = false
@@ -1147,6 +1160,7 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 			local ax, ay = ScrollPanels[id].Scroller:getPosition(false)
 			ScrollPanels[id].MoveCursorPositions = {X = x-ax, Y = y-ay}		
 
+			BFMState = BackForMouse:getVisible()
 			BackForMouse:setVisible(true)	
 		end
 	end)
@@ -1158,7 +1172,7 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 		ScrollPanels[id].IsScrolling = false
 		ScrollPanels[id].MoveCursorPositions = {X = 0, Y = 0}
 	
-		BackForMouse:setVisible(false)	
+		BackForMouse:setVisible(BFMState)	
 
 	end)
 
@@ -2514,6 +2528,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 		end
 	end)
 
+	local BFMState = BackForMouse:getVisible()
 	addEventHandler("onClientGUIMouseDown", root, function(button, ax, ay)
 		if button == "left" and source == ScrollBars[id].Edges then
 
@@ -2527,6 +2542,8 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			ScrollBars[id].Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", ScrollBars[id].ColorScheme.Main, ScrollBars[id].ColorScheme.Main, ScrollBars[id].ColorScheme.SubMain, ScrollBars[id].ColorScheme.SubMain))
 			
 			ScrollBars[id].ScrollEnabled = true
+
+			BFMState = BackForMouse:getVisible()
 			BackForMouse:setVisible(true)
 		end
 	end)
@@ -2552,7 +2569,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			end
 		end
 		ScrollBars[id].ScrollEnabled = false
-		BackForMouse:setVisible(false)
+		BackForMouse:setVisible(BFMState)
 	end)
 
 	addEventHandler("onClientCursorMove", root, function(_, _, x, y)
@@ -4026,6 +4043,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 
 	end)
 
+	local BFMState = BackForMouse:getVisible()
 	addEventHandler("onClientGUIMouseDown", root, function(button, ax, ay)
 		if button == "left" and source == CheckBoxes[id].Entrail then
 
@@ -4036,6 +4054,8 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 			
 			CheckBoxes[id].Moving = true
 			CheckBoxes[id].Animation = 0
+
+			BFMState = BackForMouse:getVisible()
 			BackForMouse:setVisible(true)
 		end
 	end)
@@ -4050,7 +4070,8 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 
 		CheckBoxes[id].LocalPosition.X = CheckBoxes[id].PhysicalPosition.X
 		CheckBoxes[id].Moving = false
-		BackForMouse:setVisible(false)
+
+		BackForMouse:setVisible(BFMState)
 			
 	end)
 
@@ -6279,10 +6300,14 @@ function CustomTooltip.create(text, element, timetoshow)
 
 	end
 
+	local BFMState = BackForMouse:getVisible()
 	element:addEvent("onClientMouseEnter", function(ax, ay)
 
 		isEntered = true
 		back:setPosition(ax+1, ay-hght-6, false)
+		
+		BFMState = BackForMouse:getVisible()
+		BackForMouse:setVisible(true)
 		
 		if Tooltips[id].ShowTime < 5/100 then
 			show()
@@ -6295,6 +6320,8 @@ function CustomTooltip.create(text, element, timetoshow)
 	addEventHandler("onClientMouseLeave", root, function()
 		
 		if isTimer(tooltiptimer) then killTimer(tooltiptimer) end
+
+		BackForMouse:setVisible(BFMState)
 
 		isEntered = false
 		animation = 2
@@ -7023,7 +7050,7 @@ function ctvRemoveLine(tview, line)
 			
 			ctvRemoveLine(tview, id)
 		end
-		
+
 	end
 end
 
@@ -7130,15 +7157,17 @@ function ctvRemoveColumn(tview, column)
 
 	else
 
-		local id = 0
-		
-		for t_id, tab in pairs(tview.Columns) do
-			if tab == column or tab.Title:getText() == column then
-				id = t_id
+		if column ~= 0 then
+			local id = 0
+			
+			for t_id, tab in pairs(tview.Columns) do
+				if tab == column or tab.Title:getText() == column then
+					id = t_id
+				end
 			end
+			
+			return ctvRemoveColumn(tview, id)
 		end
-		
-		return ctvRemoveColumn(tview, id)
 	end
 
 end
