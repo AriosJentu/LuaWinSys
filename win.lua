@@ -3203,6 +3203,7 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 		EditBoxes[id].Edges.BottomContinue = GuiStaticImage.create(w-52, h-3, 51, 1, pane, false, EditBoxes[id].Canvas)
 		EditBoxes[id].Edges.RightContinue = GuiStaticImage.create(w-1, 5, 1, h-8, pane, false, EditBoxes[id].Canvas)
 	end
+
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Properties
 
@@ -3699,6 +3700,9 @@ function ctbPutOnSide(textbox, bool)
 		v:setColor(textbox.IsOnSideBlock and sbmcol or frmcol)
 		v:setEnabled(false)
 	end
+	
+	textbox.Canvas:setColor(textbox.IsOnSideBlock and sbmcol or frmcol)
+
 end
 
 function ctbSetSidesColor(textbox, color)
@@ -3715,6 +3719,9 @@ function ctbSetSidesColor(textbox, color)
 			v:setColor("FF"..textbox.ColorSide)
 			v:setEnabled(false)
 		end
+
+		textbox.Canvas:setColor("FF"..textbox.ColorSide)
+
 	else
 		textbox:putOnSide(textbox:isOnSide())
 	end
