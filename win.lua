@@ -12,6 +12,58 @@ function multiplecompare(object, types)
 	return bool
 end
 
+--------------------------------------------------------------------------------------------------------------------
+---Comparators
+
+function compareAppend(object, ...)
+
+	local args = {...}
+	local par = args[#args]
+	if multiplecompare(par, {CustomWindow, CustomScrollPane, CustomLabel}) then
+		par:addElement(object)
+	end
+end
+
+function compareDefaults(parent)
+	return multiplecompare(parent, {
+		CustomWindow, 
+		CustomScrollPane, 
+		CustomButton, 
+		CustomLabel, 
+		CustomProgressBar, 
+		CustomComboBox, 
+		CustomCheckBox, 
+		CustomTabPanel
+	})
+end
+
+function getType(object)
+	if multiplecompare(object, {
+		CustomWindow, 
+		CustomScrollPane, 
+		CustomButton, 
+		CustomEdit, 
+		CustomMemo, 
+		CustomSpinner, 
+		CustomLabel, 
+		CustomProgressBar, 
+		CustomScrollBar, 
+		CustomComboBox, 
+		CustomDialog, 
+		CustomLoading, 
+		CustomTooltip, 
+		CustomCheckBox, 
+		CustomTableView, 
+		CustomTabPanel
+	}) then
+		return getmetatable(object)
+	else
+		return nil
+	end
+end
+
+--------------------------------------------------------------------------------------------------------------------
+
 function string:split(sep)
 
 	local tab = {}
@@ -271,33 +323,6 @@ end)
 addEventHandler("onClientGUIClick", root, function()
 	BackForMouse:moveToBack()
 end)
-
---------------------------------------------------------------------------------------------------------------------
----Comparators
-
-function compareAppend(object, ...)
-
-	local args = {...}
-	local par = args[#args]
-	if multiplecompare(par, {CustomWindow, CustomScrollPane, CustomLabel}) then
-		par:addElement(object)
-	end
-end
-
-function compareDefaults(parent)
-	return multiplecompare(parent, {
-		CustomWindow, 
-		CustomScrollPane, 
-		CustomButton, 
-		CustomLabel, 
-		CustomProgressBar, 
-		CustomComboBox, 
-		CustomCheckBox, 
-		CustomTabPanel
-	})
-end
-
---------------------------------------------------------------------------------------------------------------------
 
 local createImage = GuiStaticImage.create
 GuiStaticImage.create = function(x, y, w, h, image, rel, par)
@@ -1009,6 +1034,24 @@ function cwRemoveEvent(window, event, func)
 	removeEventHandler(event, root, func)
 end
 
+function cwDestroy(window)
+
+	for _, v in pairs(window.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	for _, v in pairs(window.SchemeElements) do
+		if getType(v) then
+			v:destroy()
+		else
+			destroyElement(v)
+		end
+	end
+
+	destroyElement(window.Canvas)
+
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
 
@@ -1016,7 +1059,10 @@ CustomWindow = {}
 CustomWindow.__index = CustomWindow
 
 function CustomWindow.create(...)
+
 	local self = setmetatable(guiCreateCustomWindow(...), CustomWindow)
+	self.ClassName = "CustomWindow"
+
 	compareAppend(self, ...)
 	return self
 end
@@ -1064,6 +1110,8 @@ function CustomWindow.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 
 function CustomWindow.showDialog(self, ...) return cwShowDialog(self, ...) end
 function CustomWindow.showBar(self, ...) return cwShowBar(self, ...) end
+
+function CustomWindow.destroy(self, ...) return cwDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -1607,6 +1655,24 @@ function cspAddEvent(spane, event, func)
 	return f
 end
 
+function cspDestroy(spane)
+
+	for _, v in pairs(spane.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	for i, v in pairs(spane.Elements) do
+		if getType(v) then
+			v:destroy()
+		else
+			destroyElement(v)
+		end
+	end
+
+	destroyElement(spane.Canvas)
+
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
 CustomScrollPane = {}
@@ -1614,6 +1680,8 @@ CustomScrollPane.__index = CustomScrollPane
 
 function CustomScrollPane.create(...)
 	local self = setmetatable(guiCreateCustomScrollPane(...), CustomScrollPane)
+	self.ClassName = "CustomScrollPane"
+
 	compareAppend(self, ...)
 	return self
 end
@@ -1655,6 +1723,7 @@ function CustomScrollPane.addEvent(self, ...) return cspAddEvent(self, ...) end
 function CustomScrollPane.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 
 function CustomScrollPane.update(self, ...) return cspRecalcSize(self, ...) end
+function CustomScrollPane.destroy(self, ...) return cspDestroy(self, ...) end
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -2076,6 +2145,17 @@ function cbAddEvent(button, event, func)
 	return f
 end
 
+function cbDestroy(button)
+
+	for _, v in pairs(button.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	button.Label:destroy()
+	destroyElement(button.Canvas)
+
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
 CustomButton = {}
@@ -2083,6 +2163,7 @@ CustomButton.__index = CustomButton
 
 function CustomButton.create(...)
 	local self = setmetatable(guiCreateCustomButton(...), CustomButton)
+	self.ClassName = "CustomButton"
 	compareAppend(self, ...)
 
 	self.Element = self.Main
@@ -2114,6 +2195,8 @@ function CustomButton.getColorScheme(self, ...) return cbGetColorScheme(self, ..
 function CustomButton.addEvent(self, ...) return cbAddEvent(self, ...) end
 function CustomButton.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomButton.getFrame(self, ...) return cbGetFrame(self, ...) end
+
+function CustomButton.destroy(self, ...) return cbDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -2394,6 +2477,12 @@ function cpbAddEvent(bar, event, func)
 	return f
 end
 
+function cpbDestroy(bar)
+
+	destroyElement(bar.Canvas)
+
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP Functions
 CustomProgressBar = {}
@@ -2401,6 +2490,7 @@ CustomProgressBar.__index = CustomProgressBar
 
 function CustomProgressBar.create(...)
 	local self = setmetatable(guiCreateCustomProgressBar(...), CustomProgressBar)
+	self.ClassName = "CustomProgressBar"
 	compareAppend(self, ...)
 
 	self.Element = self.Main
@@ -2428,6 +2518,8 @@ function CustomProgressBar.getColorScheme(self, ...) return cpbGetColorScheme(se
 function CustomProgressBar.addEvent(self, ...) return cpbAddEvent(self, ...) end
 function CustomProgressBar.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomProgressBar.getFrame(self, ...) return cpbGetFrame(self, ...) end
+
+function CustomProgressBar.destroy(self, ...) return cpbDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -2975,6 +3067,15 @@ function csbAddEvent(sbar, event, func)
 	return f
 end
 
+function csbDestroy(sbar)
+
+	for _, v in pairs(sbar.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	destroyElement(sbar.Canvas)
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP Functions
 CustomScrollBar = {}
@@ -2982,6 +3083,7 @@ CustomScrollBar.__index = CustomScrollBar
 
 function CustomScrollBar.create(...)
 	local self = setmetatable(guiCreateCustomScrollBar(...), CustomScrollBar)
+	self.ClassName = "CustomScrollBar"
 	compareAppend(self, ...)
 
 	return self
@@ -3013,6 +3115,8 @@ function CustomScrollBar.getColorScheme(self, ...) return csbGetColorScheme(self
 
 function CustomScrollBar.addEvent(self, ...) return csbAddEvent(self, ...) end
 function CustomScrollBar.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
+
+function CustomScrollBar.destroy(self, ...) return csbDestroy(self, ...) end
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -3336,8 +3440,8 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	addEventHandler(EditBoxes[id].Event.MouseUp.Name, root, EditBoxes[id].Event.MouseUp.Function)
 	addEventHandler(EditBoxes[id].Event.Click.Name, root, EditBoxes[id].Event.Click.Function)
 	addEventHandler(EditBoxes[id].Event.MouseDown.Name, root, EditBoxes[id].Event.MouseDown.Function)
-	addEventHandler(EditBoxes[id].Event.Changed.Name, EditBoxes[id].TextBox, EditBoxes[id].Event.Changed.Function, false)
 	addEventHandler(EditBoxes[id].Event.MouseWheel.Name, root, EditBoxes[id].Event.MouseWheel.Function)
+	addEventHandler(EditBoxes[id].Event.Changed.Name, EditBoxes[id].TextBox, EditBoxes[id].Event.Changed.Function, false)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Ending
@@ -3759,6 +3863,16 @@ function ctbAddEvent(textbox, event, func)
 	return f
 end
 
+function ctbDestroy(textbox)
+
+	removeEventHandler(textbox.Event.Changed.Name, textbox.TextBox, textbox.Event.Changed.Function)
+	for _, v in pairs(textbox.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	destroyElement(textbox.Canvas)
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP Functions
 CustomEdit = {}
@@ -3766,6 +3880,7 @@ CustomEdit.__index = CustomEdit
 
 function CustomEdit.create(...)
 	local self = setmetatable(guiCreateCustomEdit(...), CustomEdit)
+	self.ClassName = "CustomEdit"
 	compareAppend(self, ...)
 
 	self.Element = self.TextBox
@@ -3807,12 +3922,15 @@ function CustomEdit.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomEdit.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 function CustomEdit.isOnSide(self, ...) return ctbIsOnSide(self, ...) end
 
+function CustomEdit.destroy(self, ...) return ctbDestroy(self, ...) end
+
 
 CustomMemo = {}
 CustomMemo.__index = CustomMemo
 
 function CustomMemo.create(...)
 	local self = setmetatable(guiCreateCustomMemo(...), CustomMemo)
+	self.ClassName = "CustomMemo"
 	compareAppend(self, ...)
 
 	return self
@@ -3846,12 +3964,15 @@ function CustomMemo.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomMemo.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 function CustomMemo.isOnSide(self, ...) return ctbIsOnSide(self, ...) end
 
+function CustomMemo.destroy(self, ...) return ctbDestroy(self, ...) end
+
 
 CustomSpinner = {}
 CustomSpinner.__index = CustomSpinner
 
 function CustomSpinner.create(...)
 	local self = setmetatable(guiCreateCustomSpinner(...), CustomSpinner)
+	self.ClassName = "CustomSpinner"
 	compareAppend(self, ...)
 
 	return self
@@ -3892,6 +4013,8 @@ function CustomSpinner.addEvent(self, ...) return ctbAddEvent(self, ...) end
 function CustomSpinner.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomSpinner.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 function CustomSpinner.isOnSide(self, ...) return ctbIsOnSide(self, ...) end
+
+function CustomSpinner.destroy(self, ...) return ctbDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -4394,6 +4517,18 @@ function ccbAddEvent(checkbox, event, func)
 	return f
 end
 
+
+function ccbDestroy(checkbox)
+
+	for _, v in pairs(checkbox.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	checkbox.Label:destroy()
+	destroyElement(checkbox.Canvas)
+
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
 
@@ -4402,6 +4537,7 @@ CustomCheckBox.__index = CustomCheckBox
 
 function CustomCheckBox.create(...)
 	local self = setmetatable(guiCreateCustomCheckBox(...), CustomCheckBox)
+	self.ClassName = "CustomCheckBox"
 	compareAppend(self, ...)
 
 	self.Element = self.Label
@@ -4433,6 +4569,8 @@ function CustomCheckBox.getColorScheme(self, ...) return ccbGetColorScheme(self,
 function CustomCheckBox.addEvent(self, ...) return ccbAddEvent(self, ...) end
 function CustomCheckBox.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomCheckBox.getFrame(self, ...) return ccbGetFrame(self, ...) end
+
+function CustomCheckBox.destroy(self, ...) return ccbDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -5083,6 +5221,22 @@ function clbAddEvent(combo, event, func)
 	return f
 end
 
+
+function clbDestroy(combo)
+
+	for _, v in pairs(combo.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	combo:clear()
+
+	combo.Entrail:destroy()
+
+	destroyElement(combo.Canvas)
+	destroyElement(combo.List.Canvas)
+
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP Functions
 
@@ -5091,6 +5245,7 @@ CustomComboBox.__index = CustomComboBox
 
 function CustomComboBox.create(...)
 	local self = setmetatable(guiCreateCustomComboBox(...), CustomComboBox)
+	self.ClassName = "CustomComboBox"
 	compareAppend(self, ...)
 
 	self.Element = self.Main
@@ -5130,6 +5285,8 @@ function CustomComboBox.getFrame(self, ...) return clbGetFrame(self, ...) end
 function CustomComboBox.addItem(self, ...) return clbAddItem(self, ...) end
 function CustomComboBox.removeItem(self, ...) return clbRemoveItem(self, ...) end
 function CustomComboBox.clear(self, ...) return clbClear(self, ...) end
+
+function CustomComboBox.destroy(self, ...) return clbDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -5474,7 +5631,23 @@ function ctpRemoveTab(tabpan, tab)
 	end
 
 	compareTabs(tabpan)
+end
 
+function ctpClearTabs(tabpan)
+
+	for i, v in pairs(tabpan.Tabs) do
+
+		tabpan.TabScroller:removeElement(v.Canvas)
+			
+		destroyElement(v.Entrail)
+		destroyElement(v.Label)
+		destroyElement(v.Divider)
+		destroyElement(v.Canvas)
+
+		table.remove(tabpan.Tabs, i)
+	end
+
+	compareTabs(tabpan)
 end
 
 function ctpSetTabEnabled(tabpan, tab, bool)
@@ -5724,6 +5897,18 @@ function ctpAddEvent(tabpan, event, func)
 	return f
 end
 
+function ctpDestroy(tabpan)
+
+	for _, v in pairs(tabpan.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	tabpan:clearTabs()
+	tabpan.TabScroller:destroy()
+	destroyElement(tabpan.Canvas)
+
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP Functions
 
@@ -5732,6 +5917,7 @@ CustomTabPanel.__index = CustomTabPanel
 
 function CustomTabPanel.create(...)
 	local self = setmetatable(guiCreateCustomTabPanel(...), CustomTabPanel)
+	self.ClassName = "CustomTabPanel"
 	compareAppend(self, ...)
 
 	return self
@@ -5772,6 +5958,9 @@ function CustomTabPanel.getFrame(self, ...) return ctpGetSelectedTab(self, ...) 
 
 function CustomTabPanel.addTab(self, ...) return ctpAddTab(self, ...) end
 function CustomTabPanel.removeTab(self, ...) return ctpRemoveTab(self, ...) end
+function CustomTabPanel.clearTabs(self, ...) return ctpClearTabs(self, ...) end
+
+function CustomTabPanel.destroy(self, ...) return ctpDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -6173,6 +6362,15 @@ function clRemoveElement(label, element)
 	end
 end
 
+function clDestroy(label)
+
+	for _, v in pairs(label.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	destroyElement(label.Label)
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
 CustomLabel = {}
@@ -6180,6 +6378,7 @@ CustomLabel.__index = CustomLabel
 
 function CustomLabel.create(...)
 	local self = setmetatable(guiCreateCustomLabel(...), CustomLabel)
+	self.ClassName = "CustomLabel"
 	compareAppend(self, ...)
 
 	self.Element = self.Label
@@ -6227,6 +6426,8 @@ function CustomLabel.getFrame(self, ...) return clGetFrame(self, ...) end
 
 function CustomLabel.addElement(self, ...) return clAddElement(self, ...) end
 function CustomLabel.removeElement(self, ...) return clRemoveElement(self, ...) end
+
+function CustomLabel.destroy(self, ...) return clDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -6338,6 +6539,7 @@ function CustomDialog.create(rwidth, text, buttons, window)
 	dialog:addElement(dialog.Label)
 
 	Dialogs[id].Dialog = dialog
+	Dialogs[id].ClassName = "CustomDialog"
 
 	if window then
 		window:addElement(dialog)
@@ -6377,6 +6579,16 @@ function CustomDialog.getColorScheme(self)
 	return self.Dialog.Window.ColorScheme
 end
 
+function CustomDialog.destroy(self)
+
+	for i, v in pairs(self.Dialog.Buttons) do
+		v:destroy()
+	end
+
+	self.Dialog.Label:destroy()
+	self.Dialog:destroy()
+end
+
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -6394,6 +6606,7 @@ function CustomTooltip.create(text, element, timetoshow)
 	local id = #Tooltips+1
 
 	Tooltips[id] = setmetatable({}, CustomTooltip)
+	Tooltips[id].ClassName = "CustomTooltip"
 	if not timetoshow or not tonumber(timetoshow) or timetoshow < 0 then
 		timetoshow = 1
 	end
@@ -6413,19 +6626,19 @@ function CustomTooltip.create(text, element, timetoshow)
 	wdth = wdth+4
 	hght = hght+4
 
-	local back = GuiStaticImage.create(0, 0, wdth+6, hght+6, pane, false)
-	local shad1 = GuiStaticImage.create(0, 1, wdth+6, hght+4, pane, false, back)
-	local shad2 = GuiStaticImage.create(1, 0, wdth+4, hght+6, pane, false, back)
-	local main = GuiStaticImage.create(1, 1, wdth+4, hght+4, pane, false, back)
-	local label = CustomLabel.create(2, 2, wdth, hght, text, false, main)
+	Tooltips[id].Back = GuiStaticImage.create(0, 0, wdth+6, hght+6, pane, false)
+	Tooltips[id].Shad1 = GuiStaticImage.create(0, 1, wdth+6, hght+4, pane, false, Tooltips[id].Back)
+	Tooltips[id].Shad2 = GuiStaticImage.create(1, 0, wdth+4, hght+6, pane, false, Tooltips[id].Back)
+	Tooltips[id].Main = GuiStaticImage.create(1, 1, wdth+4, hght+4, pane, false, Tooltips[id].Back)
+	Tooltips[id].Label = CustomLabel.create(2, 2, wdth, hght, text, false, Tooltips[id].Main)
 
 
-	back:setColor("0")
-	shad1:setColor("44000000")
-	shad2:setColor("44000000")
-	back:setProperty("AlwaysOnTop", "True")
-	back:setEnabled(false)
-	back:setVisible(false)
+	Tooltips[id].Back:setColor("0")
+	Tooltips[id].Shad1:setColor("44000000")
+	Tooltips[id].Shad2:setColor("44000000")
+	Tooltips[id].Back:setProperty("AlwaysOnTop", "True")
+	Tooltips[id].Back:setEnabled(false)
+	Tooltips[id].Back:setVisible(false)
 
 	local isEntered = false
 	local tooltiptimer
@@ -6433,8 +6646,8 @@ function CustomTooltip.create(text, element, timetoshow)
 
 	local function show()
 
-		back:setAlpha(0)
-		back:setVisible(true)
+		Tooltips[id].Back:setAlpha(0)
+		Tooltips[id].Back:setVisible(true)
 		animation = 1
 
 		local scheme = element:getColorScheme()
@@ -6443,8 +6656,8 @@ function CustomTooltip.create(text, element, timetoshow)
 			color = "FF444444"
 		end
 		
-		main:setColor(color)
-		label:setColorScheme(scheme)
+		Tooltips[id].Main:setColor(color)
+		Tooltips[id].Label:setColorScheme(scheme)
 
 	end
 
@@ -6457,7 +6670,7 @@ function CustomTooltip.create(text, element, timetoshow)
 	Tooltips[id].Event.MouseEnter.Function = function(ax, ay)
 
 		isEntered = true
-		back:setPosition(ax+1, ay-hght-6, false)
+		Tooltips[id].Back:setPosition(ax+1, ay-hght-6, false)
 		
 		BFMState = BackForMouse:getVisible()
 		BackForMouse:setVisible(true)
@@ -6489,7 +6702,7 @@ function CustomTooltip.create(text, element, timetoshow)
 	Tooltips[id].Event.CursorMove.Function = function(_, _, ax, ay)
 
 		if isEntered then
-			back:setPosition(ax+1, ay-hght-6, false)
+			Tooltips[id].Back:setPosition(ax+1, ay-hght-6, false)
 		end
 
 	end
@@ -6501,28 +6714,28 @@ function CustomTooltip.create(text, element, timetoshow)
 
 		if animation == 1 then
 
-			if back:getAlpha() >= 1 then
-				back:setAlpha(1)
+			if Tooltips[id].Back:getAlpha() >= 1 then
+				Tooltips[id].Back:setAlpha(1)
 				animation = 0
 			end
 
-			back:setAlpha(back:getAlpha() + 0.15)
+			Tooltips[id].Back:setAlpha(Tooltips[id].Back:getAlpha() + 0.15)
 
 		elseif animation == 2 then
 
-			if back:getAlpha() <= 0 then
-				back:setAlpha(0)
+			if Tooltips[id].Back:getAlpha() <= 0 then
+				Tooltips[id].Back:setAlpha(0)
 				animation = 0
 			end
 
-			back:setAlpha(back:getAlpha() - 0.15)
+			Tooltips[id].Back:setAlpha(Tooltips[id].Back:getAlpha() - 0.15)
 
 		end
 
 	end
 
 
-	element:addEvent(Tooltips[id].Event.MouseEnter.Name, Tooltips[id].Event.MouseEnter.Function)
+	Tooltips[id].Event.MouseEnter.Function = element:addEvent(Tooltips[id].Event.MouseEnter.Name, Tooltips[id].Event.MouseEnter.Function)
 
 	addEventHandler(Tooltips[id].Event.MouseLeave.Name, root, Tooltips[id].Event.MouseLeave.Function)
 	addEventHandler(Tooltips[id].Event.CursorMove.Name, root, Tooltips[id].Event.CursorMove.Function)
@@ -6539,6 +6752,44 @@ function CustomTooltip.getShowTime(self)
 	return self.ShowTime
 end
 
+function CustomTooltip.setText(self, text)
+	
+	local objects = text:split("\n")
+	local wdth = 0
+
+	for _, v in pairs(objects) do
+		LabelForGettingSizes:setText(v)
+		wdth = math.max(wdth, guiLabelGetTextExtent(LabelForGettingSizes.Label))
+	end
+
+	local hght = (guiLabelGetFontHeight(LabelForGettingSizes.Label)+2)*(#objects)
+
+	wdth = wdth+4
+	hght = hght+4
+
+	self.Back:setSize(wdth+6, hght+6, false)
+	self.Shad1:setSize(wdth+6, hght+4, false)
+	self.Shad2:setSize(wdth+4, hght+6, false)
+	self.Main:setSize(wdth+4, hght+4, false)
+	self.Label:setSize(wdth, hght)
+	self.Label:setText(text)
+end
+
+function CustomTooltip.getText(self)
+	return self.Label:getText()
+end
+
+function CustomTooltip.destroy(self)
+
+	for _, v in pairs(self.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	self.Label:destroy()
+	destroyElement(self.Back)
+
+end
+
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 ---------------------------Loadings---------------------------------------------------------------------------------
@@ -6553,6 +6804,7 @@ function CustomLoading.create(x, y, relative, parent)
 
 	local id = #Loadings+1
 	Loadings[id] = setmetatable({}, CustomLoading)
+	Loadings[id].ClassName = "CustomLoading"
 
 	if relative then
 
@@ -6701,6 +6953,16 @@ function CustomLoading.moveToBack(self) self.Back:moveToBack()end
 
 function CustomLoading.getColorScheme(self)
 	return self.ColorScheme
+end
+
+function CustomLoading.destroy(self)
+
+	for _, v in pairs(self.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	destroyElement(self.Back)
+
 end
 
 --------------------------------------------------------------------------------------------------------------------
@@ -7019,8 +7281,8 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 	addEventHandler(TableView[id].Event.MouseLeave.Name, root, TableView[id].Event.MouseLeave.Function)
 	addEventHandler(TableView[id].Event.Click.Name, root, TableView[id].Event.Click.Function)
 
-	TableView[id].Containing:addEvent(TableView[id].Event.ScrollPaneScrolled.Name, TableView[id].Event.ScrollPaneScrolled.Function)
-	TableView[id].TitleScrolls:addEvent(TableView[id].Event.ScrollPaneScrolled2.Name, TableView[id].Event.ScrollPaneScrolled2.Function)
+	TableView[id].Event.ScrollPaneScrolled.Function = TableView[id].Containing:addEvent(TableView[id].Event.ScrollPaneScrolled.Name, TableView[id].Event.ScrollPaneScrolled.Function)
+	TableView[id].Event.ScrollPaneScrolled2.Function = TableView[id].TitleScrolls:addEvent(TableView[id].Event.ScrollPaneScrolled2.Name, TableView[id].Event.ScrollPaneScrolled2.Function)
 
 	return TableView[id]
 end
@@ -7306,8 +7568,6 @@ function ctvAddColumn(tview, title, width)
 
 	end
 
-	--printmatrix(tview.Items)
-
 	---------------------------------------------------------------
 	--Properties
 
@@ -7350,9 +7610,6 @@ function ctvRemoveColumn(tview, column)
 
 		table.remove(tview.Columns, column)
 		
-		--printmatrix(tview.Items)
-		--print()
-
 		ctvUpdate(tview)
 
 	else
@@ -7920,6 +8177,22 @@ function ctvRemoveEvent(tview, event, funcs)
 
 end
 
+function ctvDestroy(tview)
+
+	for _, v in pairs(tview.Event) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	tview:clearLines()
+
+	for _, v in pairs(tview.Columns) do
+		v.Title:destroy()
+	end
+
+	destroyElement(tview.Back)
+
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
 CustomTableView = {}
@@ -7927,6 +8200,7 @@ CustomTableView.__index = CustomTableView
 
 function CustomTableView.create(...)
 	local self = setmetatable(guiCreateCustomTableView(...), CustomTableView)
+	self.ClassName = "CustomTableView"
 	compareAppend(self, ...)
 
 	return self
@@ -7975,6 +8249,7 @@ function CustomTableView.getColumnsCount(self, ...) return ctvGetColumnsCount(se
 
 function CustomTableView.addEvent(self, ...) return ctvAddEvent(self, ...) end
 function CustomTableView.removeEvent(self, ...) return ctvRemoveEvent(self, ...) end
+function CustomTableView.destroy(self, ...) return ctvDestroy(self, ...) end
 
 
 --------------------------------------------------------------------------------------------------------------------
