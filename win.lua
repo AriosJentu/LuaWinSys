@@ -321,21 +321,6 @@ function GuiStaticImage.setColor(self, color)
 	self:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", color, color, color, color))
 end
 
-function destroyGUIFromTable(tab)
-	for i, v in pairs(tab) do
-
-		if type(v) == "table" then
-			destroyGUIFromTable(v)
-		end
-
-		if isElement(v) then
-			destroyElement(v)
-		end
-
-		tab[i] = nil
-	end
-end
-
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 ---------------------------Windows----------------------------------------------------------------------------------
@@ -508,8 +493,12 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Events
 
+	Windows[id].Event = {}
+
 	--Animation Rendering
-	addEventHandler("onClientRender", root, function()
+	Windows[id].Event.Render = {}
+	Windows[id].Event.Render.Name = "onClientRender"
+	Windows[id].Event.Render.Function = function()
 		if Windows[id].Animation == "open" then
 			
 			Windows[id].Canvas:setEnabled(false)
@@ -605,10 +594,12 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 			end
 
 		end
-	end)
+	end
 
 	--Close button click
-	addEventHandler("onClientGUIClick", root, function()
+	Windows[id].Event.Click = {}
+	Windows[id].Event.Click.Name = "onClientGUIClick"
+	Windows[id].Event.Click.Function = function()
 		if source == Windows[id].Close then
 			Windows[id].Animation = "close"
 			triggerEvent("onCustomWindowClose", Windows[id].Canvas, Windows[id].Canvas)
@@ -617,25 +608,32 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 		if source == Windows[id].Dialog then
 			Windows[id].ShowDialog(false)
 		end
-	end)
+	end
 
 	--Close button hover
-	addEventHandler("onClientMouseEnter", root, function()
+	Windows[id].Event.Enter = {}
+	Windows[id].Event.Enter.Name = "onClientMouseEnter"
+	Windows[id].Event.Enter.Function = function()
 		if source == Windows[id].Close then
 
 			Windows[id].CloseMain:setColor("FF"..Windows[id].ColorScheme.Red)
 			Windows[id].CloseAlter:setColor("FFFFFFFF")
 		end
-	end)
+	end
 
 	--Close button leave
-	addEventHandler("onClientMouseLeave", root, function()
+	Windows[id].Event.Leave = {}
+	Windows[id].Event.Leave.Name = "onClientMouseLeave"
+	Windows[id].Event.Leave.Function = function()
 		Windows[id].CloseMain:setColor("0")
 		Windows[id].CloseAlter:setColor("0")
-	end)
+	end
+
 
 	--Window move - hold
-	addEventHandler("onClientGUIMouseDown", root, function(button, x, y)
+	Windows[id].Event.MouseDown = {}
+	Windows[id].Event.MouseDown.Name = "onClientGUIMouseDown"
+	Windows[id].Event.MouseDown.Function = function(button, x, y)
 		if Windows[id].Movable and button == "left" and (source == Windows[id].Top or source == Windows[id].Dialog) then
 			
 			Windows[id].Animation = "move"
@@ -643,10 +641,13 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 			local ax, ay = Windows[id].Canvas:getPosition(false)
 			Windows[id].MoveCursorPositions = {X = x-ax, Y = y-ay}
 		end
-	end)
-	
+	end
+
+
 	--Windows move - relax
-	addEventHandler("onClientGUIMouseUp", root, function()
+	Windows[id].Event.MouseUp = {}
+	Windows[id].Event.MouseUp.Name = "onClientGUIMouseUp"
+	Windows[id].Event.MouseUp.Function = function()
 		if source == Windows[id].Top or source == Windows[id].Dialog then
 			Windows[id].Animation = "none"
 			Windows[id].MoveCursorPositions = {X = 0, Y = 0}
@@ -654,30 +655,30 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 			local x, y = Windows[id].Canvas:getPosition(false)
 			Windows[id].Positions = {X = x+2, Y = y+2}
 		end
-	end)
+	end
+	
 
 	--Window move - moving
-	addEventHandler("onClientCursorMove", root, function(_, _, x, y)
+	Windows[id].Event.CursorMove = {}
+	Windows[id].Event.CursorMove.Name = "onClientCursorMove"
+	Windows[id].Event.CursorMove.Function = function(_, _, x, y)
 		if Windows[id].Animation == "move" then
 			local ax, ay = Windows[id].MoveCursorPositions.X, Windows[id].MoveCursorPositions.Y
 			Windows[id].Canvas:setPosition(x-ax, y-ay, false)
 		end
-	end)
+	end
 
-	addEventHandler("onClientResourceStop", root, function(res)
-		if res == getThisResource() then
-
-			for i in pairs(Windows[id]) do
-				if isElement(Windows[id][i]) then
-					destroyElement(Windows[id][i])
-				end
-				Windows[id][i] = nil
-			end
-		end
-	end)
+	addEventHandler(Windows[id].Event.Render.Name, root, Windows[id].Event.Render.Function)
+	addEventHandler(Windows[id].Event.Click.Name, root, Windows[id].Event.Click.Function)
+	addEventHandler(Windows[id].Event.Enter.Name, root, Windows[id].Event.Enter.Function)
+	addEventHandler(Windows[id].Event.Leave.Name, root, Windows[id].Event.Leave.Function)
+	addEventHandler(Windows[id].Event.MouseDown.Name, root, Windows[id].Event.MouseDown.Function)
+	addEventHandler(Windows[id].Event.MouseUp.Name, root, Windows[id].Event.MouseUp.Function)
+	addEventHandler(Windows[id].Event.CursorMove.Name, root, Windows[id].Event.CursorMove.Function)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Ending
+
 	return Windows[id]
 end
 
@@ -992,11 +993,20 @@ function cwAddSchemeElements(window, elements)
 end
 
 function cwAddEvent(window, event, func)
-	addEventHandler(event, root, function(...)
+	
+	local f = function(...)
 		if source == window.Frame or source == window.Canvas or source == window.Top or source == window.Dialog then
 			func(...)
 		end
-	end)
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
+end
+
+function cwRemoveEvent(window, event, func)
+	removeEventHandler(event, root, func)
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -1050,6 +1060,7 @@ function CustomWindow.addElement(self, ...) return cwAddSchemeElement(self, ...)
 function CustomWindow.addElements(self, ...) return cwAddSchemeElements(self, ...) end
 
 function CustomWindow.addEvent(self, ...) return cwAddEvent(self, ...) end
+function CustomWindow.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 
 function CustomWindow.showDialog(self, ...) return cwShowDialog(self, ...) end
 function CustomWindow.showBar(self, ...) return cwShowBar(self, ...) end
@@ -1136,7 +1147,11 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 	--Events
 
 	local BFMState = BackForMouse:getVisible()
-	addEventHandler("onClientGUIMouseDown", root, function(button, x, y)
+	ScrollPanels[id].Event = {}
+
+	ScrollPanels[id].Event.MouseDown = {}
+	ScrollPanels[id].Event.MouseDown.Name = "onClientGUIMouseDown"	
+	ScrollPanels[id].Event.MouseDown.Function = function(button, x, y)
 
 		local canScroll = false
 
@@ -1163,20 +1178,23 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 			BFMState = BackForMouse:getVisible()
 			BackForMouse:setVisible(true)	
 		end
-	end)
+	end
 
 
-
-	addEventHandler("onClientGUIMouseUp", root, function()
+	ScrollPanels[id].Event.MouseUp = {}
+	ScrollPanels[id].Event.MouseUp.Name = "onClientGUIMouseUp"	
+	ScrollPanels[id].Event.MouseUp.Function = function()
 
 		ScrollPanels[id].IsScrolling = false
 		ScrollPanels[id].MoveCursorPositions = {X = 0, Y = 0}
 	
 		BackForMouse:setVisible(BFMState)	
 
-	end)
+	end
 
-	addEventHandler("onClientCursorMove", root, function(_, _, x, y)
+	ScrollPanels[id].Event.CursorMove = {}
+	ScrollPanels[id].Event.CursorMove.Name = "onClientCursorMove"	
+	ScrollPanels[id].Event.CursorMove.Function = function(_, _, x, y)
 
 		if ScrollPanels[id].IsScrolling then
 			
@@ -1198,9 +1216,11 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 
 		end
 
-	end)
+	end
 
-	addEventHandler("onClientMouseWheel", root, function(upper)
+	ScrollPanels[id].Event.MouseWheel = {}
+	ScrollPanels[id].Event.MouseWheel.Name = "onClientMouseWheel"	
+	ScrollPanels[id].Event.MouseWheel.Function = function(upper)
 
 		local canScroll = false
 
@@ -1253,7 +1273,14 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 			triggerEvent("onCustomScrollPaneScrolled", ScrollPanels[id].Scroller, ScrollPanels[id]:getVerticalScrollPosition(), ScrollPanels[id]:getHorizontalScrollPosition())
 
 		end
-	end)
+	end
+
+
+
+	addEventHandler(ScrollPanels[id].Event.MouseDown.Name, root, ScrollPanels[id].Event.MouseDown.Function)
+	addEventHandler(ScrollPanels[id].Event.MouseUp.Name, root, ScrollPanels[id].Event.MouseUp.Function)
+	addEventHandler(ScrollPanels[id].Event.CursorMove.Name, root, ScrollPanels[id].Event.CursorMove.Function)
+	addEventHandler(ScrollPanels[id].Event.MouseWheel.Name, root, ScrollPanels[id].Event.MouseWheel.Function)
 
 
 	return ScrollPanels[id]
@@ -1569,11 +1596,15 @@ end
 
 function cspAddEvent(spane, event, func)
 	
-	addEventHandler(event, root, function(...)
+	local f = function(...)
 		if source == spane.Canvas or source == spane.Scroller then
 			func(...)
 		end
-	end)
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -1621,6 +1652,8 @@ function CustomScrollPane.addElement(self, ...) return cspAddElement(self, ...) 
 function CustomScrollPane.removeElement(self, ...) return cspRemoveElement(self, ...) end
 
 function CustomScrollPane.addEvent(self, ...) return cspAddEvent(self, ...) end
+function CustomScrollPane.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
+
 function CustomScrollPane.update(self, ...) return cspRecalcSize(self, ...) end
 
 
@@ -1726,8 +1759,12 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Events
 
+	Buttons[id].Event = {}
+
 	--Enter
-	addEventHandler("onClientMouseEnter", root, function()
+	Buttons[id].Event.MouseEnter = {}
+	Buttons[id].Event.MouseEnter.Name = "onClientMouseEnter"
+	Buttons[id].Event.MouseEnter.Function = function()
 		if source == Buttons[id].Main then
 			--source:setProperty("ImageColours", "tl:FFEEEEEE tr:FFEEEEEE bl:FFDDDDDD br:FFDDDDDD")
 			--Buttons[id].Label:setColor(fromHEXToRGB(Buttons[id].ColorScheme.Main))
@@ -1738,10 +1775,13 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 			Buttons[id].Horizontal:setColor(Buttons[id].ColorScheme.Main)
 			Buttons[id].Label:setColor(fromHEXToRGB("FFFFFF"))
 		end
-	end)
+	end
+
 
 	--Leave
-	addEventHandler("onClientMouseLeave", root, function()
+	Buttons[id].Event.MouseLeave = {}
+	Buttons[id].Event.MouseLeave.Name = "onClientMouseLeave"
+	Buttons[id].Event.MouseLeave.Function = function()
 
 		if Buttons[id].Canvas:getEnabled() then
 	
@@ -1761,10 +1801,13 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	
 		end
 
-	end)
+	end
+
 
 	--Mouse Down
-	addEventHandler("onClientGUIMouseDown", root, function()
+	Buttons[id].Event.MouseDown = {}
+	Buttons[id].Event.MouseDown.Name = "onClientGUIMouseDown"
+	Buttons[id].Event.MouseDown.Function = function()
 		if source == Buttons[id].Main then
 
 			source:setColor("FF"..Buttons[id].ColorScheme.SubMain)
@@ -1774,28 +1817,25 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 			Buttons[id].Horizontal:setColor("FF"..Buttons[id].ColorScheme.DarkMain)
 		
 		end
-	end)
+	end
+
 
 	--Mouse Up
-	addEventHandler("onClientGUIMouseUp", root, function(_, ...)
+	Buttons[id].Event.MouseUp = {}
+	Buttons[id].Event.MouseUp.Name = "onClientGUIMouseUp"
+	Buttons[id].Event.MouseUp.Function = function(_, ...)
 		if source == Buttons[id].Main then
 	
 			triggerEvent("onClientMouseEnter", source, ...)
 
 		end
-	end)
-	
-	addEventHandler("onClientResourceStop", root, function(res)
-		if res == getThisResource() then
+	end
 
-			for i in pairs(Buttons[id]) do
-				if isElement(Buttons[id][i]) then
-					destroyElement(Buttons[id][i])
-				end
-				Buttons[id][i] = nil
-			end
-		end
-	end)
+
+	addEventHandler(Buttons[id].Event.MouseEnter.Name, root, Buttons[id].Event.MouseEnter.Function)
+	addEventHandler(Buttons[id].Event.MouseLeave.Name, root, Buttons[id].Event.MouseLeave.Function)
+	addEventHandler(Buttons[id].Event.MouseDown.Name, root, Buttons[id].Event.MouseDown.Function)
+	addEventHandler(Buttons[id].Event.MouseUp.Name, root, Buttons[id].Event.MouseUp.Function)
 
 	return Buttons[id]
 end
@@ -2024,11 +2064,16 @@ end
 --Event Functions
 
 function cbAddEvent(button, event, func)
-	addEventHandler(event, root, function(...)
+	
+	local f = function(...)
 		if source == button.Main or source == button.Canvas then
 			func(...)
 		end
-	end)
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -2067,6 +2112,7 @@ function CustomButton.setColorScheme(self, ...) return cbSetColorScheme(self, ..
 function CustomButton.getColorScheme(self, ...) return cbGetColorScheme(self, ...) end
 
 function CustomButton.addEvent(self, ...) return cbAddEvent(self, ...) end
+function CustomButton.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomButton.getFrame(self, ...) return cbGetFrame(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
@@ -2150,21 +2196,6 @@ function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 	ProgressBars[id].Progress:setEnabled(false)
 
 	ProgressBars[id].IsVertical = w<h
-
-	------------------------------------------------------------------------------------------------------------------------------------------
-	--Events
-		
-	addEventHandler("onClientResourceStop", root, function(res)
-		if res == getThisResource() then
-
-			for i in pairs(ProgressBars[id]) do
-				if isElement(ProgressBars[id][i]) then
-					destroyElement(ProgressBars[id][i])
-				end
-				ProgressBars[id][i] = nil
-			end
-		end
-	end)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Ending
@@ -2351,11 +2382,16 @@ end
 --Event Functions
 
 function cpbAddEvent(bar, event, func)
-	addEventHandler(event, root, function(...)
+
+	local f = function(...)
 		if source == bar.Main or source == bar.Canvas then
 			func(...)
 		end
-	end)
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -2390,6 +2426,7 @@ function CustomProgressBar.setColorScheme(self, ...) return cpbSetColorScheme(se
 function CustomProgressBar.getColorScheme(self, ...) return cpbGetColorScheme(self, ...) end
 
 function CustomProgressBar.addEvent(self, ...) return cpbAddEvent(self, ...) end
+function CustomProgressBar.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomProgressBar.getFrame(self, ...) return cpbGetFrame(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
@@ -2500,7 +2537,14 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Events
 
-	addEventHandler("onClientMouseEnter", root, function()
+	local BFMState = BackForMouse:getVisible()
+	ScrollBars[id].Event = {}
+
+
+	ScrollBars[id].Event.MouseEnter = {}
+	ScrollBars[id].Event.MouseEnter.Name = "onClientMouseEnter"
+	ScrollBars[id].Event.MouseEnter.Function = function()
+
 		if source == ScrollBars[id].Edges then
 			if not ScrollBars[id].ScrollEnabled then
 				ScrollBars[id].Edges:setColor("FF"..ScrollBars[id].ColorScheme.LightMain)
@@ -2508,9 +2552,13 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			end
 			ScrollBars[id].Entered = true
 		end
-	end)
+	end
 
-	addEventHandler("onClientMouseLeave", root, function()
+
+	ScrollBars[id].Event.MouseLeave = {}
+	ScrollBars[id].Event.MouseLeave.Name = "onClientMouseLeave"
+	ScrollBars[id].Event.MouseLeave.Function = function()
+
 		if ScrollBars[id].Canvas:getEnabled() then
 			if not ScrollBars[id].ScrollEnabled then
 				
@@ -2526,10 +2574,13 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 
 			ScrollBars[id].Entered = false
 		end
-	end)
+	end
 
-	local BFMState = BackForMouse:getVisible()
-	addEventHandler("onClientGUIMouseDown", root, function(button, ax, ay)
+	
+	ScrollBars[id].Event.MouseDown = {}
+	ScrollBars[id].Event.MouseDown.Name = "onClientGUIMouseDown"
+	ScrollBars[id].Event.MouseDown.Function = function(button, ax, ay)
+
 		if button == "left" and source == ScrollBars[id].Edges then
 
 			ScrollBars[id].LocalPosition.DX = ax 
@@ -2546,9 +2597,13 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			BFMState = BackForMouse:getVisible()
 			BackForMouse:setVisible(true)
 		end
-	end)
+	end
 
-	addEventHandler("onClientGUIMouseUp", root, function()
+
+	ScrollBars[id].Event.MouseUp = {}
+	ScrollBars[id].Event.MouseUp.Name = "onClientGUIMouseUp"
+	ScrollBars[id].Event.MouseUp.Function = function()
+
 		ScrollBars[id].LocalPosition.X, ScrollBars[id].LocalPosition.Y = ScrollBars[id].PhysicalPosition.X, ScrollBars[id].PhysicalPosition.Y
 		
 		if ScrollBars[id].Canvas:getEnabled() then
@@ -2570,9 +2625,12 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 		end
 		ScrollBars[id].ScrollEnabled = false
 		BackForMouse:setVisible(BFMState)
-	end)
+	end
 
-	addEventHandler("onClientCursorMove", root, function(_, _, x, y)
+
+	ScrollBars[id].Event.CursorMove = {}
+	ScrollBars[id].Event.CursorMove.Name = "onClientCursorMove"
+	ScrollBars[id].Event.CursorMove.Function = function(_, _, x, y)
 
 		if ScrollBars[id].ScrollEnabled then
 				
@@ -2614,10 +2672,11 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Scroll)
 
 		end
+	end
 
-	end)
-
-	addEventHandler("onClientMouseWheel", root, function(upper)
+	ScrollBars[id].Event.MouseWheel = {}
+	ScrollBars[id].Event.MouseWheel.Name = "onClientMouseWheel"
+	ScrollBars[id].Event.MouseWheel.Function = function(upper)
 
 		if source == ScrollBars[id].Edges or source == ScrollBars[id].Main then
 
@@ -2630,20 +2689,14 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Scroll)
 
 		end
+	end
 
-	end)
-			
-	addEventHandler("onClientResourceStop", root, function(res)
-		if res == getThisResource() then
-
-			for i in pairs(ScrollBars[id]) do
-				if isElement(ScrollBars[id][i]) then
-					destroyElement(ScrollBars[id][i])
-				end
-				ScrollBars[id][i] = nil
-			end
-		end
-	end)
+	addEventHandler(ScrollBars[id].Event.MouseEnter.Name, root, ScrollBars[id].Event.MouseEnter.Function)
+	addEventHandler(ScrollBars[id].Event.MouseLeave.Name, root, ScrollBars[id].Event.MouseLeave.Function)
+	addEventHandler(ScrollBars[id].Event.MouseDown.Name, root, ScrollBars[id].Event.MouseDown.Function)
+	addEventHandler(ScrollBars[id].Event.MouseUp.Name, root, ScrollBars[id].Event.MouseUp.Function)
+	addEventHandler(ScrollBars[id].Event.CursorMove.Name, root, ScrollBars[id].Event.CursorMove.Function)
+	addEventHandler(ScrollBars[id].Event.MouseWheel.Name, root, ScrollBars[id].Event.MouseWheel.Function)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Ending
@@ -2910,11 +2963,16 @@ end
 --Event Functions
 
 function csbAddEvent(sbar, event, func)
-	addEventHandler(event, root, function(...)
+
+	local f = function(...)
 		if source == sbar.Main or source == sbar.Edges or source == sbar.Canvas then
 			func(...)
 		end
-	end)
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -2954,6 +3012,7 @@ function CustomScrollBar.setColorScheme(self, ...) return csbSetColorScheme(self
 function CustomScrollBar.getColorScheme(self, ...) return csbGetColorScheme(self, ...) end
 
 function CustomScrollBar.addEvent(self, ...) return csbAddEvent(self, ...) end
+function CustomScrollBar.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -3101,15 +3160,24 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Events
 
+	EditBoxes[id].Event = {}
+
+
 	local move_speed = 1
 	local move_count = 0
-	addEventHandler("onClientMouseEnter", root, function()
+
+	EditBoxes[id].Event.MouseEnter = {}
+	EditBoxes[id].Event.MouseEnter.Name = "onClientMouseEnter"
+	EditBoxes[id].Event.MouseEnter.Function = function()
 		if source == EditBoxes[id].Up or source == EditBoxes[id].Down then
 			source:setColor("FF"..EditBoxes[id].ColorScheme.Main)
 		end
-	end)
+	end
 
-	addEventHandler("onClientMouseLeave", root, function()
+
+	EditBoxes[id].Event.MouseLeave = {}
+	EditBoxes[id].Event.MouseLeave.Name = "onClientMouseLeave"
+	EditBoxes[id].Event.MouseLeave.Function = function()
 		if EditBoxes[id].Edge:getEnabled() then
 
 			TextCol = "444444"
@@ -3120,12 +3188,16 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 			EditBoxes[id].Up:setColor(txtcol)
 			EditBoxes[id].Down:setColor(txtcol)
 		end
-	end)
+	end
 
 
-	addEventHandler("onClientGUIMouseUp", root, function()
+
+	EditBoxes[id].Event.MouseUp = {}
+	EditBoxes[id].Event.MouseUp.Name = "onClientGUIMouseUp"
+	EditBoxes[id].Event.MouseUp.Function = function()
 		EditBoxes[id].IsMouseDowned = false
-	end)
+	end
+
 
 	local function click(positive)
 		if positive then
@@ -3150,7 +3222,10 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 		end
 	end
 
-	addEventHandler("onClientGUIClick", root, function()
+
+	EditBoxes[id].Event.Click = {}
+	EditBoxes[id].Event.Click.Name = "onClientGUIClick"
+	EditBoxes[id].Event.Click.Function = function()
 
 		if source == EditBoxes[id].Up then
 
@@ -3164,9 +3239,11 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 			EditBoxes[id].IsMouseDowned = false
 			click(false)
 		end
-	end)
+	end
 
-	addEventHandler("onClientGUIMouseDown", root, function()
+	EditBoxes[id].Event.MouseDown = {}
+	EditBoxes[id].Event.MouseDown.Name = "onClientGUIMouseDown"
+	EditBoxes[id].Event.MouseDown.Function = function()
 	
 		move_count = 0
 		move_speed = 1
@@ -3213,9 +3290,11 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 			end, 80, 0)
 
 		end
-	end)
+	end
 
-	addEventHandler("onClientGUIChanged", EditBoxes[id].TextBox, function()
+	EditBoxes[id].Event.Changed = {}
+	EditBoxes[id].Event.Changed.Name = "onClientGUIChanged"
+	EditBoxes[id].Event.Changed.Function = function()
 
 		if EditBoxes[id].Type == "number" then
 			local text = EditBoxes[id].TextBox:getText() or ""
@@ -3234,9 +3313,12 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 			EditBoxes[id].TextBox:setText(text)
 			EditBoxes[id].Current = tonumber(text)
 		end
-	end, false)
+	end
 
-	addEventHandler("onClientMouseWheel", root, function(upper)
+
+	EditBoxes[id].Event.MouseWheel = {}
+	EditBoxes[id].Event.MouseWheel.Name = "onClientMouseWheel"
+	EditBoxes[id].Event.MouseWheel.Function = function(upper)
 
 		if source == EditBoxes[id].TextBox or source == EditBoxes[id].Up or source == EditBoxes[id].Down or source == EditBoxes[id].Edge then
 
@@ -3247,20 +3329,15 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 			end
 
 		end
+	end
 
-	end)
-
-	addEventHandler("onClientResourceStop", root, function(res)
-		if res == getThisResource() then
-
-			for i in pairs(EditBoxes[id]) do
-				if isElement(EditBoxes[id][i]) then
-					destroyElement(EditBoxes[id][i])
-				end
-				EditBoxes[id][i] = nil
-			end
-		end
-	end)
+	addEventHandler(EditBoxes[id].Event.MouseEnter.Name, root, EditBoxes[id].Event.MouseEnter.Function)
+	addEventHandler(EditBoxes[id].Event.MouseLeave.Name, root, EditBoxes[id].Event.MouseLeave.Function)
+	addEventHandler(EditBoxes[id].Event.MouseUp.Name, root, EditBoxes[id].Event.MouseUp.Function)
+	addEventHandler(EditBoxes[id].Event.Click.Name, root, EditBoxes[id].Event.Click.Function)
+	addEventHandler(EditBoxes[id].Event.MouseDown.Name, root, EditBoxes[id].Event.MouseDown.Function)
+	addEventHandler(EditBoxes[id].Event.Changed.Name, EditBoxes[id].TextBox, EditBoxes[id].Event.Changed.Function, false)
+	addEventHandler(EditBoxes[id].Event.MouseWheel.Name, root, EditBoxes[id].Event.MouseWheel.Function)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Ending
@@ -3670,11 +3747,16 @@ end
 --Event Functions
 
 function ctbAddEvent(textbox, event, func)
-	addEventHandler(event, root, function(...)
+
+	local f = function(...)
 		if source == textbox.TextBox or source == textbox.Up or source == textbox.Down or source == textbox.Edges or source == textbox.Canvas then
 			func(...)
 		end
-	end)
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -3721,6 +3803,7 @@ function CustomEdit.setColorScheme(self, ...) return ctbSetColorScheme(self, ...
 function CustomEdit.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
 
 function CustomEdit.addEvent(self, ...) return ctbAddEvent(self, ...) end
+function CustomEdit.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomEdit.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 function CustomEdit.isOnSide(self, ...) return ctbIsOnSide(self, ...) end
 
@@ -3759,6 +3842,7 @@ function CustomMemo.setColorScheme(self, ...) return ctbSetColorScheme(self, ...
 function CustomMemo.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
 
 function CustomMemo.addEvent(self, ...) return ctbAddEvent(self, ...) end
+function CustomMemo.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomMemo.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 function CustomMemo.isOnSide(self, ...) return ctbIsOnSide(self, ...) end
 
@@ -3805,6 +3889,7 @@ function CustomSpinner.setColorScheme(self, ...) return ctbSetColorScheme(self, 
 function CustomSpinner.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
 
 function CustomSpinner.addEvent(self, ...) return ctbAddEvent(self, ...) end
+function CustomSpinner.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomSpinner.putOnSide(self, ...) return ctbPutOnSide(self, ...) end
 function CustomSpinner.isOnSide(self, ...) return ctbIsOnSide(self, ...) end
 
@@ -3911,13 +3996,20 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 		triggerEvent("onCustomCheckBoxChecked", CheckBoxes[id].Main, CheckBoxes[id].State)
 	end
 
-	addEventHandler("onClientMouseEnter", root, function()
+	CheckBoxes[id].Event = {}
+
+	CheckBoxes[id].Event.MouseEnter = {}
+	CheckBoxes[id].Event.MouseEnter.Name = "onClientMouseEnter"
+	CheckBoxes[id].Event.MouseEnter.Function = function()
 		if source == CheckBoxes[id].Entrail or source == CheckBoxes[id].Main or source == CheckBoxes[id].Label then
 			CheckBoxes[id].Label:setColor(fromHEXToRGB(CheckBoxes[id].ColorScheme.Main))
 		end
-	end)
+	end
 
-	addEventHandler("onClientMouseLeave", root, function()
+
+	CheckBoxes[id].Event.MouseLeave = {}
+	CheckBoxes[id].Event.MouseLeave.Name = "onClientMouseLeave"
+	CheckBoxes[id].Event.MouseLeave.Function = function()
 
 		if CheckBoxes[id].Canvas:getEnabled() and not CheckBoxes[id].OnTableView then
 
@@ -3926,17 +4018,25 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 			
 			CheckBoxes[id].Label:setColor(fromHEXToRGB(TextColor))
 		end
-	end)
+	end
 
-	addEventHandler("onClientGUIClick", root, function()
+
+	CheckBoxes[id].Event.Click = {}
+	CheckBoxes[id].Event.Click.Name = "onClientGUIClick"
+	CheckBoxes[id].Event.Click.Function = function()
+
 		if source == CheckBoxes[id].Entrail or source == CheckBoxes[id].Main or source == CheckBoxes[id].Label then
 			local x = CheckBoxes[id].Entrail:getPosition(false)
 			if x >= 15 then CheckBoxes[id].moveLeft()
 			else CheckBoxes[id].moveRight() end
 		end
-	end)
+	end
 
-	addEventHandler("onClientRender", root, function()
+
+	CheckBoxes[id].Event.Render = {}
+	CheckBoxes[id].Event.Render.Name = "onClientRender"
+	CheckBoxes[id].Event.Render.Function = function()
+
 		if CheckBoxes[id].Animation == 1 then
 			local x = CheckBoxes[id].Entrail:getPosition(false)
 
@@ -4041,10 +4141,15 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 			end
 		end
 
-	end)
+	end
+
 
 	local BFMState = BackForMouse:getVisible()
-	addEventHandler("onClientGUIMouseDown", root, function(button, ax, ay)
+
+	CheckBoxes[id].Event.MouseDown = {}
+	CheckBoxes[id].Event.MouseDown.Name = "onClientGUIMouseDown"
+	CheckBoxes[id].Event.MouseDown.Function = function(button, ax, ay)
+
 		if button == "left" and source == CheckBoxes[id].Entrail then
 
 			CheckBoxes[id].LocalPosition.DX = ax 
@@ -4058,9 +4163,12 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 			BFMState = BackForMouse:getVisible()
 			BackForMouse:setVisible(true)
 		end
-	end)
+	end
 
-	addEventHandler("onClientGUIMouseUp", root, function()
+
+	CheckBoxes[id].Event.MouseUp = {}
+	CheckBoxes[id].Event.MouseUp.Name = "onClientGUIMouseUp"
+	CheckBoxes[id].Event.MouseUp.Function = function()
 		
 		if CheckBoxes[id].Moving then
 			local x = CheckBoxes[id].Entrail:getPosition(false)
@@ -4072,10 +4180,12 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 		CheckBoxes[id].Moving = false
 
 		BackForMouse:setVisible(BFMState)
-			
-	end)
+	end
 
-	addEventHandler("onClientCursorMove", root, function(_, _, x, y)
+
+	CheckBoxes[id].Event.CursorMove = {}
+	CheckBoxes[id].Event.CursorMove.Name = "onClientCursorMove"
+	CheckBoxes[id].Event.CursorMove.Function = function(_, _, x, y)
 
 		if CheckBoxes[id].Moving then
 				
@@ -4131,20 +4241,15 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 			CheckBoxes[id].Entrail:setPosition(sx, 0, false)
 
 		end
+	end
 
-	end)
-
-	addEventHandler("onClientResourceStop", root, function(res)
-		if res == getThisResource() then
-
-			for i in pairs(CheckBoxes[id]) do
-				if isElement(CheckBoxes[id][i]) then
-					destroyElement(CheckBoxes[id][i])
-				end
-				CheckBoxes[id][i] = nil
-			end
-		end
-	end)
+	addEventHandler(CheckBoxes[id].Event.MouseEnter.Name, root, CheckBoxes[id].Event.MouseEnter.Function)
+	addEventHandler(CheckBoxes[id].Event.MouseLeave.Name, root, CheckBoxes[id].Event.MouseLeave.Function)
+	addEventHandler(CheckBoxes[id].Event.Click.Name, root, CheckBoxes[id].Event.Click.Function)
+	addEventHandler(CheckBoxes[id].Event.Render.Name, root, CheckBoxes[id].Event.Render.Function)
+	addEventHandler(CheckBoxes[id].Event.MouseDown.Name, root, CheckBoxes[id].Event.MouseDown.Function)
+	addEventHandler(CheckBoxes[id].Event.MouseUp.Name, root, CheckBoxes[id].Event.MouseUp.Function)
+	addEventHandler(CheckBoxes[id].Event.CursorMove.Name, root, CheckBoxes[id].Event.CursorMove.Function)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Ending
@@ -4277,11 +4382,16 @@ end
 --Event Functions
 
 function ccbAddEvent(checkbox, event, func)
-	addEventHandler(event, root, function(...)
+
+	local f = function(...)
 		if source == checkbox.Entrail or source == checkbox.Main or source == checkbox.Label or source == checkbox.Canvas then
 			func(...)
 		end
-	end)
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -4321,6 +4431,7 @@ function CustomCheckBox.setColorScheme(self, ...) return ccbSetColorScheme(self,
 function CustomCheckBox.getColorScheme(self, ...) return ccbGetColorScheme(self, ...) end
 
 function CustomCheckBox.addEvent(self, ...) return ccbAddEvent(self, ...) end
+function CustomCheckBox.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomCheckBox.getFrame(self, ...) return ccbGetFrame(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
@@ -4463,7 +4574,12 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	--Events
 	ComboBoxes[id].Opened = false
 
-	addEventHandler("onClientMouseEnter", root, function()
+	ComboBoxes[id].Event = {}	
+
+
+	ComboBoxes[id].Event.MouseEnter = {}
+	ComboBoxes[id].Event.MouseEnter.Name = "onClientMouseEnter"
+	ComboBoxes[id].Event.MouseEnter.Function = function()
 
 		if source == ComboBoxes[id].Main then
 			ComboBoxes[id].Label:setColor(fromHEXToRGB(ComboBoxes[id].ColorScheme.Main))
@@ -4483,9 +4599,12 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 			
 			end
 		end
-	end)
+	end
+
 	
-	addEventHandler("onClientMouseLeave", root, function()
+	ComboBoxes[id].Event.MouseLeave = {}
+	ComboBoxes[id].Event.MouseLeave.Name = "onClientMouseLeave"
+	ComboBoxes[id].Event.MouseLeave.Function = function()
 
 		if ComboBoxes[id].Canvas:getEnabled() then
 
@@ -4500,9 +4619,12 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 			ComboBoxes[id].Label:setColor(fromHEXToRGB(TextColor))
 			ComboBoxes[id].Arrow:setColor(arrcol)
 		end
-	end)
+	end
 
-	addEventHandler("onClientGUIClick", root, function()
+
+	ComboBoxes[id].Event.Click = {}
+	ComboBoxes[id].Event.Click.Name = "onClientGUIClick"
+	ComboBoxes[id].Event.Click.Function = function()
 
 		if ComboBoxes[id].Canvas:getEnabled() then
 			for _, v in pairs(ComboBoxes[id].List.Items) do
@@ -4525,7 +4647,8 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 			end
 		end
 
-	end)
+	end
+
 
 	ComboBoxes[id].OpenList = function()
 			local x, y = guiGetOnScreenPosition(ComboBoxes[id].Canvas)
@@ -4543,15 +4666,23 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 			ComboBoxes[id].Animation = 2
 	end
 
-	addEventHandler("onClientGUIMouseUp", root, function()
+
+	ComboBoxes[id].Event.MouseUp = {}
+	ComboBoxes[id].Event.MouseUp.Name = "onClientGUIMouseUp"
+	ComboBoxes[id].Event.MouseUp.Function = function()
+
 		if source == ComboBoxes[id].Main and not ComboBoxes[id].Opened then
 			ComboBoxes[id].OpenList()
 		else
 			ComboBoxes[id].CloseList()
 		end
-	end)
+	end
 
-	addEventHandler("onClientRender", root, function()
+
+	ComboBoxes[id].Event.Render = {}
+	ComboBoxes[id].Event.Render.Name = "onClientRender"
+	ComboBoxes[id].Event.Render.Function = function()
+
 		if ComboBoxes[id].Animation == 1 then
 
 			local mheight = math.min(ComboBoxes[id].Elements*30 + 1, ComboBoxes[id].Height)
@@ -4587,19 +4718,15 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 			ComboBoxes[id].List.Canvas:setPosition(x, y, false)
 
 		end
-	end)
+	end
 
-	addEventHandler("onClientResourceStop", root, function(res)
-		if res == getThisResource() then
 
-			for i in pairs(ComboBoxes[id]) do
-				if isElement(ComboBoxes[id][i]) then
-					destroyElement(ComboBoxes[id][i])
-				end
-				ComboBoxes[id][i] = nil
-			end
-		end
-	end)
+
+	addEventHandler(ComboBoxes[id].Event.MouseEnter.Name, root, ComboBoxes[id].Event.MouseEnter.Function)
+	addEventHandler(ComboBoxes[id].Event.MouseLeave.Name, root, ComboBoxes[id].Event.MouseLeave.Function)
+	addEventHandler(ComboBoxes[id].Event.Click.Name, root, ComboBoxes[id].Event.Click.Function)
+	addEventHandler(ComboBoxes[id].Event.MouseUp.Name, root, ComboBoxes[id].Event.MouseUp.Function)
+	addEventHandler(ComboBoxes[id].Event.Render.Name, root, ComboBoxes[id].Event.Render.Function)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Ending
@@ -4935,7 +5062,8 @@ end
 --Event Functions
 
 function clbAddEvent(combo, event, func)
-	addEventHandler(event, root, function(...)
+
+	local f = function(...)
 
 		local visited = false
 		
@@ -4948,7 +5076,11 @@ function clbAddEvent(combo, event, func)
 		if source == combo.Main or source == combo.Canvas or source == combo.List.Main or visited then
 			func(...)
 		end
-	end)
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -4992,6 +5124,7 @@ function CustomComboBox.setColorScheme(self, ...) return clbSetColorScheme(self,
 function CustomComboBox.getColorScheme(self, ...) return clbGetColorScheme(self, ...) end
 
 function CustomComboBox.addEvent(self, ...) return clbAddEvent(self, ...) end
+function CustomComboBox.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomComboBox.getFrame(self, ...) return clbGetFrame(self, ...) end
 
 function CustomComboBox.addItem(self, ...) return clbAddItem(self, ...) end
@@ -5000,7 +5133,7 @@ function CustomComboBox.clear(self, ...) return clbClear(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
----------------------------TabPabels--------------------------------------------------------------------------------
+---------------------------TabPanels--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 
@@ -5115,7 +5248,12 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 		end
 	end
 
-	addEventHandler("onClientRender", root, function()
+	TabPanels[id].Event = {}
+
+	TabPanels[id].Event.Render = {}
+	TabPanels[id].Event.Render.Name = "onClientRender"
+	TabPanels[id].Event.Render.Function = function()
+
 		if TabPanels[id].Animation == 1 then
 
 			local w = TabPanels[id].Main:getSize(false)
@@ -5150,9 +5288,11 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 				TabPanels[id].AnimObjects.from.Entrail:setVisible(false)
 			end
 		end
-	end)
+	end
 
-	addEventHandler("onClientGUIClick", root, function()
+	TabPanels[id].Event.Click = {}
+	TabPanels[id].Event.Click.Name = "onClientGUIClick"
+	TabPanels[id].Event.Click.Function = function()
 
 		for _, v in pairs(TabPanels[id].Tabs) do
 			if source == v.Canvas and v ~= TabPanels[id].CurrentTab and v.Enabled then
@@ -5184,9 +5324,11 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 
 			end
 		end
-	end)
+	end
 
-	addEventHandler("onClientMouseEnter", root, function()
+	TabPanels[id].Event.MouseEnter = {}
+	TabPanels[id].Event.MouseEnter.Name = "onClientMouseEnter"
+	TabPanels[id].Event.MouseEnter.Function = function()
 
 		TextCol = "444444"
 		if TabPanels[id].ColorScheme.DarkTheme then TextCol = "EEEEEE" end
@@ -5199,19 +5341,11 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 				end
 			end
 		end
-	end)
-	
-	addEventHandler("onClientResourceStop", root, function(res)
-		if res == getThisResource() then
+	end
 
-			for i in pairs(TabPanels[id]) do
-				if isElement(TabPanels[id][i]) then
-					destroyElement(TabPanels[id][i])
-				end
-				TabPanels[id][i] = nil
-			end
-		end
-	end)
+	addEventHandler(TabPanels[id].Event.Render.Name, root, TabPanels[id].Event.Render.Function)
+	addEventHandler(TabPanels[id].Event.Click.Name, root, TabPanels[id].Event.Click.Function)
+	addEventHandler(TabPanels[id].Event.MouseEnter.Name, root, TabPanels[id].Event.MouseEnter.Function)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Ending
@@ -5571,7 +5705,8 @@ end
 --Event Functions
 
 function ctpAddEvent(tabpan, event, func)
-	addEventHandler(event, root, function(...)
+
+	local f = function(...)
 		if source == tabpan.Main then
 			func(...)
 		else
@@ -5582,7 +5717,11 @@ function ctpAddEvent(tabpan, event, func)
 				end
 			end
 		end
-	end)
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -5628,6 +5767,7 @@ function CustomTabPanel.setColorScheme(self, ...) return ctpSetColorScheme(self,
 function CustomTabPanel.getColorScheme(self, ...) return ctpGetColorScheme(self, ...) end
 
 function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self, ...) end
+function CustomTabPanel.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomTabPanel.getFrame(self, ...) return ctpGetSelectedTab(self, ...) end
 
 function CustomTabPanel.addTab(self, ...) return ctpAddTab(self, ...) end
@@ -5698,15 +5838,23 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 	Labels[id].Label:setFont(GuiFont.create(Labels[id].Font, Labels[id].FontSize))
 	Labels[id].Label:setColor(fromHEXToRGB(TextColor))
 
-	addEventHandler("onClientMouseEnter", root, function()
+
+	Labels[id].Event = {}
+
+	Labels[id].Event.MouseEnter = {}
+	Labels[id].Event.MouseEnter.Name = "onClientMouseEnter"
+	Labels[id].Event.MouseEnter.Function = function()
+
 		if source == Labels[id].Label and Labels[id].IsHoverable then
 			
 			Labels[id].Label:setColor(fromHEXToRGB(Labels[id].ColorScheme.Main))
 
 		end
-	end)
+	end
 
-	addEventHandler("onClientMouseLeave", root, function()
+	Labels[id].Event.MouseLeave = {}
+	Labels[id].Event.MouseLeave.Name = "onClientMouseLeave"
+	Labels[id].Event.MouseLeave.Function = function()
 
 		if source == Labels[id].Label and Labels[id].IsHoverable then
 			
@@ -5715,20 +5863,10 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 			Labels[id].Label:setColor(fromHEXToRGB(TextColor))
 
 		end
-	end)
+	end
 
-
-	addEventHandler("onClientResourceStop", root, function(res)
-		if res == getThisResource() then
-
-			for i in pairs(Labels[id]) do
-				if isElement(Labels[id][i]) then
-					destroyElement(Labels[id][i])
-				end
-				Labels[id][i] = nil
-			end
-		end
-	end)
+	addEventHandler(Labels[id].Event.MouseEnter.Name, root, Labels[id].Event.MouseEnter.Function)
+	addEventHandler(Labels[id].Event.MouseLeave.Name, root, Labels[id].Event.MouseLeave.Function)
 
 	return Labels[id]
 
@@ -6004,11 +6142,16 @@ end
 --Event Functions
 
 function clAddEvent(label, event, func)
-	addEventHandler(event, root, function(...)
+
+	local f = function(...)
 		if source == label.Label then
 			func(...)
 		end
-	end)
+	end
+	
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 function clAddElement(label, element)
@@ -6079,6 +6222,7 @@ function CustomLabel.setColorScheme(self, ...) return clSetColorScheme(self, ...
 function CustomLabel.getColorScheme(self, ...) return clGetColorScheme(self, ...) end
 
 function CustomLabel.addEvent(self, ...) return clAddEvent(self, ...) end
+function CustomLabel.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
 function CustomLabel.getFrame(self, ...) return clGetFrame(self, ...) end
 
 function CustomLabel.addElement(self, ...) return clAddElement(self, ...) end
@@ -6221,6 +6365,10 @@ function CustomDialog.addEvent(self, ...)
 	return self.Dialog:addEvent(...)
 end
 
+function CustomDialog.removeEvent(self, ...)
+	return self.Dialog:removeEvent(...)
+end
+
 function CustomDialog.setColorScheme(self, ...)
 	return self.Dialog:setColorScheme(...)
 end
@@ -6301,7 +6449,12 @@ function CustomTooltip.create(text, element, timetoshow)
 	end
 
 	local BFMState = BackForMouse:getVisible()
-	element:addEvent("onClientMouseEnter", function(ax, ay)
+
+	Tooltips[id].Event = {}
+
+	Tooltips[id].Event.MouseEnter = {}
+	Tooltips[id].Event.MouseEnter.Name = "onClientMouseEnter"
+	Tooltips[id].Event.MouseEnter.Function = function(ax, ay)
 
 		isEntered = true
 		back:setPosition(ax+1, ay-hght-6, false)
@@ -6315,9 +6468,12 @@ function CustomTooltip.create(text, element, timetoshow)
 			tooltiptimer = setTimer(show, Tooltips[id].ShowTime*1000, 1)
 		end
 
-	end)
+	end
 
-	addEventHandler("onClientMouseLeave", root, function()
+
+	Tooltips[id].Event.MouseLeave = {}
+	Tooltips[id].Event.MouseLeave.Name = "onClientMouseLeave"
+	Tooltips[id].Event.MouseLeave.Function = function()
 		
 		if isTimer(tooltiptimer) then killTimer(tooltiptimer) end
 
@@ -6325,17 +6481,23 @@ function CustomTooltip.create(text, element, timetoshow)
 
 		isEntered = false
 		animation = 2
-	end)
+	end
 
-	addEventHandler("onClientCursorMove", root, function(_, _, ax, ay)
+
+	Tooltips[id].Event.CursorMove = {}
+	Tooltips[id].Event.CursorMove.Name = "onClientCursorMove"
+	Tooltips[id].Event.CursorMove.Function = function(_, _, ax, ay)
 
 		if isEntered then
 			back:setPosition(ax+1, ay-hght-6, false)
 		end
 
-	end)
+	end
 
-	addEventHandler("onClientRender", root, function()
+
+	Tooltips[id].Event.Render = {}
+	Tooltips[id].Event.Render.Name = "onClientRender"
+	Tooltips[id].Event.Render.Function = function()
 
 		if animation == 1 then
 
@@ -6357,7 +6519,14 @@ function CustomTooltip.create(text, element, timetoshow)
 
 		end
 
-	end)
+	end
+
+
+	element:addEvent(Tooltips[id].Event.MouseEnter.Name, Tooltips[id].Event.MouseEnter.Function)
+
+	addEventHandler(Tooltips[id].Event.MouseLeave.Name, root, Tooltips[id].Event.MouseLeave.Function)
+	addEventHandler(Tooltips[id].Event.CursorMove.Name, root, Tooltips[id].Event.CursorMove.Function)
+	addEventHandler(Tooltips[id].Event.Render.Name, root, Tooltips[id].Event.Render.Function)
 
 	return Tooltips[id]
 end
@@ -6425,7 +6594,12 @@ function CustomLoading.create(x, y, relative, parent)
 	end
 
 	local angle = 0
-	addEventHandler("onClientRender", root, function()
+
+	Loadings[id].Event = {}
+
+	Loadings[id].Event.Render = {}
+	Loadings[id].Event.Render.Name = "onClientRender"
+	Loadings[id].Event.Render.Function = function()
 
 		if Loadings[id].Back:getVisible() and Loadings[id].Animated then
 			angle = angle+4
@@ -6436,7 +6610,9 @@ function CustomLoading.create(x, y, relative, parent)
 				v:setPosition(15 + 10*math.cos(math.rad( (i-1)*30 - angle )) - 1, 15 + 10*math.sin(math.rad( (i-1)*30 - angle )) - 1, false)
 			end
 		end
-	end)
+	end
+
+	addEventHandler(Loadings[id].Event.Render.Name, root, Loadings[id].Event.Render.Function)
 
 	Loadings[id].Back:setColor("0")
 
@@ -6633,7 +6809,11 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 	-------------------------------------------------------------------------------------
 	--Events
 
-	addEventHandler("onClientMouseEnter", root, function()
+	TableView[id].Event = {}
+
+	TableView[id].Event.MouseEnter = {}
+	TableView[id].Event.MouseEnter.Name = "onClientMouseEnter"
+	TableView[id].Event.MouseEnter.Function = function()
 
 		for k, item in pairs(TableView[id].Lines) do
 			
@@ -6679,9 +6859,12 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 			end
 		end
 
-	end)
+	end
 
-	addEventHandler("onClientMouseLeave", root, function()
+
+	TableView[id].Event.MouseLeave = {}
+	TableView[id].Event.MouseLeave.Name = "onClientMouseLeave"
+	TableView[id].Event.MouseLeave.Function = function()
 
 		for it_id, item in pairs(TableView[id].Lines) do
 
@@ -6725,9 +6908,12 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 			end
 		end
 
-	end)
+	end
 
-	addEventHandler("onClientGUIClick", root, function()
+
+	TableView[id].Event.Click = {}
+	TableView[id].Event.Click.Name = "onClientGUIClick"
+	TableView[id].Event.Click.Function = function()
 
 		local vid = 0
 		local sid = TableView[id].Selected
@@ -6792,12 +6978,15 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 			end
 		end
 
-	end)
+	end
+
 
 	TableView[id].CScrolling = false
 	TableView[id].TScrolling = false
 
-	TableView[id].Containing:addEvent("onCustomScrollPaneScrolled", function(vert, horz)
+	TableView[id].Event.ScrollPaneScrolled = {}
+	TableView[id].Event.ScrollPaneScrolled.Name = "onCustomScrollPaneScrolled"
+	TableView[id].Event.ScrollPaneScrolled.Function = function(vert, horz)
 		
 		TableView[id].CScrolling = true
 		
@@ -6806,9 +6995,13 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 		end
 		
 		TableView[id].CScrolling = false
-	end)
+	end
 
-	TableView[id].TitleScrolls:addEvent("onCustomScrollPaneScrolled", function(vert, horz)
+
+
+	TableView[id].Event.ScrollPaneScrolled2 = {}
+	TableView[id].Event.ScrollPaneScrolled2.Name = "onCustomScrollPaneScrolled"
+	TableView[id].Event.ScrollPaneScrolled2.Function = function(vert, horz)
 
 		TableView[id].TScrolling = true
 		
@@ -6819,8 +7012,15 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 		end
 
 		TableView[id].TScrolling = false
-	end)
+	end
 
+
+	addEventHandler(TableView[id].Event.MouseEnter.Name, root, TableView[id].Event.MouseEnter.Function)
+	addEventHandler(TableView[id].Event.MouseLeave.Name, root, TableView[id].Event.MouseLeave.Function)
+	addEventHandler(TableView[id].Event.Click.Name, root, TableView[id].Event.Click.Function)
+
+	TableView[id].Containing:addEvent(TableView[id].Event.ScrollPaneScrolled.Name, TableView[id].Event.ScrollPaneScrolled.Function)
+	TableView[id].TitleScrolls:addEvent(TableView[id].Event.ScrollPaneScrolled2.Name, TableView[id].Event.ScrollPaneScrolled2.Function)
 
 	return TableView[id]
 end
@@ -7679,7 +7879,7 @@ end
 
 function ctvAddEvent(tview, event, func)
 
-	addEventHandler(event, root, function(...)
+	local f1 = function(...)
 
 		local visited = false
 
@@ -7700,10 +7900,24 @@ function ctvAddEvent(tview, event, func)
 			func(...)
 		end
 
-	end)
+	end
 
-	tview.Containing:addEvent(event, func)
-	tview.TitleScrolls:addEvent(event, func)
+	addEventHandler(event, root, f1)
+
+	local f2 = tview.Containing:addEvent(event, func)
+	local f3 = tview.TitleScrolls:addEvent(event, func)
+
+	return {f1, f2, f3}
+end
+
+function ctvRemoveEvent(tview, event, funcs)
+
+	local f1, f2, f3 = unpack(funcs)
+
+	removeEventHandler(event, root, f1)
+	tview.Containing:removeEvent(event, f2)
+	tview.TitleScrolls:removeEvent(event, f3)
+
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -7760,6 +7974,7 @@ function CustomTableView.getLinesCount(self, ...) return ctvGetLinesCount(self, 
 function CustomTableView.getColumnsCount(self, ...) return ctvGetColumnsCount(self, ...) end
 
 function CustomTableView.addEvent(self, ...) return ctvAddEvent(self, ...) end
+function CustomTableView.removeEvent(self, ...) return ctvRemoveEvent(self, ...) end
 
 
 --------------------------------------------------------------------------------------------------------------------
