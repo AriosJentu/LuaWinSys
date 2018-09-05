@@ -3943,6 +3943,7 @@ function CustomMemo.setEnabled(self, ...) return ctbSetEnabled(self, ...) end
 function CustomMemo.setReadOnly(self, ...) return ctbSetReadOnly(self, ...) end
 function CustomMemo.setText(self, ...) return ctbSetText(self, ...) end
 function CustomMemo.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
+function CustomMemo.setSidesColor(self, ...) return ctbSetSidesColor(self, ...) end
 
 function CustomMemo.bringToFront(self) return ctbBringToFront(self) end
 function CustomMemo.moveToBack(self) return ctbMoveToBack(self) end
@@ -3955,6 +3956,7 @@ function CustomMemo.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
 function CustomMemo.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
 function CustomMemo.getText(self, ...) return ctbGetText(self, ...) end
 function CustomMemo.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
+function CustomMemo.getSidesColor(self, ...) return ctbGetSidesColor(self, ...) end
 
 function CustomMemo.setColorScheme(self, ...) return ctbSetColorScheme(self, ...) end
 function CustomMemo.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
@@ -3985,6 +3987,7 @@ function CustomSpinner.setEnabled(self, ...) return ctbSetEnabled(self, ...) end
 function CustomSpinner.setReadOnly(self, ...) return ctbSetReadOnly(self, ...) end
 function CustomSpinner.setText(self, ...) return ctbSetText(self, ...) end
 function CustomSpinner.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
+function CustomSpinner.setSidesColor(self, ...) return ctbSetSidesColor(self, ...) end
 
 function CustomSpinner.setMinimal(self, ...) return ctbSetMinimal(self, ...) end
 function CustomSpinner.setMaximal(self, ...) return ctbSetMaximal(self, ...) end
@@ -4001,6 +4004,7 @@ function CustomSpinner.getEnabled(self, ...) return ctbGetEnabled(self, ...) end
 function CustomSpinner.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
 function CustomSpinner.getText(self, ...) return ctbGetText(self, ...) end
 function CustomSpinner.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
+function CustomSpinner.getSidesColor(self, ...) return ctbGetSidesColor(self, ...) end
 
 function CustomSpinner.getMinimal(self, ...) return ctbGetMinimal(self, ...) end
 function CustomSpinner.getMaximal(self, ...) return ctbGetMaximal(self, ...) end
