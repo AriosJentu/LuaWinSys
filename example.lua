@@ -481,3 +481,5 @@ test_but_clicked3:addEvent("onClientGUIClick", function()
 	end
 
 end)
+
+test_tab_d:clearTabs()

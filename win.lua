@@ -5424,6 +5424,11 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 
 		if TabPanels[id].Animation == 1 then
 
+			if TabPanels[id].AnimObjects.to == nil then
+				TabPanels[id].Animation = 0
+				return
+			end
+
 			local w = TabPanels[id].Main:getSize(false)
 			local x = TabPanels[id].AnimObjects.to.Entrail:getPosition(false)
 			x = x-(w/8)
@@ -5442,6 +5447,11 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 			end
 
 		elseif TabPanels[id].Animation == 2 then
+
+			if not TabPanels[id].AnimObjects.from then
+				TabPanels[id].Animation = 0
+				return
+			end
 
 			local w = TabPanels[id].Main:getSize(false)
 			local x = TabPanels[id].AnimObjects.from.Entrail:getPosition(false)
@@ -5523,12 +5533,14 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Set functions
 function compareTabs(tabpan)
+	
 	local count = 0
 	for _, v in pairs(tabpan.Tabs) do
 		if v.Visible then
 			count = count+1
 		end
 	end
+
 	local w = tabpan.Main:getSize(false)
 	local width = math.floor(w/count) > tabpan.MinLen and math.floor(w/count) or tabpan.MinLen
 
@@ -5626,6 +5638,11 @@ function ctpAddTab(tabpan, text)
 end
 
 function ctpRemoveTab(tabpan, tab)
+
+	if tab == tabpan.CurrentTab then
+		tabpan.CurrentTab = nil
+		tabpan.AnimObjects = {from=nil, to=nil}
+	end
 		
 	for i, v in pairs(tabpan.Tabs) do
 		if v.Text == tab or v.Entrail == tab then
@@ -5646,16 +5663,24 @@ end
 
 function ctpClearTabs(tabpan)
 
-	for i, v in pairs(tabpan.Tabs) do
+	for i = #tabpan.Tabs, 1, -1 do
+
+		v = tabpan.Tabs[i]
+
+		if v == tabpan.CurrentTab then
+			tabpan.CurrentTab = nil
+			tabpan.AnimObjects = {from=nil, to=nil}
+		end
 
 		tabpan.TabScroller:removeElement(v.Canvas)
-			
+		
 		destroyElement(v.Entrail)
 		destroyElement(v.Label)
 		destroyElement(v.Divider)
 		destroyElement(v.Canvas)
 
 		table.remove(tabpan.Tabs, i)
+
 	end
 
 	compareTabs(tabpan)
