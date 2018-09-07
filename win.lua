@@ -313,15 +313,21 @@ BackForMouse:setProperty("ImageColours", "tl:0 tr:0 bl:0 br:0")
 BackForMouse:setVisible(false)
 
 addEventHandler("onClientGUIMouseEnter", root, function()
-	BackForMouse:moveToBack()
+	if BackForMouse:getVisible() then
+		BackForMouse:moveToBack()
+	end	
 end)
 
 addEventHandler("onClientGUIMouseLeave", root, function()
-	BackForMouse:moveToBack()
+	if BackForMouse:getVisible() then
+		BackForMouse:moveToBack()
+	end
 end)
 
 addEventHandler("onClientGUIClick", root, function()
-	BackForMouse:moveToBack()
+	if BackForMouse:getVisible() then
+		BackForMouse:moveToBack()
+	end
 end)
 
 local createImage = GuiStaticImage.create
@@ -3271,12 +3277,20 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	local move_speed = 1
 	local move_count = 0
 
+	local BFMState = BackForMouse:getVisible()
+
 	EditBoxes[id].Event.MouseEnter = {}
 	EditBoxes[id].Event.MouseEnter.Name = "onClientMouseEnter"
 	EditBoxes[id].Event.MouseEnter.Function = function()
 		if source == EditBoxes[id].Up or source == EditBoxes[id].Down then
+
 			source:setColor("FF"..EditBoxes[id].ColorScheme.Main)
+			
+			BFMState = BackForMouse:getVisible()
+			BackForMouse:setVisible(false)
+
 		end
+
 	end
 
 
@@ -3292,6 +3306,8 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	
 			EditBoxes[id].Up:setColor(txtcol)
 			EditBoxes[id].Down:setColor(txtcol)
+
+			BackForMouse:setVisible(BFMState)
 		end
 	end
 
@@ -3436,6 +3452,24 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 		end
 	end
 
+	EditBoxes[id].Event.Focus = {}
+	EditBoxes[id].Event.Focus.Name = "onClientGUIFocus"
+	EditBoxes[id].Event.Focus.Function = function()
+		if source == EditBoxes[id].TextBox then
+			BFMState = BackForMouse:getVisible()
+			BackForMouse:setVisible(false)
+		end
+	end
+
+	EditBoxes[id].Event.Blur = {}
+	EditBoxes[id].Event.Blur.Name = "onClientGUIBlur"
+	EditBoxes[id].Event.Blur.Function = function()
+		if source == EditBoxes[id].TextBox then
+			BackForMouse:setVisible(BFMState)
+		end
+	end
+
+
 	addEventHandler(EditBoxes[id].Event.MouseEnter.Name, root, EditBoxes[id].Event.MouseEnter.Function)
 	addEventHandler(EditBoxes[id].Event.MouseLeave.Name, root, EditBoxes[id].Event.MouseLeave.Function)
 	addEventHandler(EditBoxes[id].Event.MouseUp.Name, root, EditBoxes[id].Event.MouseUp.Function)
@@ -3443,6 +3477,8 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	addEventHandler(EditBoxes[id].Event.MouseDown.Name, root, EditBoxes[id].Event.MouseDown.Function)
 	addEventHandler(EditBoxes[id].Event.MouseWheel.Name, root, EditBoxes[id].Event.MouseWheel.Function)
 	addEventHandler(EditBoxes[id].Event.Changed.Name, EditBoxes[id].TextBox, EditBoxes[id].Event.Changed.Function, false)
+	addEventHandler(EditBoxes[id].Event.Focus.Name, root, EditBoxes[id].Event.Focus.Function)
+	addEventHandler(EditBoxes[id].Event.Blur.Name, root, EditBoxes[id].Event.Blur.Function)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Ending
