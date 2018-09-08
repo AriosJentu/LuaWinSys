@@ -62,6 +62,27 @@ function getType(object)
 	end
 end
 
+function isCWElement(object)
+	return multiplecompare(object, {
+		CustomWindow, 
+		CustomScrollPane, 
+		CustomButton, 
+		CustomEdit, 
+		CustomMemo, 
+		CustomSpinner, 
+		CustomLabel, 
+		CustomProgressBar, 
+		CustomScrollBar, 
+		CustomComboBox, 
+		CustomDialog, 
+		CustomLoading, 
+		CustomTooltip, 
+		CustomCheckBox, 
+		CustomTableView, 
+		CustomTabPanel
+	}) 
+end
+
 --------------------------------------------------------------------------------------------------------------------
 
 function string:split(sep)
