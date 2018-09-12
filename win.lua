@@ -4998,6 +4998,7 @@ function clbRemoveItem(combo, item)
 			destroyElement(v.Mark)
 			destroyElement(v.Canvas)
 			table.remove(combo.List.Items, i)
+			visited = true
 	
 		end
 	end
@@ -5008,12 +5009,16 @@ function clbRemoveItem(combo, item)
 
 	end
 
+	if visited then
+		combo.Elements = combo.Elements-1
+	end
+	
 	combo.Entrail:update()
 end
 
 function clbClear(combo)
-	for _, v in pairs(combo.List.Items) do
-		clbRemoveItem(combo, v)
+	for i = #combo.List.Items, 1, -1 do
+		clbRemoveItem(combo, combo.List.Items[i])
 	end
 end
 
