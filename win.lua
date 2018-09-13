@@ -37,7 +37,7 @@ function compareDefaults(parent)
 	})
 end
 
-function getType(object)
+function getCWType(object)
 	if multiplecompare(object, {
 		CustomWindow, 
 		CustomScrollPane, 
@@ -1084,11 +1084,11 @@ end
 
 CustomWindow = {}
 CustomWindow.__index = CustomWindow
+CustomWindow.ClassName = "CustomWindow"
 
 function CustomWindow.create(...)
 
 	local self = setmetatable(guiCreateCustomWindow(...), CustomWindow)
-	self.ClassName = "CustomWindow"
 
 	compareAppend(self, ...)
 	return self
@@ -1704,10 +1704,10 @@ end
 --OOP functions
 CustomScrollPane = {}
 CustomScrollPane.__index = CustomScrollPane
+CustomScrollPane.ClassName = "CustomScrollPane"
 
 function CustomScrollPane.create(...)
 	local self = setmetatable(guiCreateCustomScrollPane(...), CustomScrollPane)
-	self.ClassName = "CustomScrollPane"
 
 	compareAppend(self, ...)
 	return self
@@ -2187,10 +2187,10 @@ end
 --OOP functions
 CustomButton = {}
 CustomButton.__index = CustomButton
+CustomButton.ClassName = "CustomButton"
 
 function CustomButton.create(...)
 	local self = setmetatable(guiCreateCustomButton(...), CustomButton)
-	self.ClassName = "CustomButton"
 	compareAppend(self, ...)
 
 	self.Element = self.Main
@@ -2514,10 +2514,10 @@ end
 --OOP Functions
 CustomProgressBar = {}
 CustomProgressBar.__index = CustomProgressBar
+CustomProgressBar.ClassName = "CustomProgressBar"
 
 function CustomProgressBar.create(...)
 	local self = setmetatable(guiCreateCustomProgressBar(...), CustomProgressBar)
-	self.ClassName = "CustomProgressBar"
 	compareAppend(self, ...)
 
 	self.Element = self.Main
@@ -3107,10 +3107,11 @@ end
 --OOP Functions
 CustomScrollBar = {}
 CustomScrollBar.__index = CustomScrollBar
+CustomScrollBar.ClassName = "CustomScrollBar"
+
 
 function CustomScrollBar.create(...)
 	local self = setmetatable(guiCreateCustomScrollBar(...), CustomScrollBar)
-	self.ClassName = "CustomScrollBar"
 	compareAppend(self, ...)
 
 	return self
@@ -3941,10 +3942,11 @@ end
 --OOP Functions
 CustomEdit = {}
 CustomEdit.__index = CustomEdit
+CustomEdit.ClassName = "CustomEdit"
+
 
 function CustomEdit.create(...)
 	local self = setmetatable(guiCreateCustomEdit(...), CustomEdit)
-	self.ClassName = "CustomEdit"
 	compareAppend(self, ...)
 
 	self.Element = self.TextBox
@@ -3991,10 +3993,10 @@ function CustomEdit.destroy(self, ...) return ctbDestroy(self, ...) end
 
 CustomMemo = {}
 CustomMemo.__index = CustomMemo
+CustomMemo.ClassName = "CustomMemo"
 
 function CustomMemo.create(...)
 	local self = setmetatable(guiCreateCustomMemo(...), CustomMemo)
-	self.ClassName = "CustomMemo"
 	compareAppend(self, ...)
 
 	return self
@@ -4035,10 +4037,10 @@ function CustomMemo.destroy(self, ...) return ctbDestroy(self, ...) end
 
 CustomSpinner = {}
 CustomSpinner.__index = CustomSpinner
+CustomSpinner.ClassName = "CustomSpinner"
 
 function CustomSpinner.create(...)
 	local self = setmetatable(guiCreateCustomSpinner(...), CustomSpinner)
-	self.ClassName = "CustomSpinner"
 	compareAppend(self, ...)
 
 	return self
@@ -4602,10 +4604,10 @@ end
 
 CustomCheckBox = {}
 CustomCheckBox.__index = CustomCheckBox
+CustomCheckBox.ClassName = "CustomCheckBox"
 
 function CustomCheckBox.create(...)
 	local self = setmetatable(guiCreateCustomCheckBox(...), CustomCheckBox)
-	self.ClassName = "CustomCheckBox"
 	compareAppend(self, ...)
 
 	self.Element = self.Label
@@ -5012,7 +5014,7 @@ function clbRemoveItem(combo, item)
 	if visited then
 		combo.Elements = combo.Elements-1
 	end
-	
+
 	combo.Entrail:update()
 end
 
@@ -5315,10 +5317,10 @@ end
 
 CustomComboBox = {}
 CustomComboBox.__index = CustomComboBox
+CustomComboBox.ClassName = "CustomComboBox"
 
 function CustomComboBox.create(...)
 	local self = setmetatable(guiCreateCustomComboBox(...), CustomComboBox)
-	self.ClassName = "CustomComboBox"
 	compareAppend(self, ...)
 
 	self.Element = self.Main
@@ -6012,10 +6014,10 @@ end
 
 CustomTabPanel = {}
 CustomTabPanel.__index = CustomTabPanel
+CustomTabPanel.ClassName = "CustomTabPanel"
 
 function CustomTabPanel.create(...)
 	local self = setmetatable(guiCreateCustomTabPanel(...), CustomTabPanel)
-	self.ClassName = "CustomTabPanel"
 	compareAppend(self, ...)
 
 	return self
@@ -6473,10 +6475,10 @@ end
 --OOP functions
 CustomLabel = {}
 CustomLabel.__index = CustomLabel
+CustomLabel.ClassName = "CustomLabel"
 
 function CustomLabel.create(...)
 	local self = setmetatable(guiCreateCustomLabel(...), CustomLabel)
-	self.ClassName = "CustomLabel"
 	compareAppend(self, ...)
 
 	self.Element = self.Label
@@ -6535,6 +6537,7 @@ function CustomLabel.destroy(self, ...) return clDestroy(self, ...) end
 
 CustomDialog = {}
 CustomDialog.__index = CustomDialog
+CustomDialog.ClassName = "CustomDialog"
 
 Dialogs = {}
 
@@ -6637,7 +6640,6 @@ function CustomDialog.create(rwidth, text, buttons, window)
 	dialog:addElement(dialog.Label)
 
 	Dialogs[id].Dialog = dialog
-	Dialogs[id].ClassName = "CustomDialog"
 
 	if window then
 		window:addElement(dialog)
@@ -6696,6 +6698,7 @@ end
 
 CustomTooltip = {}
 CustomTooltip.__index = CustomTooltip
+CustomTooltip.ClassName = "CustomTooltip"
 
 Tooltips = {}
 
@@ -6704,7 +6707,6 @@ function CustomTooltip.create(text, element, timetoshow)
 	local id = #Tooltips+1
 
 	Tooltips[id] = setmetatable({}, CustomTooltip)
-	Tooltips[id].ClassName = "CustomTooltip"
 	if not timetoshow or not tonumber(timetoshow) or timetoshow < 0 then
 		timetoshow = 1
 	end
@@ -6896,13 +6898,13 @@ end
 
 CustomLoading = {}
 CustomLoading.__index = CustomLoading
+CustomLoading.ClassName = "CustomLoading"
 
 Loadings = {}
 function CustomLoading.create(x, y, relative, parent)
 
 	local id = #Loadings+1
 	Loadings[id] = setmetatable({}, CustomLoading)
-	Loadings[id].ClassName = "CustomLoading"
 
 	if relative then
 
@@ -7023,7 +7025,6 @@ function CustomLoading.setColorScheme(self, scheme)
 	self.ColorScheme = scheme
 	self:setProgress(self:getProgress())
 end
-
 
 
 function CustomLoading.getProgress(self)
@@ -8295,10 +8296,10 @@ end
 --OOP functions
 CustomTableView = {}
 CustomTableView.__index = CustomTableView
+CustomTableView.ClassName = "CustomTableView"
 
 function CustomTableView.create(...)
 	local self = setmetatable(guiCreateCustomTableView(...), CustomTableView)
-	self.ClassName = "CustomTableView"
 	compareAppend(self, ...)
 
 	return self
