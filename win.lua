@@ -802,6 +802,9 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 		if Windows[id].Animation == "move" then
 			local ax, ay = Windows[id].MoveCursorPositions.X, Windows[id].MoveCursorPositions.Y
 			Windows[id].Canvas:setPosition(cx-ax, cy-ay, false)
+
+			triggerEvent("onClientGUIMove", Windows[id].Canvas)
+
 			return
 		end
 
@@ -845,8 +848,10 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 			Windows[id]:setPosition(nx, ny, false)
 			Windows[id]:setSize(nw, nh, false)
-			
-			BackForMouse:setVisible(true)	
+
+			BackForMouse:setVisible(true)
+
+			triggerEvent("onClientGUISize", Windows[id].Canvas)
 		end
 	end
 
@@ -1509,6 +1514,7 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 			ScrollPanels[id].Scroller:setPosition(posX, posY, false)
 
 			triggerEvent("onCustomScrollPaneScrolled", ScrollPanels[id].Scroller, ScrollPanels[id]:getVerticalScrollPosition(), ScrollPanels[id]:getHorizontalScrollPosition())
+			triggerEvent("onClientGUIScroll", ScrollPanels[id].Scroller, ScrollPanels[id])
 
 		end
 
@@ -1567,6 +1573,7 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 			ScrollPanels[id].Scroller:setPosition(x, y, false)
 
 			triggerEvent("onCustomScrollPaneScrolled", ScrollPanels[id].Scroller, ScrollPanels[id]:getVerticalScrollPosition(), ScrollPanels[id]:getHorizontalScrollPosition())
+			triggerEvent("onClientGUIScroll", ScrollPanels[id].Scroller, ScrollPanels[id])
 
 		end
 	end
@@ -1712,6 +1719,7 @@ function cspSetVerticalScrollPosition(spane, percentage)
 	cspRecalcSize(spane)
 
 	triggerEvent("onCustomScrollPaneScrolled", spane.Scroller, spane:getVerticalScrollPosition(), spane:getHorizontalScrollPosition())
+	triggerEvent("onClientGUIScroll", spane.Scroller, spane)
 
 end
 
@@ -1733,6 +1741,7 @@ function cspSetHorizontalScrollPosition(spane, percentage)
 	cspRecalcSize(spane)
 
 	triggerEvent("onCustomScrollPaneScrolled", spane.Scroller, spane:getVerticalScrollPosition(), spane:getHorizontalScrollPosition())
+	triggerEvent("onClientGUIScroll", spane.Scroller, spane)
 
 end
 
@@ -3010,6 +3019,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 			ScrollBars[id].Edges:setPosition(sx, sy, false)
 
 			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Scroll)
+			triggerEvent("onClientGUIScroll", ScrollBars[id].Canvas, ScrollBars[id])
 
 		end
 	end
@@ -3027,6 +3037,7 @@ function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
 
 			csbSetScrollPosition(ScrollBars[id], ScrollBars[id].Scroll + x*upper*ScrollBars[id].ScrollSpeed)
 			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Scroll)
+			triggerEvent("onClientGUIScroll", ScrollBars[id].Canvas, ScrollBars[id])
 
 		end
 	end
@@ -3063,6 +3074,7 @@ function csbSetScrollPosition(scroll, pos)
 	end
 
 	triggerEvent("onCustomScrollBarScrolled", scroll.Canvas, scroll.Scroll)
+	triggerEvent("onClientGUIScroll", scroll.Canvas, scroll)
 
 end
 
