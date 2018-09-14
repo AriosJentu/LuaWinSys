@@ -4,8 +4,9 @@
 	<!-- Libraries -->
 	<script src="win.lua" type="client"/>
 	<script src="example.lua" type="client"/>
+	<script src="test.lua" type="client"/>
 	
-	<!-- Editor Files -->	
+	<!-- Editor Files >	
 	<script src="editor/utilities.lua" type="shared"/>
 	<script src="editor/gui.lua" type="client"/>
 	<script src="editor/tools.lua" type="client"/>
@@ -29,7 +30,9 @@
 	<script src="editor/loading.lua" type="client"/>
 
 	<script src="editor/properties.lua" type="client"/>
-	<script src="editor/draw.lua" type="client"/>
+	<script src="editor/draw.lua" type="client"/-->
+
+	<script src="luaeditor.lua" type="client"/>
 
 	<file src="images/pane.png"/>
 	<file src="images/cross.png"/>
@@ -43,6 +46,8 @@
 
 	<!-- Library Fonts -->
 	<file src="fonts/thin.ttf"/>
+	<file src="fonts/mono.ttf"/>  
+	
 	<file src="fonts/OSB.ttf"/>
 	<file src="fonts/OSBI.ttf"/>
 	<file src="fonts/OSEB.ttf"/>

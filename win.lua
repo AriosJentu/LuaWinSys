@@ -291,7 +291,8 @@ Fonts = {
 	HelvetRegular = ":"..CONTENT.."/fonts/HR.ttf",
 	HelvetThin = ":"..CONTENT.."/fonts/HT.ttf",
 
-	RobotoThin = ":"..CONTENT.."/fonts/thin.ttf"
+	RobotoThin = ":"..CONTENT.."/fonts/thin.ttf",
+	Mono = ":"..CONTENT.."/fonts/mono.ttf"
 }
 
 function guiGetOnScreenPosition(element)
@@ -3974,6 +3975,13 @@ function ctbSetScrollStep(textbox, stepsize)
 	textbox.ScrollSpeed = stepsize
 end
 
+function ctbSetFont(textbox, font, size)
+
+	if not size or not tonumber(size) then size = 8 end
+
+	textbox.TextBox:setFont(GuiFont.create(font, size))
+end
+
 function ctbPutOnSide(textbox, bool)
 
 	textbox.IsOnSideBlock = bool
@@ -4197,6 +4205,7 @@ function CustomEdit.setText(self, ...) return ctbSetText(self, ...) end
 function CustomEdit.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
 function CustomEdit.setMasked(self, ...) return ctbSetMasked(self, ...) end
 function CustomEdit.setSidesColor(self, ...) return ctbSetSidesColor(self, ...) end
+function CustomEdit.setFont(self, ...) return ctbSetFont(self, ...) end
 
 function CustomEdit.bringToFront(self) return ctbBringToFront(self) end
 function CustomEdit.moveToBack(self) return ctbMoveToBack(self) end
@@ -4243,6 +4252,7 @@ function CustomMemo.setReadOnly(self, ...) return ctbSetReadOnly(self, ...) end
 function CustomMemo.setText(self, ...) return ctbSetText(self, ...) end
 function CustomMemo.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
 function CustomMemo.setSidesColor(self, ...) return ctbSetSidesColor(self, ...) end
+function CustomMemo.setFont(self, ...) return ctbSetFont(self, ...) end
 
 function CustomMemo.bringToFront(self) return ctbBringToFront(self) end
 function CustomMemo.moveToBack(self) return ctbMoveToBack(self) end
@@ -4287,6 +4297,7 @@ function CustomSpinner.setReadOnly(self, ...) return ctbSetReadOnly(self, ...) e
 function CustomSpinner.setText(self, ...) return ctbSetText(self, ...) end
 function CustomSpinner.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
 function CustomSpinner.setSidesColor(self, ...) return ctbSetSidesColor(self, ...) end
+function CustomSpinner.setFont(self, ...) return ctbSetFont(self, ...) end
 
 function CustomSpinner.setMinimal(self, ...) return ctbSetMinimal(self, ...) end
 function CustomSpinner.setMaximal(self, ...) return ctbSetMaximal(self, ...) end
