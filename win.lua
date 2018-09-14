@@ -435,6 +435,31 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Shadows.Vertical = GuiStaticImage.create(2, 0, w, h+4, pane, false, Windows[id].Canvas)
 	Windows[id].Shadows.Horizontal = GuiStaticImage.create(0, 2, w+4, h, pane, false, Windows[id].Canvas)
 
+	--Size editors
+	Windows[id].SizeEdits = {}
+	Windows[id].SizeEdits.LeftTop = GuiStaticImage.create(0, 0, 5, 5, pane, false, Windows[id].Canvas)
+	Windows[id].SizeEdits.RightTop = GuiStaticImage.create(w-1, 0, 5, 5, pane, false, Windows[id].Canvas)
+	Windows[id].SizeEdits.LeftBottom = GuiStaticImage.create(0, h-1, 5, 5, pane, false, Windows[id].Canvas)
+	Windows[id].SizeEdits.RightBottom = GuiStaticImage.create(w-1, h-1, 5, 5, pane, false, Windows[id].Canvas)
+
+	Windows[id].SizeEdits.Left = GuiStaticImage.create(0, 5, 5, h-6, pane, false, Windows[id].Canvas)
+	Windows[id].SizeEdits.Right = GuiStaticImage.create(w-1, 5, 5, h-6, pane, false, Windows[id].Canvas)
+	Windows[id].SizeEdits.Top = GuiStaticImage.create(5, 0, w-6, 5, pane, false, Windows[id].Canvas)
+	Windows[id].SizeEdits.Bottom = GuiStaticImage.create(5, h-1, w-6, 5, pane, false, Windows[id].Canvas)
+
+	Windows[id].ResizeCells = {
+		Windows[id].SizeEdits.LeftTop,
+		Windows[id].SizeEdits.Top, 
+		Windows[id].SizeEdits.RightTop,
+
+		Windows[id].SizeEdits.Left,
+		Windows[id].SizeEdits.Right,
+
+		Windows[id].SizeEdits.LeftBottom,
+		Windows[id].SizeEdits.Bottom, 
+		Windows[id].SizeEdits.RightBottom
+	}
+
 	--Frame
 	Windows[id].Frame = GuiStaticImage.create(2, 2, w, h, pane, false, Windows[id].Canvas)
 
@@ -476,6 +501,12 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	txtcol = "FF"..TextColor
 	whitecol = "FFFFFFFF"
 
+	for _, v in pairs(Windows[id].SizeEdits) do
+		v:setProperty("AlwaysOnTop", "True")
+		v:setColor("0")
+		v:setEnabled(false)
+	end
+
 	Windows[id].Frame:setColor(frmcol)
 	Windows[id].Top:setColor("0")
 	Windows[id].Top:setProperty("AlwaysOnTop", "True")
@@ -514,10 +545,17 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Params
 	Windows[id].Movable = true
+	Windows[id].Sizable = false
 	Windows[id].MoveCursorPositions = {X = 0, Y = 0}
-	Windows[id].Animation = "none" --"open", "close", "move"
+	Windows[id].SizeCursorPositions = {X = 0, Y = 0}
+	Windows[id].ResizingCalc = {X = 0, Y = 0, W = 0, H = 0}
+	Windows[id].Animation = "none" --"open", "close", "move", "size"
+	Windows[id].ResizeType = 0 --1 to 8, like grid, but without middle cell
 
 	Windows[id].Positions = {X = x, Y = y}
+
+	Windows[id].MinimalSizes = {W = 10, H = 10}
+	Windows[id].MaximalSizes = {W = Width, H = Height}
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Functions
@@ -662,7 +700,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 		end
 	end
 
-	--Close button hover
+	--Close button and sides resizers hover
 	Windows[id].Event.Enter = {}
 	Windows[id].Event.Enter.Name = "onClientMouseEnter"
 	Windows[id].Event.Enter.Function = function()
@@ -671,52 +709,144 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 			Windows[id].CloseMain:setColor("FF"..Windows[id].ColorScheme.Red)
 			Windows[id].CloseAlter:setColor("FFFFFFFF")
 		end
+
+		for i, rsblock in pairs(Windows[id].ResizeCells) do
+			if source == rsblock then
+				rsblock:setColor("22000000")
+			end
+		end
+
 	end
 
-	--Close button leave
+
+	--Close button and sides resizers leave
 	Windows[id].Event.Leave = {}
 	Windows[id].Event.Leave.Name = "onClientMouseLeave"
 	Windows[id].Event.Leave.Function = function()
+
 		Windows[id].CloseMain:setColor("0")
 		Windows[id].CloseAlter:setColor("0")
+
+		for i, rsblock in pairs(Windows[id].ResizeCells) do
+			rsblock:setColor("0")
+		end
 	end
 
+	local BFMState = BackForMouse:getVisible()
 
-	--Window move - hold
+	--Window move and resize - hold
 	Windows[id].Event.MouseDown = {}
 	Windows[id].Event.MouseDown.Name = "onClientGUIMouseDown"
 	Windows[id].Event.MouseDown.Function = function(button, x, y)
+
+		BFMState = BackForMouse:getVisible()
+
 		if Windows[id].Movable and button == "left" and (source == Windows[id].Top or source == Windows[id].Dialog) then
 			
 			Windows[id].Animation = "move"
 			
 			local ax, ay = Windows[id].Canvas:getPosition(false)
 			Windows[id].MoveCursorPositions = {X = x-ax, Y = y-ay}
+
+		end
+
+		if Windows[id].Sizable and button == "left" then
+
+			for i, rsblock in pairs(Windows[id].ResizeCells) do
+				if source == rsblock then
+
+					Windows[id].Animation = "size"
+					Windows[id].ResizeType = i
+
+					local w, h = Windows[id]:getSize(false)
+					local sx, sy = Windows[id]:getPosition(false)
+					Windows[id].ResizingCalc = {X = sx, Y = sy, W = w, H = h}
+					
+					Windows[id].SizeCursorPositions = {X = x, Y = y}
+					
+					BackForMouse:setVisible(true)	
+
+					break
+				end
+			end
 		end
 	end
 
 
-	--Windows move - relax
+	--Windows move and resize - relax
 	Windows[id].Event.MouseUp = {}
 	Windows[id].Event.MouseUp.Name = "onClientGUIMouseUp"
 	Windows[id].Event.MouseUp.Function = function()
-		if source == Windows[id].Top or source == Windows[id].Dialog then
+		
+		if source == Windows[id].Top or source == Windows[id].Dialog or Windows[id].Animation == "size" then
 			Windows[id].Animation = "none"
 			Windows[id].MoveCursorPositions = {X = 0, Y = 0}
+			Windows[id].SizeCursorPositions = {X = 0, Y = 0}
+			Windows[id].ResizingCalc = {X = 0, Y = 0, W = 0, H = 0}
 
 			local x, y = Windows[id].Canvas:getPosition(false)
 			Windows[id].Positions = {X = x+2, Y = y+2}
+			Windows[id].ResizeType = 0
+
 		end
+
+		BackForMouse:setVisible(BFMState)	
 	end
 	
 
-	--Window move - moving
+	--Window move - moving, resize - resizing
 	Windows[id].Event.CursorMove = {}
 	Windows[id].Event.CursorMove.Name = "onClientCursorMove"
-	Windows[id].Event.CursorMove.Function = function(_, _, x, y)
+	Windows[id].Event.CursorMove.Function = function(_, _, cx, cy)
+
 		if Windows[id].Animation == "move" then
 			local ax, ay = Windows[id].MoveCursorPositions.X, Windows[id].MoveCursorPositions.Y
-			Windows[id].Canvas:setPosition(x-ax, y-ay, false)
+			Windows[id].Canvas:setPosition(cx-ax, cy-ay, false)
+			return
+		end
+
+		if Windows[id].Animation == "size" then
+
+			local x, y = Windows[id].ResizingCalc.X, Windows[id].ResizingCalc.Y
+			local w, h = Windows[id].ResizingCalc.W, Windows[id].ResizingCalc.H
+			local ax, ay = Windows[id].SizeCursorPositions.X, Windows[id].SizeCursorPositions.Y
+
+			local nx, ny, nw, nh = x, y, w, h
+
+			local t = Windows[id].ResizeType
+			local coordxedit = 0
+			local coordyedit = 0
+
+			if t == 8 or t == 5 or t == 3 then
+				nw = w+(cx-ax)
+			end
+
+			if t == 8 or t == 7 or t == 6 then
+				nh = h+(cy-ay)
+			end
+
+			if t == 1 or t == 2 or t == 3 then
+				ny = y+(cy-ay)
+				nh = h-(cy-ay)
+				coordyedit = 1
+			end
+
+			if t == 1 or t == 4 or t == 6 then
+				nx = x+(cx-ax)
+				nw = w-(cx-ax)
+				coordxedit = 1
+			end
+
+			if nw < Windows[id].MinimalSizes.W then nx = x + (w-Windows[id].MinimalSizes.W)*coordxedit end
+			if nw > Windows[id].MaximalSizes.W then nx = x + (w-Windows[id].MinimalSizes.W)*coordxedit end
+
+			if nh < Windows[id].MinimalSizes.H then ny = y + (h-Windows[id].MinimalSizes.H)*coordyedit end
+			if nh > Windows[id].MaximalSizes.H then ny = y + (h-Windows[id].MinimalSizes.H)*coordyedit end
+
+			Windows[id]:setPosition(nx, ny, false)
+			Windows[id]:setSize(nw, nh, false)
+			
+			BackForMouse:setVisible(true)	
 		end
 	end
 
@@ -769,6 +899,13 @@ function cwSetSize(window, w, h, relative)
 
 	end
 
+	if w < window.MinimalSizes.W then w = window.MinimalSizes.W end
+	if w > window.MaximalSizes.W then w = window.MaximalSizes.W end
+
+	if h < window.MinimalSizes.H then h = window.MinimalSizes.H end
+	if h > window.MaximalSizes.H then h = window.MaximalSizes.H end 
+
+
 	window.Canvas:setSize(w+4, h+4, false)
 
 	window.Shadows.Central:setSize(w+2, h+2, false)
@@ -779,19 +916,24 @@ function cwSetSize(window, w, h, relative)
 	window.Top:setSize(w, 22, false)
 	--window.Divider:setSize(w, 1, false)
 	window.Title:setSize(w, 19, false)
+	window.AlterTitle:setSize(w, 19, false)
 
 	window.Close:setPosition(w-21, 0, false)
 
 
-	local location = window.SideBlockLocation 
 
-	sw, sh = w, h
+	local location = window.SideBlockLocation 
+	local length = window.SideBlockLength 
+
+	local sw, sh = w, h
 	x, y = 0, 0
+
 
 	if location == "top" or location == "bottom" then
 		y = (location == "bottom") and sh-length or 0
 		sh = length
 	end
+
 	if location == "left" or location == "right" then
 		x = (location == "right") and sw-length or 0
 		sw = length
@@ -805,6 +947,17 @@ function cwSetSize(window, w, h, relative)
 	window.SideBlock:setSize(sw, sh, false)
 	window.AlterTitle:setPosition(-x, -y, false)
 	window.CloseAlter:setPosition(-x, -y, false)
+	
+	window.SizeEdits.RightTop:setPosition(w-1, 0, false)
+	window.SizeEdits.LeftBottom:setPosition(0, h-1, false)
+	window.SizeEdits.RightBottom:setPosition(w-1, h-1, false)
+	window.SizeEdits.Right:setPosition(w-1, 5, false)
+	window.SizeEdits.Bottom:setPosition(5, h-1, false)
+
+	window.SizeEdits.Left:setSize(5, h-6, false)
+	window.SizeEdits.Right:setSize(5, h-6, false)
+	window.SizeEdits.Top:setSize(w-6, 5, false)
+	window.SizeEdits.Bottom:setSize(w-6, 5, false)
 
 end
 
@@ -835,6 +988,48 @@ end
 
 function cwSetMovable(window, bool)
 	window.Movable = bool or false
+end
+
+function cwSetSizable(window, bool)
+	window.Sizable = bool or false
+
+	for _, v in pairs(window.SizeEdits) do
+		v:setEnabled(window.Sizable)
+	end
+end
+
+function cwSetMinimalWidth(window, w)
+	window.MinimalSizes.W = w
+	local w, h = window:getSize(false)
+	window:setSize(w, h, false)
+end
+
+function cwSetMinimalHeight(window, h)
+	window.MinimalSizes.H = h
+	local w, h = window:getSize(false)
+	window:setSize(w, h, false)
+end
+
+function cwSetMinimalSize(window, w, h)
+	cwSetMinimalWidth(window, w)
+	cwSetMinimalHeight(window, h)
+end
+
+function cwSetMaximalWidth(window, w)
+	window.MaximalSizes.W = w
+	local w, h = window:getSize(false)
+	window:setSize(w, h, false)
+end
+
+function cwSetMaximalHeight(window, h)
+	window.MaximalSizes.H = h
+	local w, h = window:getSize(false)
+	window:setSize(w, h, false)
+end
+
+function cwSetMaximalSize(window, w, h)
+	cwSetMaximalWidth(window, w)
+	cwSetMaximalHeight(window, h)
 end
 
 function cwShowBar(window, location, length)
@@ -944,9 +1139,21 @@ function cwGetCloseEnabled(window)
 	return window.Close:getVisible()
 end
 
-function cwGetMovable(window, bool)
+function cwGetMovable(window)
 	return window.Movable
 end
+
+function cwGetSizable(window)
+	return window.Sizable
+end
+
+function cwGetMinimalWidth(window) return window.MinimalSizes.W end
+function cwGetMinimalHeight(window)	return window.MinimalSizes.H end
+function cwGetMinimalSize(window) return cwGetMinimalWidth(window), cwGetMinimalHeight(window) end
+
+function cwGetMaximalWidth(window) return window.MaximalSizes.W end
+function cwGetMaximalHeight(window)	return window.MaximalSizes.H end
+function cwSetMaximalSize(window) return cwGetMaximalWidth(window), cwGetMaximalHeight(window) end
 
 ---
 
@@ -1102,6 +1309,13 @@ function CustomWindow.setPosition(self, ...) return cwSetPosition(self, ...) end
 function CustomWindow.setText(self, ...) return cwSetTitle(self, ...) end
 function CustomWindow.setTitle(self, ...) return cwSetTitle(self, ...) end
 function CustomWindow.setMovable(self, ...) return cwSetMovable(self, ...) end
+function CustomWindow.setSizable(self, ...) return cwSetSizable(self, ...) end
+function CustomWindow.setMinimalWidth(self, ...) return cwSetMinimalWidth(self, ...) end
+function CustomWindow.setMinimalHeight(self, ...) return cwSetMinimalHeight(self, ...) end
+function CustomWindow.setMinimalSize(self, ...) return cwSetMinimalSize(self, ...) end
+function CustomWindow.setMaximalWidth(self, ...) return cwSetMaximalWidth(self, ...) end
+function CustomWindow.setMaximalHeight(self, ...) return cwSetMaximalHeight(self, ...) end
+function CustomWindow.setMaximalSize(self, ...) return cwSetMaximalSize(self, ...) end
 function CustomWindow.setSideBarLength(self, ...) return cwSetSideBarLength(self, ...) end
 function CustomWindow.setSideBarPosition(self, ...) return cwSetSideBarLocation(self, ...) end
 
@@ -1117,6 +1331,13 @@ function CustomWindow.getPosition(self, ...) return cwGetPosition(self, ...) end
 function CustomWindow.getText(self, ...) return cwGetTitle(self, ...) end
 function CustomWindow.getTitle(self, ...) return cwGetTitle(self, ...) end
 function CustomWindow.getMovable(self, ...) return cwGetMovable(self, ...) end
+function CustomWindow.getSizable(self, ...) return cwGetSizable(self, ...) end
+function CustomWindow.getMinimalWidth(self, ...) return cwGetMinimalWidth(self, ...) end
+function CustomWindow.getMinimalHeight(self, ...) return cwGetMinimalHeight(self, ...) end
+function CustomWindow.getMinimalSize(self, ...) return cwGetMinimalSize(self, ...) end
+function CustomWindow.getMaximalWidth(self, ...) return cwGetMaximalWidth(self, ...) end
+function CustomWindow.getMaximalHeight(self, ...) return cwGetMaximalHeight(self, ...) end
+function CustomWindow.getMaximalSize(self, ...) return cwGetMaximalSize(self, ...) end
 function CustomWindow.getSideBarLength(self) return self.SideBlockLength end
 function CustomWindow.getSideBarPosition(self) return self.SideBlockLocation end
 
