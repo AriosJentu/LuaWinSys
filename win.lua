@@ -1432,6 +1432,8 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 
 	ScrollPanels[id].InversedVertical = 1
 	ScrollPanels[id].InversedHorizontal = 1
+	ScrollPanels[id].ScrolledWithCursor = true
+	ScrollPanels[id].ScrolledWithWheel = true
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Properties
@@ -1457,15 +1459,17 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 
 		local canScroll = false
 
-		if source == ScrollPanels[id].Scroller then
-			canScroll = true
-		else
-			for _, v in pairs(ScrollPanels[id].ScrollElements) do
+		if ScrollPanels[id].ScrolledWithCursor then
+			if source == ScrollPanels[id].Scroller then
+				canScroll = true
+			else
+				for _, v in pairs(ScrollPanels[id].ScrollElements) do
 
-				if source == v or source == v.Element then
+					if source == v or source == v.Element then
 
-					canScroll = true
-					break
+						canScroll = true
+						break
+					end
 				end
 			end
 		end
@@ -1527,13 +1531,15 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 
 		local canScroll = false
 
-		if source == ScrollPanels[id].Scroller then
-			canScroll = true
-		else
-			for _, v in pairs(ScrollPanels[id].ScrollElements) do
-				if source == v or source == v.Element then
-					canScroll = true
-					break
+		if ScrollPanels[id].ScrolledWithWheel then
+			if source == ScrollPanels[id].Scroller then
+				canScroll = true
+			else
+				for _, v in pairs(ScrollPanels[id].ScrollElements) do
+					if source == v or source == v.Element then
+						canScroll = true
+						break
+					end
 				end
 			end
 		end
@@ -1766,6 +1772,14 @@ function cspSetHorizontalScrolling(spane, bool)
 	spane.IsHorizontal = bool or false
 end
 
+function cspSetScrollingWithCursor(spane, bool)
+	spane.ScrolledWithCursor = bool or false
+end
+
+function cspSetScrollingWithWheel(spane, bool)
+	spane.ScrolledWithWheel = bool or false
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -1858,6 +1872,13 @@ function cspIsHorizontalInversed(spane)
 	return spane.InversedHorizontal == -1
 end
 
+function cspGetScrollingWithCursor(spane, bool)
+	return spane.ScrolledWithCursor
+end
+
+function cspGetScrollingWithWheel(spane, bool)
+	return spane.ScrolledWithWheel
+end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Event functions
@@ -1954,6 +1975,8 @@ function CustomScrollPane.setHorizontalScrollPosition(self, ...) return cspSetHo
 function CustomScrollPane.setVerticalScrollInversed(self, ...) return cspSetVerticalInversed(self, ...) end
 function CustomScrollPane.setHorizontalScrollInversed(self, ...) return cspSetHorizontalInversed(self, ...) end
 function CustomScrollPane.setHorizontalScrolling(self, ...) return cspSetHorizontalScrolling(self, ...) end
+function CustomScrollPane.setScrollingWithCursor(self, ...) return cspSetScrollingWithCursor(self, ...) end
+function CustomScrollPane.setScrollingWithWheel(self, ...) return cspSetScrollingWithWheel(self, ...) end
 
 function CustomScrollPane.bringToFront(self) return cspBringToFront(self) end
 function CustomScrollPane.moveToBack(self) return cspMoveToBack(self) end
@@ -1969,6 +1992,8 @@ function CustomScrollPane.getHorizontalScrollPosition(self, ...) return cspGetHo
 function CustomScrollPane.isHorizontalScrolling(self, ...) return cspIsHorizontalScrolling(self, ...) end
 function CustomScrollPane.isVerticalScrollInversed(self, ...) return cspIsVerticalInversed(self, ...) end
 function CustomScrollPane.isHorizontalScrollInversed(self, ...) return cspIsHorizontalInversed(self, ...) end
+function CustomScrollPane.getScrollingWithCursor(self, ...) return cspGetScrollingWithCursor(self, ...) end
+function CustomScrollPane.getScrollingWithWheel(self, ...) return cspGetScrollingWithWheel(self, ...) end
 
 function CustomScrollPane.setColorScheme(self, ...) return cspSetColorScheme(self, ...) end
 function CustomScrollPane.getColorScheme(self, ...) return cspGetColorScheme(self, ...) end
