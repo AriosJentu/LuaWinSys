@@ -1,5 +1,9 @@
 local HPerc = 2.4
 
+function isCWCursorShowing()
+	return isCursorShowing() or isConsoleActive()
+end
+
 function getCharCoordsFromAbsoluteCoords(edit, x, y)
 	
 	local AW, AH = edit.Label:getSize()
@@ -68,7 +72,7 @@ function getCharCoordsFromCaretIndex(edit, caret)
 	local lcaret = caret
 	local line = 1
 	for i, v in pairs(lines) do
-		if lcaret > (#v + 1) then
+		if lcaret > #v then
 			lcaret = lcaret - (#v + 1)
 		else 
 			line = i
@@ -76,7 +80,13 @@ function getCharCoordsFromCaretIndex(edit, caret)
 		end
 	end
 
+	--[[if utf8.sub(lines[line], lcaret, lcaret) == "" and lcaret ~= 0 then 
+		lcaret = 0
+		line = line+1
+	end]]
+
 	edit.HelpLabel:setText(utf8.sub(lines[line], 1, lcaret))
+	
 	local ny = (line-1)*(h+HPerc)
 	local nx = guiLabelGetTextExtent(edit.HelpLabel.Label)
 
@@ -152,8 +162,13 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	local nw = guiLabelGetTextExtent(NewEditBoxes[id].Label.Label)
 	local nh = guiLabelGetFontHeight(NewEditBoxes[id].Label.Label)
 	local sh = h
+
 	if NewEditBoxes[id].MultiLined then
 		sh = (nh+HPerc)*#text:split("\n")
+	else
+		print("HERE", (h-nh)/2 - 2, h, nh)
+		NewEditBoxes[id].Label:setPosition(2, (h-nh)/2 - 2, false)		
+		NewEditBoxes[id].HelpLabel:setPosition(2, (h-nh)/2 - 2, false)		
 	end
 
 	NewEditBoxes[id].Label:setSize(nw, sh)	
@@ -165,6 +180,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].Scroller:update()
 
 	NewEditBoxes[id].Scroller:setScrollingWithCursor(false)
+	NewEditBoxes[id].Scroller:setHorizontalScrolling(not NewEditBoxes[id].MultiLined)
 
 	NewEditBoxes[id].Canvas:setColor("FF444444")
 	NewEditBoxes[id].Label:setColor("EEEEEE")
@@ -226,7 +242,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].Events.CursorMove.Name = "onClientCursorMove"
 	NewEditBoxes[id].Events.CursorMove.Function = function(_, _, x, y)
 
-		if NewEditBoxes[id].IsSelecting then
+		if NewEditBoxes[id].IsSelecting and isCWCursorShowing() then
 			
 			local ax, ay = guiGetOnScreenPosition(NewEditBoxes[id].Label.Label)
 			local _, _, caret = getCharCoordsFromAbsoluteCoords(NewEditBoxes[id], x-ax, y-ay)
@@ -247,7 +263,8 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].Events.Char = {}
 	NewEditBoxes[id].Events.Char.Name = "onClientCharacter"
 	NewEditBoxes[id].Events.Char.Function = function(button)
-		if NewEditBoxes[id].Active then
+
+		if NewEditBoxes[id].Active and isCWCursorShowing() then
 			
 			local str = NewEditBoxes[id].Label:getText()
 			local start = NewEditBoxes[id].CaretIndex
@@ -262,7 +279,6 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 
 			NewEditBoxes[id].Label:setText(str)
 			cxpSetCaretIndex(NewEditBoxes[id], start+1)
-			cxpRecalc(NewEditBoxes[id])
 		end
 	end
 
@@ -270,7 +286,9 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].Events.Key.Name = "onClientKey"
 	NewEditBoxes[id].Events.Key.Function = function(button, por)
 
-		if NewEditBoxes[id].Active and por then
+		if NewEditBoxes[id].Active and por and isCWCursorShowing() then
+
+			local shift = getKeyState("lshift") or getKeyState("rshift")
 
 			if button == "backspace" then
 
@@ -287,7 +305,6 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 
 				NewEditBoxes[id].Label:setText(str)
 				cxpSetCaretIndex(NewEditBoxes[id], start)
-				cxpRecalc(NewEditBoxes[id])
 			end
 
 			if button == "delete" then
@@ -305,32 +322,37 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 				
 				NewEditBoxes[id].Label:setText(str)
 				cxpSetCaretIndex(NewEditBoxes[id], start)
-				cxpRecalc(NewEditBoxes[id])
+			end
+
+			if button == "enter" then
+				if NewEditBoxes[id].MultiLined then
+					NewEditBoxes[id].Events.Char.Function("\n")
+				end
 			end
 
 			if button == "arrow_l" then
-				cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].CaretIndex-1)
+				cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].SelectingCaretIndex-1, shift)
 			end
 
 			if button == "arrow_r" then
-				cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].CaretIndex+1)
+				cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].SelectingCaretIndex+1, shift)
 			end
 
 			if button == "arrow_u" then
 
-				local x, y = NewEditBoxes[id].Caret:getPosition(false)
+				local x, y = NewEditBoxes[id].SelectionCaret:getPosition(false)
 				local _, _, caret = getCharCoordsFromAbsoluteCoords(NewEditBoxes[id], x-2, y-5)
 
-				cxpSetCaretIndex(NewEditBoxes[id], caret)
+				cxpSetCaretIndex(NewEditBoxes[id], caret, shift)
 			end
 
 			if button == "arrow_d" then
 
-				local x, y = NewEditBoxes[id].Caret:getPosition(false)
+				local x, y = NewEditBoxes[id].SelectionCaret:getPosition(false)
 				local _, h = NewEditBoxes[id].Caret:getSize(false)
 				local _, _, caret = getCharCoordsFromAbsoluteCoords(NewEditBoxes[id], x-2, y+h+5)
 
-				cxpSetCaretIndex(NewEditBoxes[id], caret)
+				cxpSetCaretIndex(NewEditBoxes[id], caret, shift)
 			end
 
 		end
@@ -378,12 +400,12 @@ function cxpSetCaretIndex(edit, caret, selection)
 	end
 	
 	--Selection
+	local _, CH = edit.Caret:getSize(false)
+	local C2X, C2Y = edit.SelectionCaret:getPosition(false)
 	if selection then
 
 		local C1X, C1Y = edit.Caret:getPosition(false)
-		local C2X, C2Y = edit.SelectionCaret:getPosition(false)
-		local _, CH = edit.Caret:getSize(false)
-		local NW = edit.Canvas:getSize(false)
+		local NW = edit.Label:getSize(false)
 		CH = CH+4
 
 		if C1Y == C2Y then
@@ -415,6 +437,31 @@ function cxpSetCaretIndex(edit, caret, selection)
 			edit.SelectorMid:setVisible(true)
 		end
 
+	end
+	
+	cxpRecalc(edit)
+
+	local ax, ay = guiGetOnScreenPosition(edit.SelectionCaret)
+	local cx, cy = guiGetOnScreenPosition(edit.Label.Label)
+	local dx, dy = edit.Scroller.Scroller:getPosition(false)
+	local dw, dh = edit.Scroller.Scroller:getSize(false)
+	local xw, xh = edit.Canvas:getSize(false)
+
+	local CaretX, CaretY = ax-cx+dx, ay-cy+dy
+	if CaretY < 0 or CaretY+CH > xh then
+
+		local pixs = CaretY+CH-xh+10		
+		if CaretY < 0 then pixs = CaretY-6 end 
+		edit.Scroller:addVerticalPixelScrollPosition(pixs)
+
+	end
+
+	print(CaretX, xw)
+	if CaretX < 0 or CaretX+4 > xw then
+
+		local pixs = CaretX-xw+8		
+		if CaretX < 0 then pixs = CaretX-3 end 
+		edit.Scroller:addHorizontalPixelScrollPosition(pixs)
 
 	end
 
@@ -426,7 +473,7 @@ function cxpRecalc(edit)
 
 	local nw = guiLabelGetTextExtent(edit.Label.Label)
 	local nh = guiLabelGetFontHeight(edit.Label.Label)
-	local sh = h
+	local sh = nh
 	if edit.MultiLined then
 		sh = (nh+HPerc)*#text:split("\n")
 	end
@@ -468,3 +515,4 @@ sunt in culpa qui officia deserunt
 mollit anim id est laborum.]]
 
 local nmemo = guiCreateCustomEditPanel(100, 300, 250, 200, str, _, _, true)
+local nedit = guiCreateCustomEditPanel(100, 250, 250, 30, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", _, _, false)

@@ -1752,6 +1752,48 @@ function cspSetHorizontalScrollPosition(spane, percentage)
 
 end
 
+function cspAddVerticalPixelScrollPosition(spane, pixels)
+
+	local x, y = spane.Scroller:getPosition(false)
+	local w, h = spane.Scroller:getSize(false)
+	local aw, ah = spane.Canvas:getSize(false)
+
+	y = y - pixels
+
+	if x < 0 then x = x-1 end
+	if y < 0 then y = y-1 end
+
+	if y < (ah-h) then y = ah-h end
+	if y > 0 then y = 0 end
+
+	spane.Scroller:setPosition(x, y, false)
+	cspRecalcSize(spane)
+
+	triggerEvent("onCustomScrollPaneScrolled", spane.Scroller, spane:getVerticalScrollPosition(), spane:getHorizontalScrollPosition())
+	triggerEvent("onClientGUIScroll", spane.Scroller, spane)
+end
+
+function cspAddHorizontalPixelScrollPosition(spane, pixels)
+
+	local x, y = spane.Scroller:getPosition(false)
+	local w, h = spane.Scroller:getSize(false)
+	local aw, ah = spane.Canvas:getSize(false)
+
+	x = x - pixels
+
+	if x < 0 then x = x-1 end
+	if y < 0 then y = y-1 end
+
+	if x < (aw-w) then x = aw-w end
+	if x > 0 then x = 0 end
+
+	spane.Scroller:setPosition(x, y, false)
+	cspRecalcSize(spane)
+	
+	triggerEvent("onCustomScrollPaneScrolled", spane.Scroller, spane:getVerticalScrollPosition(), spane:getHorizontalScrollPosition())
+	triggerEvent("onClientGUIScroll", spane.Scroller, spane)
+end
+
 function cspSetVerticalInversed(spane, bool)
 	if bool then
 		spane.InversedVertical = -1
@@ -1977,6 +2019,9 @@ function CustomScrollPane.setHorizontalScrollInversed(self, ...) return cspSetHo
 function CustomScrollPane.setHorizontalScrolling(self, ...) return cspSetHorizontalScrolling(self, ...) end
 function CustomScrollPane.setScrollingWithCursor(self, ...) return cspSetScrollingWithCursor(self, ...) end
 function CustomScrollPane.setScrollingWithWheel(self, ...) return cspSetScrollingWithWheel(self, ...) end
+
+function CustomScrollPane.addVerticalPixelScrollPosition(self, ...) return cspAddVerticalPixelScrollPosition(self, ...) end
+function CustomScrollPane.addHorizontalPixelScrollPosition(self, ...) return cspAddHorizontalPixelScrollPosition(self, ...) end
 
 function CustomScrollPane.bringToFront(self) return cspBringToFront(self) end
 function CustomScrollPane.moveToBack(self) return cspMoveToBack(self) end
