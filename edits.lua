@@ -456,7 +456,6 @@ function cxpSetCaretIndex(edit, caret, selection)
 
 	end
 
-	print(CaretX, xw)
 	if CaretX < 0 or CaretX+4 > xw then
 
 		local pixs = CaretX-xw+8		
