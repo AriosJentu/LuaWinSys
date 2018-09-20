@@ -4408,7 +4408,7 @@ function CustomSpinner.destroy(self, ...) return ctbDestroy(self, ...) end
 
 local CheckBoxes = {}
 
-function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
+function guiCreateCustomCheckBox(x, y, w, h, text, relative, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
@@ -4418,6 +4418,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	if relative then
 
 		local sw, sh = Width, Height
+
 		if parent then
 			sw, sh = parent:getSize(false)
 		else
@@ -4508,7 +4509,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	CheckBoxes[id].Event.MouseEnter = {}
 	CheckBoxes[id].Event.MouseEnter.Name = "onClientMouseEnter"
 	CheckBoxes[id].Event.MouseEnter.Function = function()
-		if source == CheckBoxes[id].Entrail or source == CheckBoxes[id].Main or source == CheckBoxes[id].Label then
+		if source == CheckBoxes[id].Entrail or source == CheckBoxes[id].Main or source == CheckBoxes[id].Label.Label then
 			CheckBoxes[id].Label:setColor(fromHEXToRGB(CheckBoxes[id].ColorScheme.Main))
 		end
 	end
@@ -4532,7 +4533,7 @@ function guiCreateCustomCheckBox(x, y, w, h, text, rel, parent)
 	CheckBoxes[id].Event.Click.Name = "onClientGUIClick"
 	CheckBoxes[id].Event.Click.Function = function()
 
-		if source == CheckBoxes[id].Entrail or source == CheckBoxes[id].Main or source == CheckBoxes[id].Label then
+		if source == CheckBoxes[id].Entrail or source == CheckBoxes[id].Main or source == CheckBoxes[id].Label.Label then
 			local x = CheckBoxes[id].Entrail:getPosition(false)
 			if x >= 15 then CheckBoxes[id].moveLeft()
 			else CheckBoxes[id].moveRight() end
@@ -4891,7 +4892,7 @@ end
 function ccbAddEvent(checkbox, event, func)
 
 	local f = function(...)
-		if source == checkbox.Entrail or source == checkbox.Main or source == checkbox.Label or source == checkbox.Canvas then
+		if source == checkbox.Entrail or source == checkbox.Main or source == checkbox.Label.Label or source == checkbox.Canvas then
 			func(...)
 		end
 	end
@@ -4972,6 +4973,7 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	if relative then
 
 		local sw, sh = Width, Height
+
 		if parent then
 			sw, sh = parent:getSize(false)
 		else

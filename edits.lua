@@ -166,7 +166,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	if NewEditBoxes[id].MultiLined then
 		sh = (nh+HPerc)*#text:split("\n")
 	else
-		print("HERE", (h-nh)/2 - 2, h, nh)
+		--print("HERE", (h-nh)/2 - 2, h, nh)
 		NewEditBoxes[id].Label:setPosition(2, (h-nh)/2 - 2, false)		
 		NewEditBoxes[id].HelpLabel:setPosition(2, (h-nh)/2 - 2, false)		
 	end
