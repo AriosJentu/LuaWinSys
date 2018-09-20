@@ -502,6 +502,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	txtcol = "FF"..TextColor
 	whitecol = "FFFFFFFF"
 
+	Windows[id].Top:setProperty("AlwaysOnTop", "True")
 	for _, v in pairs(Windows[id].SizeEdits) do
 		v:setProperty("AlwaysOnTop", "True")
 		v:setColor("0")
@@ -510,7 +511,6 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	Windows[id].Frame:setColor(frmcol)
 	Windows[id].Top:setColor("0")
-	Windows[id].Top:setProperty("AlwaysOnTop", "True")
 
 	Windows[id].Close:setColor("0")
 	Windows[id].CloseMain:setColor("0")
@@ -537,7 +537,9 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Cross:setEnabled(false)
 	Windows[id].Dialog:setVisible(false)
 	Windows[id].SideBlock:setEnabled(false)
+	Windows[id].CloseMain:setEnabled(false)
 	Windows[id].CloseMain:setVisible(false)
+	Windows[id].CloseAlter:setEnabled(false)
 	Windows[id].CloseAlter:setVisible(false)
 
 	Windows[id].Frame:bringToFront()
@@ -555,7 +557,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	Windows[id].Positions = {X = x, Y = y}
 
-	Windows[id].MinimalSizes = {W = 10, H = 10}
+	Windows[id].MinimalSizes = {W = 30, H = 30}
 	Windows[id].MaximalSizes = {W = Width, H = Height}
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -691,6 +693,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Event.Click = {}
 	Windows[id].Event.Click.Name = "onClientGUIClick"
 	Windows[id].Event.Click.Function = function()
+
 		if source == Windows[id].Close then
 			Windows[id].Animation = "close"
 			triggerEvent("onCustomWindowClose", Windows[id].Canvas, Windows[id].Canvas)
@@ -924,7 +927,7 @@ function cwSetSize(window, w, h, relative)
 	window.Title:setSize(w, 19, false)
 	window.AlterTitle:setSize(w, 19, false)
 
-	window.Close:setPosition(w-21, 0, false)
+	--window.Close:setPosition(0, 0, false)
 
 
 
@@ -964,6 +967,8 @@ function cwSetSize(window, w, h, relative)
 	window.SizeEdits.Right:setSize(5, h-6, false)
 	window.SizeEdits.Top:setSize(w-6, 5, false)
 	window.SizeEdits.Bottom:setSize(w-6, 5, false)
+
+	--window.CloseMain:bringToFront()
 
 end
 
