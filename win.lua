@@ -2856,7 +2856,7 @@ function CustomProgressBar.destroy(self, ...) return cpbDestroy(self, ...) end
 --------------------------------------------------------------------------------------------------------------------
 ScrollBars = {}
 
-function guiCreateCustomScrollBar(x, y, w, h, rel, parent)
+function guiCreateCustomScrollBar(x, y, w, h, relative, parent)
 
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Counting IDs and coordinates
