@@ -2463,7 +2463,7 @@ function cbSetFont(button, font, size)
 	button.Font = font
 	button.FontSize = size
 
-	button.Label:setFont(GuiFont.create(button.Font, button.FontSize))
+	button.Label:setFont(button.Font, button.FontSize)
 end
 
 function cbSetFontSize(button, size)
@@ -2471,7 +2471,7 @@ function cbSetFontSize(button, size)
 	if not size or not tonumber(size) then size = 9 end
 	button.FontSize = size
 	
-	button.Label:setFont(GuiFont.create(button.Font, button.FontSize))
+	button.Label:setFont(button.Font, button.FontSize)
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -6447,7 +6447,7 @@ function ctpSetFontSize(tabpan, size)
 end
 
 function ctpSetSystemFont(tabpan, font)
-	
+
 	tabpan.Font = font
 	tabpan.FontSize = -1
 
@@ -7171,6 +7171,11 @@ function CustomDialog.create(rwidth, text, buttons, window)
 
 	Dialogs[id] = setmetatable({}, CustomDialog)
 
+	Dialogs[id].Text = text
+	Dialogs[id].Font = Fonts.OpenSansRegular
+	Dialogs[id].FontSize = 9
+	LabelForGettingSizes:setFont(Dialogs[id].Font, Dialogs[id].FontSize)
+
 	local w, h
 	local maxw = 0
 
@@ -7206,8 +7211,11 @@ function CustomDialog.create(rwidth, text, buttons, window)
 
 	else
 		buttons = {}
-
 	end
+
+	Dialogs[id].Buttons = buttons
+	Dialogs[id].ButtonsSizes = butsizes
+	Dialogs[id].RWidth = rwidth
 
 	w = math.max(butmaxw, maxw) + 5
 	w = math.max(rwidth, w)
@@ -7238,6 +7246,7 @@ function CustomDialog.create(rwidth, text, buttons, window)
 
 	dialog.Label = CustomLabel.create(5, 20, w-10, h-38-30, text, false, dialog:getMainElement())
 	dialog.Label:setAlign("center", "center")
+	dialog.Label:setFont(Dialogs[id].Font, Dialogs[id].FontSize)
 
 	dialog.Buttons = {}
 	local nlen = 0
@@ -7312,6 +7321,89 @@ function CustomDialog.destroy(self)
 	self.Dialog:destroy()
 end
 
+------------------------------------------
+function CustomDialog.setFont(self, font, size, bool)
+
+	if not bool then bool = false end
+
+	if not size or not tonumber(size) then size = self.FontSize end
+	self.Font = font
+	self.FontSize = size
+
+	if bool then 
+		LabelForGettingSizes:setSystemFont(self.Font)
+		self.Dialog.Label:setSystemFont(self.Font)
+	else 
+		LabelForGettingSizes:setFont(self.Font, self.FontSize) 
+		self.Dialog.Label:setFont(self.Font, self.FontSize)
+	end
+
+	---------------------------------------------------
+
+	local w, h
+	local maxw = 0
+
+	local objects = self.Text:split("\n")
+
+	for _, v in pairs(objects) do
+		LabelForGettingSizes:setText(v)
+		maxw = math.max(maxw, guiLabelGetTextExtent(LabelForGettingSizes.Label)+10)
+	end
+	maxw = maxw + 20
+
+	---------------------------------------------------
+
+	local butmaxw = 0
+
+	for i, v in pairs(self.Buttons) do
+	
+		LabelForGettingSizes:setText(v)
+		butmaxw = butmaxw + (guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20) + 10
+	
+		self.ButtonsSizes[i] = guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20
+	end
+	
+	butmaxw = butmaxw + 5
+
+	---------------------------------------------------
+	
+	w = math.max(butmaxw, maxw) + 5
+	w = math.max(self.RWidth, w)
+	h = (guiLabelGetFontHeight(LabelForGettingSizes.Label) + 5)*(#objects+1) + 25 + 30
+
+	local x, y = Width/2 - w/2, Height/2 - h/2
+	if self.Dialog.Parent then
+		local nw, nh = self.Dialog.Parent:getSize(false)
+		x, y = nw/2 - w/2, nh/2 - h/2
+	end
+
+	self.Dialog:setPosition(x, y, false)
+	self.Dialog:setSize(w, h, false)
+	self.Dialog.Label:setSize(w-10, h-38-30, false)
+
+	local nlen = 0
+	for i, v in pairs(self.Buttons) do
+
+		nlen = nlen + self.ButtonsSizes[i]
+
+		self.Dialog.Buttons[i]:setPosition(w-10*i-nlen, h-38, false)
+		self.Dialog.Buttons[i]:setSize(self.ButtonsSizes[i], 28, false)
+		if bool then 
+			self.Dialog.Buttons[i]:setSystemFont(self.Font)
+		else 
+			self.Dialog.Buttons[i]:setFont(self.Font, self.FontSize)
+		end
+	end
+end
+
+function CustomDialog.setFontSize(self, size)
+	if not size or not tonumber(size) then size = 9 end
+	return self:setFont(self.Font, size)
+end
+
+function CustomDialog.setSystemFont(self, fontname)
+	return self:setFont(fontname, -1, true)
+end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -7330,6 +7422,11 @@ function CustomTooltip.create(text, element, timetoshow)
 	local id = #Tooltips+1
 
 	Tooltips[id] = setmetatable({}, CustomTooltip)
+
+	Tooltips[id].Font = Fonts.OpenSansRegular
+	Tooltips[id].FontSize = 9
+	LabelForGettingSizes:setFont(Tooltips[id].Font, Tooltips[id].FontSize)
+
 	if not timetoshow or not tonumber(timetoshow) or timetoshow < 0 then
 		timetoshow = 1
 	end
