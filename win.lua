@@ -5000,7 +5000,7 @@ function ccbSetFont(checkbox, font, size)
 
 	checkbox.Font = font
 	checkbox.FontSize = size
-	checkbox.Label:setFont(GuiFont.create(checkbox.Font, checkbox.FontSize))
+	checkbox.Label:setFont(checkbox.Font, checkbox.FontSize)
 
 end
 
@@ -5009,14 +5009,14 @@ function ccbSetFontSize(checkbox, size)
 	if not size or not tonumber(size) then size = 8 end
 
 	checkbox.FontSize = size
-	checkbox.Label:setFont(GuiFont.create(checkbox.Font, checkbox.FontSize))
+	checkbox.Label:setFont(checkbox.Font, checkbox.FontSize)
 	
 end
 
 function ccbSetSystemFont(checkbox, font)
 	checkbox.Font = font
 	checkbox.FontSize = -1
-	checkbox.Label:setFont(font)
+	checkbox.Label:setSystemFont(font)
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
