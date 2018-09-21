@@ -122,7 +122,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
+	if compareIsAttachable(parent) then
 		parent = parent:getFrame()
 	end
 

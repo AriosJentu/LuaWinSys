@@ -225,6 +225,7 @@ test_combo_s:setSize(150, 70, false)
 
 test_combo_s:removeItem("Test5")
 test_combo_s:setItemText("Test6", "Example")
+--test_combo_s:clear()
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Tab panels
@@ -283,6 +284,9 @@ image9:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%
 image10:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.Main, DefaultColors.Main, DefaultColors.Main, DefaultColors.Main)) 
 image11:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.DarkMain, DefaultColors.DarkMain, DefaultColors.DarkMain, DefaultColors.DarkMain)) 
 image12:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain, DefaultColors.LightMain)) 
+
+local test_schematic_tab_btn1 = CustomButton.create(130, 10, 140, 30, "Test Color Scheme", false, tabs[1])
+local test_schematic_tab_btn5 = CustomButton.create(130, 10, 140, 30, "Test Color Scheme", false, tabs[5])
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Labels

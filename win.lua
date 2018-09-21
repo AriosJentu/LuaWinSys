@@ -19,12 +19,12 @@ function compareAppend(object, ...)
 
 	local args = {...}
 	local par = args[#args]
-	if multiplecompare(par, {CustomWindow, CustomScrollPane, CustomLabel}) then
+	if multiplecompare(par, {CustomWindow, CustomScrollPane, CustomLabel, CustomStaticImage}) then
 		par:addElement(object)
 	end
 end
 
-function compareDefaults(parent)
+function compareIsAttachable(parent)
 	return multiplecompare(parent, {
 		CustomWindow, 
 		CustomScrollPane, 
@@ -33,7 +33,8 @@ function compareDefaults(parent)
 		CustomProgressBar, 
 		CustomComboBox, 
 		CustomCheckBox, 
-		CustomTabPanel
+		CustomTabPanel,
+		CustomStaticImage
 	})
 end
 
@@ -54,7 +55,8 @@ function getCWType(object)
 		CustomTooltip, 
 		CustomCheckBox, 
 		CustomTableView, 
-		CustomTabPanel
+		CustomTabPanel,
+		CustomStaticImage
 	}) then
 		return getmetatable(object)
 	else
@@ -79,7 +81,8 @@ function isCWElement(object)
 		CustomTooltip, 
 		CustomCheckBox, 
 		CustomTableView, 
-		CustomTabPanel
+		CustomTabPanel,
+		CustomStaticImage
 	}) 
 end
 
@@ -356,13 +359,13 @@ local createImage = GuiStaticImage.create
 GuiStaticImage.create = function(x, y, w, h, image, rel, par)
 	
 	local oldpar = par
-	if compareDefaults(par) then
-		par = par:getFrame()
+	if compareIsAttachable(par) then
+		par = par:getMainElement()
 	end
 
 	local obj = createImage(x, y, w, h, image, rel, par)
 
-	if multiplecompare(oldpar, {CustomWindow, CustomScrollPane, CustomLabel}) then
+	if multiplecompare(oldpar, {CustomWindow, CustomScrollPane, CustomLabel, CustomStaticImage}) then
 		oldpar:addElement(obj)
 	end
 
@@ -372,6 +375,10 @@ end
 
 function GuiStaticImage.setColor(self, color)
 	self:setProperty("ImageColours", string.format("tl:%s tr:%s bl:%s br:%s", color, color, color, color))
+end
+
+function GuiStaticImage.getColor(self)
+	return fromPropertyToHEX(self)
 end
 
 --------------------------------------------------------------------------------------------------------------------
@@ -409,9 +416,9 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
+	if compareIsAttachable(parent) then
 
-		parent = parent:getFrame()
+		parent = parent:getMainElement()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -523,12 +530,15 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Title:setEnabled(false)
 	Windows[id].AlterTitle:setEnabled(false)
 
-	Windows[id].Title:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
+	Windows[id].Font = Fonts.OpenSansRegular
+	Windows[id].FontSize = 9
+
+	Windows[id].Title:setFont(GuiFont.create(Windows[id].Font, Windows[id].FontSize))
 	Windows[id].Title:setColor(fromHEXToRGB(TextColor))
 	Windows[id].Title:setHorizontalAlign("center")
 	Windows[id].Title:setVerticalAlign("center")
 
-	Windows[id].AlterTitle:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
+	Windows[id].AlterTitle:setFont(GuiFont.create(Windows[id].Font, Windows[id].FontSize))
 	Windows[id].AlterTitle:setColor(fromHEXToRGB("FFFFFF"))
 	Windows[id].AlterTitle:setHorizontalAlign("center")
 	Windows[id].AlterTitle:setVerticalAlign("center")
@@ -927,9 +937,6 @@ function cwSetSize(window, w, h, relative)
 	window.Title:setSize(w, 19, false)
 	window.AlterTitle:setSize(w, 19, false)
 
-	--window.Close:setPosition(0, 0, false)
-
-
 
 	local location = window.SideBlockLocation 
 	local length = window.SideBlockLength 
@@ -1092,6 +1099,34 @@ function cwSetSideBarLocation(window, location)
 	cwShowBar(window, location, window.SideBlockLength)
 end
 
+function cwSetSystemFont(window, fontname)
+
+	window.Font = fontname
+	window.FontSize = -1
+
+	window.Title:setFont(fontname)
+	window.AlterTitle:setFont(fontname)
+end
+
+function cwSetFont(window, font, size)
+
+	if not size or not tonumber(size) then size = window.FontSize end
+	window.Font = font
+	window.FontSize = size
+
+	window.Title:setFont(GuiFont.create(window.Font, window.FontSize))
+	window.AlterTitle:setFont(GuiFont.create(window.Font, window.FontSize))
+end
+
+function cwSetFontSize(window, size)
+
+	if not size or not tonumber(size) then size = 9 end
+	window.FontSize = size
+	
+	window.Title:setFont(GuiFont.create(window.Font, window.FontSize))
+	window.AlterTitle:setFont(GuiFont.create(window.Font, window.FontSize))
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -1105,6 +1140,9 @@ end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
+
+function cwGetFont(window) return window.Font end
+function cwGetFontSize(window) return window.FontSize end
 
 function cwGetSize(window, rel)
 
@@ -1168,7 +1206,7 @@ function cwSetMaximalSize(window) return cwGetMaximalWidth(window), cwGetMaximal
 
 ---
 
-function cwGetFrame(window)
+function cwgetMainElement(window)
 	return window.Frame
 end
 
@@ -1329,6 +1367,9 @@ function CustomWindow.setMaximalHeight(self, ...) return cwSetMaximalHeight(self
 function CustomWindow.setMaximalSize(self, ...) return cwSetMaximalSize(self, ...) end
 function CustomWindow.setSideBarLength(self, ...) return cwSetSideBarLength(self, ...) end
 function CustomWindow.setSideBarPosition(self, ...) return cwSetSideBarLocation(self, ...) end
+function CustomWindow.setFont(self, ...) return cwSetFont(self, ...) end
+function CustomWindow.setFontSize(self, ...) return cwSetFontSize(self, ...) end
+function CustomWindow.setSystemFont(self, ...) return cwSetSystemFont(self, ...) end
 
 function CustomWindow.bringToFront(self) return cwBringToFront(self) end
 function CustomWindow.moveToBack(self) return cwMoveToBack(self) end
@@ -1351,8 +1392,10 @@ function CustomWindow.getMaximalHeight(self, ...) return cwGetMaximalHeight(self
 function CustomWindow.getMaximalSize(self, ...) return cwGetMaximalSize(self, ...) end
 function CustomWindow.getSideBarLength(self) return self.SideBlockLength end
 function CustomWindow.getSideBarPosition(self) return self.SideBlockLocation end
+function CustomWindow.getFont(self, ...) return cwGetFont(self, ...) end
+function CustomWindow.getFontSize(self, ...) return cwGetFontSize(self, ...) end
 
-function CustomWindow.getFrame(self, ...) return cwGetFrame(self, ...) end
+function CustomWindow.getMainElement(self, ...) return cwgetMainElement(self, ...) end
 function CustomWindow.getHeader(self, ...) return cwGetHeader(self, ...) end
 function CustomWindow.getDialog(self, ...) return cwGetDialog(self, ...) end
 
@@ -1409,8 +1452,8 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -1903,7 +1946,7 @@ function cspGetHorizontalScrollPosition(spane)
 
 end
 
-function cspGetFrame(spane)
+function cspgetMainElement(spane)
 	return spane.Scroller
 end
 
@@ -2048,7 +2091,7 @@ function CustomScrollPane.getScrollingWithWheel(self, ...) return cspGetScrollin
 function CustomScrollPane.setColorScheme(self, ...) return cspSetColorScheme(self, ...) end
 function CustomScrollPane.getColorScheme(self, ...) return cspGetColorScheme(self, ...) end
 
-function CustomScrollPane.getFrame(self, ...) return cspGetFrame(self, ...) end
+function CustomScrollPane.getMainElement(self, ...) return cspgetMainElement(self, ...) end
 function CustomScrollPane.addElement(self, ...) return cspAddElement(self, ...) end
 function CustomScrollPane.removeElement(self, ...) return cspRemoveElement(self, ...) end
 
@@ -2096,8 +2139,8 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -2148,7 +2191,10 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	Buttons[id].Image:setVisible(false)
 	Buttons[id].Label:setVisible(text and text ~= "")
 
-	Buttons[id].Label:setFont(Fonts.OpenSansRegular, 9)
+	Buttons[id].Font = Fonts.OpenSansRegular
+	Buttons[id].FontSize = 9
+
+	Buttons[id].Label:setFont(Buttons[id].Font, Buttons[id].FontSize)
 	Buttons[id].Label:setColor(fromHEXToRGB(TextColor))
 
 	if text and text ~= "" then
@@ -2367,6 +2413,29 @@ function cbSetVisible(button, bool)
 	button.Canvas:setVisible(bool)
 end
 
+function cbSetSystemFont(button, fontname)
+	button.Label:setSystemFont(fontname)
+	button.Font = fontname
+	button.FontSize = -1
+end
+
+function cbSetFont(button, font, size)
+
+	if not size or not tonumber(size) then size = button.FontSize end
+	button.Font = font
+	button.FontSize = size
+
+	button.Label:setFont(GuiFont.create(button.Font, button.FontSize))
+end
+
+function cbSetFontSize(button, size)
+
+	if not size or not tonumber(size) then size = 9 end
+	button.FontSize = size
+	
+	button.Label:setFont(GuiFont.create(button.Font, button.FontSize))
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -2380,6 +2449,10 @@ end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
+
+function cbGetFont(button) return button.Font end
+function cbGetFontSize(button) return button.FontSize end
+
 function cbGetText(button)
 	return button.Label:getText()
 end
@@ -2458,7 +2531,7 @@ function cbGetColorScheme(button)
 	return button.ColorScheme
 end
 
-function cbGetFrame(button)
+function cbgetMainElement(button)
 	return button.Main
 end
 
@@ -2510,6 +2583,9 @@ function CustomButton.setSize(self, ...) return cbSetSize(self, ...) end
 function CustomButton.setPosition(self, ...) return cbSetPosition(self, ...) end
 function CustomButton.setText(self, ...) return cbSetText(self, ...) end
 function CustomButton.setImage(self, ...) return cbSetImage(self, ...) end
+function CustomButton.setFont(self, ...) return cbSetFont(self, ...) end
+function CustomButton.setFontSize(self, ...) return cbSetFontSize(self, ...) end
+function CustomButton.setSystemFont(self, ...) return cbSetSystemFont(self, ...) end
 
 function CustomButton.bringToFront(self) return cbBringToFront(self) end
 function CustomButton.moveToBack(self) return cbMoveToBack(self) end
@@ -2521,13 +2597,15 @@ function CustomButton.getRealSize(self, ...) return cbGetRealSize(self, ...) end
 function CustomButton.getPosition(self, ...) return cbGetPosition(self, ...) end
 function CustomButton.getText(self, ...) return cbGetText(self, ...) end
 function CustomButton.getImage(self, ...) return cbGetImage(self, ...) end
+function CustomButton.getFont(self, ...) return cbSetFont(self, ...) end
+function CustomButton.getFontSize(self, ...) return cbSetFontSize(self, ...) end
 
 function CustomButton.setColorScheme(self, ...) return cbSetColorScheme(self, ...) end
 function CustomButton.getColorScheme(self, ...) return cbGetColorScheme(self, ...) end
 
 function CustomButton.addEvent(self, ...) return cbAddEvent(self, ...) end
 function CustomButton.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
-function CustomButton.getFrame(self, ...) return cbGetFrame(self, ...) end
+function CustomButton.getMainElement(self, ...) return cbgetMainElement(self, ...) end
 
 function CustomButton.destroy(self, ...) return cbDestroy(self, ...) end
 
@@ -2569,8 +2647,8 @@ function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -2766,7 +2844,7 @@ function cpbGetVisible(bar)
 	return bar.Canvas:getVisible()
 end
 
-function cpbGetFrame(bar)
+function cpbgetMainElement(bar)
 	return bar.Main
 end
 
@@ -2850,7 +2928,7 @@ function CustomProgressBar.getColorScheme(self, ...) return cpbGetColorScheme(se
 
 function CustomProgressBar.addEvent(self, ...) return cpbAddEvent(self, ...) end
 function CustomProgressBar.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
-function CustomProgressBar.getFrame(self, ...) return cpbGetFrame(self, ...) end
+function CustomProgressBar.getMainElement(self, ...) return cpbgetMainElement(self, ...) end
 
 function CustomProgressBar.destroy(self, ...) return cpbDestroy(self, ...) end
 
@@ -2910,8 +2988,8 @@ function guiCreateCustomScrollBar(x, y, w, h, relative, parent)
 	end
 
 
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -3494,8 +3572,8 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -3565,7 +3643,10 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 		v:setEnabled(false)
 	end
 
-	EditBoxes[id].TextBox:setFont(GuiFont.create(Fonts.OpenSansRegular, 8))
+	EditBoxes[id].Font = Fonts.OpenSansRegular
+	EditBoxes[id].FontSize = 8
+
+	EditBoxes[id].TextBox:setFont(GuiFont.create(EditBoxes[id].Font, EditBoxes[id].FontSize))
 	EditBoxes[id].TextBox:setProperty("ActiveSelectionColour", "FF"..EditBoxes[id].ColorScheme.Main)
 	EditBoxes[id].TextBox:setProperty("NormalTextColour", "FF444444")
 	EditBoxes[id].TextBox:setProperty("SelectedTextColour", "FFEEEEEE")
@@ -4054,7 +4135,25 @@ function ctbSetFont(textbox, font, size)
 
 	if not size or not tonumber(size) then size = 8 end
 
-	textbox.TextBox:setFont(GuiFont.create(font, size))
+	textbox.Font = font
+	textbox.FontSize = size
+	textbox.TextBox:setFont(GuiFont.create(textbox.Font, textbox.FontSize))
+
+end
+
+function ctbSetFontSize(textbox, size)
+
+	if not size or not tonumber(size) then size = 8 end
+
+	textbox.FontSize = size
+	textbox.TextBox:setFont(GuiFont.create(textbox.Font, size))
+	
+end
+
+function ctbSetSystemFont(textbox, font)
+	textbox.Font = font
+	textbox.FontSize = -1
+	textbox.TextBox:setFont(font)
 end
 
 function ctbPutOnSide(textbox, bool)
@@ -4114,6 +4213,14 @@ end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get Functions
+
+function ctbGetFont(textbox)
+	return textbox.Font
+end
+
+function ctbGetFontSize(textbox)
+	return textbox.FontSize
+end
 
 function ctbGetSize(textbox, rel)
 	return textbox.Canvas:getSize(rel or false)
@@ -4281,6 +4388,8 @@ function CustomEdit.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) 
 function CustomEdit.setMasked(self, ...) return ctbSetMasked(self, ...) end
 function CustomEdit.setSidesColor(self, ...) return ctbSetSidesColor(self, ...) end
 function CustomEdit.setFont(self, ...) return ctbSetFont(self, ...) end
+function CustomEdit.setFontSize(self, ...) return ctbSetFontSize(self, ...) end
+function CustomEdit.setSystemFont(self, ...) return ctbSetSystemFont(self, ...) end
 
 function CustomEdit.bringToFront(self) return ctbBringToFront(self) end
 function CustomEdit.moveToBack(self) return ctbMoveToBack(self) end
@@ -4296,6 +4405,8 @@ function CustomEdit.getText(self, ...) return ctbGetText(self, ...) end
 function CustomEdit.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
 function CustomEdit.getMasked(self, ...) return ctbGetMasked(self, ...) end
 function CustomEdit.getSidesColor(self, ...) return ctbGetSidesColor(self, ...) end
+function CustomEdit.getFont(self, ...) return ctbGetFont(self, ...) end
+function CustomEdit.getFontSize(self, ...) return ctbGetFontSize(self, ...) end
 
 function CustomEdit.setColorScheme(self, ...) return ctbSetColorScheme(self, ...) end
 function CustomEdit.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
@@ -4328,6 +4439,8 @@ function CustomMemo.setText(self, ...) return ctbSetText(self, ...) end
 function CustomMemo.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
 function CustomMemo.setSidesColor(self, ...) return ctbSetSidesColor(self, ...) end
 function CustomMemo.setFont(self, ...) return ctbSetFont(self, ...) end
+function CustomMemo.setFontSize(self, ...) return ctbSetFontSize(self, ...) end
+function CustomMemo.setSystemFont(self, ...) return ctbSetSystemFont(self, ...) end
 
 function CustomMemo.bringToFront(self) return ctbBringToFront(self) end
 function CustomMemo.moveToBack(self) return ctbMoveToBack(self) end
@@ -4341,6 +4454,8 @@ function CustomMemo.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) end
 function CustomMemo.getText(self, ...) return ctbGetText(self, ...) end
 function CustomMemo.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
 function CustomMemo.getSidesColor(self, ...) return ctbGetSidesColor(self, ...) end
+function CustomMemo.getFont(self, ...) return ctbGetFont(self, ...) end
+function CustomMemo.getFontSize(self, ...) return ctbGetFontSize(self, ...) end
 
 function CustomMemo.setColorScheme(self, ...) return ctbSetColorScheme(self, ...) end
 function CustomMemo.getColorScheme(self, ...) return ctbGetColorScheme(self, ...) end
@@ -4373,6 +4488,8 @@ function CustomSpinner.setText(self, ...) return ctbSetText(self, ...) end
 function CustomSpinner.setCaretIndex(self, ...) return ctbSetCaretIndex(self, ...) end
 function CustomSpinner.setSidesColor(self, ...) return ctbSetSidesColor(self, ...) end
 function CustomSpinner.setFont(self, ...) return ctbSetFont(self, ...) end
+function CustomSpinner.setFontSize(self, ...) return ctbSetFontSize(self, ...) end
+function CustomSpinner.setSystemFont(self, ...) return ctbSetSystemFont(self, ...) end
 
 function CustomSpinner.setMinimal(self, ...) return ctbSetMinimal(self, ...) end
 function CustomSpinner.setMaximal(self, ...) return ctbSetMaximal(self, ...) end
@@ -4390,6 +4507,8 @@ function CustomSpinner.getReadOnly(self, ...) return ctbGetReadOnly(self, ...) e
 function CustomSpinner.getText(self, ...) return ctbGetText(self, ...) end
 function CustomSpinner.getCaretIndex(self, ...) return ctbGetCaretIndex(self, ...) end
 function CustomSpinner.getSidesColor(self, ...) return ctbGetSidesColor(self, ...) end
+function CustomSpinner.getFont(self, ...) return ctbGetFont(self, ...) end
+function CustomSpinner.getFontSize(self, ...) return ctbGetFontSize(self, ...) end
 
 function CustomSpinner.getMinimal(self, ...) return ctbGetMinimal(self, ...) end
 function CustomSpinner.getMaximal(self, ...) return ctbGetMaximal(self, ...) end
@@ -4445,8 +4564,8 @@ function guiCreateCustomCheckBox(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -4478,7 +4597,9 @@ function guiCreateCustomCheckBox(x, y, w, h, text, relative, parent)
 
 	CheckBoxes[id].Main:setColor("FF"..BackColor)
 
-	CheckBoxes[id].Label:setFont(Fonts.OpenSansRegular, 9)
+	CheckBoxes[id].Font = Fonts.OpenSansRegular
+	CheckBoxes[id].FontSize = 9
+	CheckBoxes[id].Label:setFont(CheckBoxes[id].Font, CheckBoxes[id].FontSize)
 	CheckBoxes[id].Label:setColor(TextColor)
 	CheckBoxes[id].Label:setVerticalAlign("center")
 
@@ -4834,6 +4955,32 @@ function ccbSetChecked(checkbox, bool)
 	if not bool then checkbox.moveLeft()
 	else checkbox.moveRight() end
 end
+
+function ccbSetFont(checkbox, font, size)
+
+	if not size or not tonumber(size) then size = 8 end
+
+	checkbox.Font = font
+	checkbox.FontSize = size
+	checkbox.Label:setFont(GuiFont.create(checkbox.Font, checkbox.FontSize))
+
+end
+
+function ccbSetFontSize(checkbox, size)
+
+	if not size or not tonumber(size) then size = 8 end
+
+	checkbox.FontSize = size
+	checkbox.Label:setFont(GuiFont.create(checkbox.Font, checkbox.FontSize))
+	
+end
+
+function ccbSetSystemFont(checkbox, font)
+	checkbox.Font = font
+	checkbox.FontSize = -1
+	checkbox.Label:setFont(font)
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -4847,6 +4994,14 @@ end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
+
+function ccbGetFont(checkbox)
+	return checkbox.Font
+end
+
+function ccbGetFontSize(checkbox)
+	return checkbox.FontSize
+end
 
 function ccbGetText(checkbox)
 	return checkbox.Label:getText()
@@ -4872,7 +5027,7 @@ function ccbGetChecked(checkbox)
 	return checkbox.State
 end
 
-function ccbGetFrame(checkbox)
+function ccbgetMainElement(checkbox)
 	return checkbox.Label
 end
 
@@ -4941,6 +5096,9 @@ function CustomCheckBox.setSize(self, ...) return ccbSetSize(self, ...) end
 function CustomCheckBox.setVisible(self, ...) return ccbSetVisible(self, ...) end
 function CustomCheckBox.setEnabled(self, ...) return ccbSetEnabled(self, ...) end
 function CustomCheckBox.setChecked(self, ...) return ccbSetChecked(self, ...) end
+function CustomCheckBox.setFont(self, ...) return ccbSetFont(self, ...) end
+function CustomCheckBox.setFontSize(self, ...) return ccbSetFontSize(self, ...) end
+function CustomCheckBox.setSystemFont(self, ...) return ccbSetSystemFont(self, ...) end
 
 function CustomCheckBox.bringToFront(self) return ccbBringToFront(self) end
 function CustomCheckBox.moveToBack(self) return ccbMoveToBack(self) end
@@ -4952,13 +5110,15 @@ function CustomCheckBox.getRealSize(self, ...) return ccbGetSize(self, ...) end
 function CustomCheckBox.getVisible(self, ...) return ccbGetVisible(self, ...) end
 function CustomCheckBox.getEnabled(self, ...) return ccbGetEnabled(self, ...) end
 function CustomCheckBox.getChecked(self, ...) return ccbGetChecked(self, ...) end
+function CustomCheckBox.getFont(self, ...) return ccbGetFont(self, ...) end
+function CustomCheckBox.getFontSize(self, ...) return ccbGetFontSize(self, ...) end
 
 function CustomCheckBox.setColorScheme(self, ...) return ccbSetColorScheme(self, ...) end
 function CustomCheckBox.getColorScheme(self, ...) return ccbGetColorScheme(self, ...) end
 
 function CustomCheckBox.addEvent(self, ...) return ccbAddEvent(self, ...) end
 function CustomCheckBox.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
-function CustomCheckBox.getFrame(self, ...) return ccbGetFrame(self, ...) end
+function CustomCheckBox.getMainElement(self, ...) return ccbgetMainElement(self, ...) end
 
 function CustomCheckBox.destroy(self, ...) return ccbDestroy(self, ...) end
 
@@ -5000,8 +5160,8 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -5066,7 +5226,10 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	ComboBoxes[id].List.Vertical:setColor("44000000")
 	ComboBoxes[id].List.Horizontal:setColor("44000000")
 
-	ComboBoxes[id].Label:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
+	ComboBoxes[id].Font = Fonts.OpenSansRegular
+	ComboBoxes[id].FontSize = 9
+
+	ComboBoxes[id].Label:setFont(GuiFont.create(ComboBoxes[id].Font, ComboBoxes[id].FontSize))
 	ComboBoxes[id].Label:setHorizontalAlign("center")
 	ComboBoxes[id].Label:setVerticalAlign("center")
 	ComboBoxes[id].Label:setColor(fromHEXToRGB(TextColor))
@@ -5296,7 +5459,9 @@ function clbAddItem(combo, text)
 	TextColor = "444444"
 	if combo.ColorScheme.DarkTheme then TextColor = "EEEEEE" end 
 
-	combo.List.Items[id].Label:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
+	if combo.FontSize == -1 then combo.List.Items[id].Label:setFont(combo.Font)
+	else combo.List.Items[id].Label:setFont(GuiFont.create(combo.Font, combo.FontSize)) end
+
 	combo.List.Items[id].Label:setVerticalAlign("center")
 	combo.List.Items[id].Label:setColor(fromHEXToRGB(TextColor))
 
@@ -5465,6 +5630,42 @@ function clbSetItemText(combo, item, text)
 	end
 end
 
+function clbSetFont(combo, font, size)
+
+	if not size or not tonumber(size) then size = 8 end
+
+	combo.Font = font
+	combo.FontSize = size
+	combo.Label:setFont(GuiFont.create(font, size))
+
+	for _, v in pairs(combo.List.Items) do
+		v.Label:setFont(GuiFont.create(combo.Font, combo.FontSize))
+	end
+
+end
+
+function clbSetFontSize(combo, size)
+
+	if not size or not tonumber(size) then size = 8 end
+
+	combo.FontSize = size
+	combo.Label:setFont(GuiFont.create(combo.Font, size))
+	
+	for _, v in pairs(combo.List.Items) do
+		v.Label:setFont(GuiFont.create(combo.Font, combo.FontSize))
+	end
+end
+
+function clbSetSystemFont(combo, font)
+	combo.Font = font
+	combo.FontSize = -1
+	combo.Label:setFont(font)
+
+	for _, v in pairs(combo.List.Items) do
+		v.Label:setFont(combo.Font)
+	end
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -5478,6 +5679,9 @@ end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
+
+function clbGetFont(combo) return combo.Font end
+function clbGetFontSize(combo) return combo.FontSize end
 
 function clbGetMaxHeight(combo)
 	return combo.Height
@@ -5588,7 +5792,7 @@ function clbGetColorScheme(combo)
 	return combo.ColorScheme
 end
 
-function clbGetFrame(combo)
+function clbgetMainElement(combo)
 	return combo.Main
 end
 
@@ -5656,6 +5860,9 @@ function CustomComboBox.setEnabled(self, ...) return clbSetEnabled(self, ...) en
 function CustomComboBox.setSelectedItem(self, ...) return clbSetSelectedItem(self, ...) end
 function CustomComboBox.setMaxHeight(self, ...) return clbSetMaxHeight(self, ...) end
 function CustomComboBox.setItemText(self, ...) return clbSetItemText(self, ...) end
+function CustomComboBox.setFont(self, ...) return clbSetFont(self, ...) end
+function CustomComboBox.setFontSize(self, ...) return clbSetFontSize(self, ...) end
+function CustomComboBox.setSystemFont(self, ...) return clbSetSystemFont(self, ...) end
 
 function CustomComboBox.bringToFront(self) return clbBringToFront(self) end
 function CustomComboBox.moveToBack(self) return clbMoveToBack(self) end
@@ -5670,13 +5877,15 @@ function CustomComboBox.getMaxHeight(self, ...) return clbGetMaxHeight(self, ...
 function CustomComboBox.getItemText(self, ...) return clbGetItemText(self, ...) end
 function CustomComboBox.getItemsCount(self, ...) return clbGetItemsCount(self, ...) end
 function CustomComboBox.getItems(self, ...) return clbGetItems(self, ...) end
+function CustomComboBox.getFont(self, ...) return clbGetFont(self, ...) end
+function CustomComboBox.getFontSize(self, ...) return clbGetFontSize(self, ...) end
 
 function CustomComboBox.setColorScheme(self, ...) return clbSetColorScheme(self, ...) end
 function CustomComboBox.getColorScheme(self, ...) return clbGetColorScheme(self, ...) end
 
 function CustomComboBox.addEvent(self, ...) return clbAddEvent(self, ...) end
 function CustomComboBox.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
-function CustomComboBox.getFrame(self, ...) return clbGetFrame(self, ...) end
+function CustomComboBox.getMainElement(self, ...) return clbgetMainElement(self, ...) end
 
 function CustomComboBox.addItem(self, ...) return clbAddItem(self, ...) end
 function CustomComboBox.removeItem(self, ...) return clbRemoveItem(self, ...) end
@@ -5722,8 +5931,8 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -5741,7 +5950,7 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 	TabPanels[id].Vertical = GuiStaticImage.create(1, 0, w, h+2, pane, false, TabPanels[id].Canvas)
 	TabPanels[id].Horizontal = GuiStaticImage.create(0, 1, w+2, h, pane, false, TabPanels[id].Canvas)
 
-	TabPanels[id].Main = GuiStaticImage.create(1, 1, w, h, pane, false, TabPanels[id].Canvas)
+	TabPanels[id].Main = CustomStaticImage.create(1, 1, w, h, pane, false, TabPanels[id].Canvas)
 
 	TabPanels[id].TitleBlock = GuiStaticImage.create(0, 0, w, 23, pane, false, TabPanels[id].Main)
 	TabPanels[id].TitleDivider = GuiStaticImage.create(0, 22, w, 1, pane, false, TabPanels[id].TitleBlock)
@@ -5760,6 +5969,9 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 
 	maincol = "FF"..MainCol
 	samecol = "FF"..SameCol
+
+	TabPanels[id].Font = Fonts.OpenSansRegular
+	TabPanels[id].FontSize = 9
 
 	TabPanels[id].Canvas:setColor("0")
 
@@ -5883,7 +6095,7 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 				v.Label:setColor(fromHEXToRGB("FFFFFF"))
 				v.Canvas:setColor("FF"..TabPanels[id].ColorScheme.Main) 
 				
-				triggerEvent("onCustomTabPanelChangeTab", TabPanels[id].Main, v.Text)
+				triggerEvent("onCustomTabPanelChangeTab", TabPanels[id].Main.Image, v.Text)
 
 			end
 		end
@@ -6000,14 +6212,16 @@ function ctpAddTab(tabpan, text)
 	tabpan.Tabs[id].Canvas = GuiStaticImage.create(0, 0, 100, 22, pane, false, tabpan.TabScroller)
 	tabpan.Tabs[id].Divider = GuiStaticImage.create(0, 0, 1, 22, pane, false, tabpan.Tabs[id].Canvas)
 	tabpan.Tabs[id].Label = GuiLabel.create(0, 0, 100, 20, text, false, tabpan.Tabs[id].Canvas)
-	tabpan.Tabs[id].Entrail = GuiStaticImage.create(0, 23, w, h-23, pane, false, tabpan.Main)
+	tabpan.Tabs[id].Entrail = CustomStaticImage.create(0, 23, w, h-23, pane, false, tabpan.Main)
 	--tabpan.TabScroller:addScrollElement(tabpan.Tabs[id].Canvas, "x")
 
 	tabpan.Tabs[id].Canvas:setColor("0")
 	tabpan.Tabs[id].Entrail:setColor("0")
 	tabpan.Tabs[id].Divider:setColor(samecol)
 
-	tabpan.Tabs[id].Label:setFont(GuiFont.create(Fonts.OpenSansRegular, 9))
+	if tabpan.FontSize == -1 then tabpan.Tabs[id].Label:setFont(tabpan.Font)
+	else tabpan.Tabs[id].Label:setFont(GuiFont.create(tabpan.Font, tabpan.FontSize)) end
+
 	tabpan.Tabs[id].Label:setColor(fromHEXToRGB("444444"))
 	tabpan.Tabs[id].Label:setVerticalAlign("center")
 	tabpan.Tabs[id].Label:setHorizontalAlign("center")
@@ -6034,7 +6248,7 @@ function ctpRemoveTab(tabpan, tab)
 
 			tabpan.TabScroller:removeElement(v.Canvas)
 			
-			destroyElement(v.Entrail)
+			v.Entrail:destroy()
 			destroyElement(v.Label)
 			destroyElement(v.Divider)
 			destroyElement(v.Canvas)
@@ -6059,7 +6273,7 @@ function ctpClearTabs(tabpan)
 
 		tabpan.TabScroller:removeElement(v.Canvas)
 		
-		destroyElement(v.Entrail)
+		v.Entrail:destroy()
 		destroyElement(v.Label)
 		destroyElement(v.Divider)
 		destroyElement(v.Canvas)
@@ -6170,6 +6384,40 @@ function ctpSetSelectedTab(tabpan, tab)
 	end
 end
 
+function ctpSetFont(tabpan, font, size)
+
+	if not size or not tonumber(size) then size = 8 end
+
+	tabpan.Font = font
+	tabpan.FontSize = size
+
+	for _, v in pairs(tabpan.Tabs) do
+		v.Label:setFont(GuiFont.create(tabpan.Font, tabpan.FontSize))
+	end
+
+end
+
+function ctpSetFontSize(tabpan, size)
+
+	if not size or not tonumber(size) then size = 8 end
+
+	tabpan.FontSize = size
+
+	for _, v in pairs(tabpan.Tabs) do
+		v.Label:setFont(GuiFont.create(tabpan.Font, tabpan.FontSize))
+	end
+end
+
+function ctpSetSystemFont(tabpan, font)
+	tabpan.Font = font
+	tabpan.FontSize = -1
+	tabpan.Label:setFont(font)
+
+	for _, v in pairs(tabpan.Tabs) do
+		v.Label:setFont(tabpan.Font)
+	end
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -6183,6 +6431,9 @@ end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Get functions
+
+function ctpGetFont(tabpan) return tabpan.Font end
+function ctpGetFontSize(tabpan) return tabpan.FontSize end
 
 function ctpGetTabEnabled(tabpan, tab)
 
@@ -6288,6 +6539,7 @@ function ctpSetColorScheme(tabpan, scheme)
 
 	tabpan.Main:setColor(maincol)
 	tabpan.TitleDivider:setColor(samecol)
+	tabpan.Main:setColorScheme(tabpan.ColorScheme)
 
 end
 
@@ -6353,6 +6605,9 @@ function CustomTabPanel.setTabVisible(self, ...) return ctpSetTabVisible(self, .
 function CustomTabPanel.setTabText(self, ...) return ctpSetTabText(self, ...) end
 function CustomTabPanel.setSelectedTab(self, ...) return ctpSetSelectedTab(self, ...) end
 function CustomTabPanel.setTabsMinLength(self, ...) return ctpSetTabsMinLength(self, ...) end
+function CustomTabPanel.setFont(self, ...) return ctpSetFont(self, ...) end
+function CustomTabPanel.setFontSize(self, ...) return ctpSetFontSize(self, ...) end
+function CustomTabPanel.setSystemFont(self, ...) return ctpSetSystemFont(self, ...) end
 
 function CustomTabPanel.bringToFront(self) return ctpBringToFront(self) end
 function CustomTabPanel.moveToBack(self) return ctpMoveToBack(self) end
@@ -6369,13 +6624,15 @@ function CustomTabPanel.getTabFromText(self, ...) return ctpGetTabFromText(self,
 function CustomTabPanel.getSelectedTab(self, ...) return ctpGetSelectedTab(self, ...) end
 function CustomTabPanel.getTabsMinLength(self, ...) return ctpGetTabsMinLength(self, ...) end
 function CustomTabPanel.getTabHeader(self, ...) return ctpGetTabHeader(self, ...) end
+function CustomTabPanel.getFont(self, ...) return ctpGetFont(self, ...) end
+function CustomTabPanel.getFontSize(self, ...) return ctpGetFontSize(self, ...) end
 
 function CustomTabPanel.setColorScheme(self, ...) return ctpSetColorScheme(self, ...) end
 function CustomTabPanel.getColorScheme(self, ...) return ctpGetColorScheme(self, ...) end
 
 function CustomTabPanel.addEvent(self, ...) return ctpAddEvent(self, ...) end
 function CustomTabPanel.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
-function CustomTabPanel.getFrame(self, ...) return ctpGetSelectedTab(self, ...) end
+function CustomTabPanel.getMainElement(self, ...) return ctpGetSelectedTab(self, ...) end
 
 function CustomTabPanel.addTab(self, ...) return ctpAddTab(self, ...) end
 function CustomTabPanel.removeTab(self, ...) return ctpRemoveTab(self, ...) end
@@ -6420,8 +6677,8 @@ function guiCreateCustomLabel(x, y, w, h, text, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	Labels[id] = {}
@@ -6631,6 +6888,12 @@ function clSetFontSize(label, size)
 	label.Label:setFont(GuiFont.create(label.Font, size))
 end
 
+function clSetSystemFont(label, fontname)
+	label.Label:setFont(fontname)
+	label.Font = fontname
+	label.FontSize = -1
+end
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Layering functions
 
@@ -6711,7 +6974,7 @@ function clIsHoverable(label)
 	return label.IsHoverable
 end
 
-function clGetFrame(label)
+function clgetMainElement(label)
 	return label.Label
 end
 
@@ -6820,6 +7083,7 @@ function CustomLabel.setHorizontalAlign(self, ...) return clSetHorizontalAlign(s
 function CustomLabel.setAlign(self, ...) return clSetAlign(self, ...) end
 function CustomLabel.setFont(self, ...) return clSetFont(self, ...) end
 function CustomLabel.setFontSize(self, ...) return clSetFontSize(self, ...) end
+function CustomLabel.setSystemFont(self, ...) return clSetSystemFont(self, ...) end
 
 function CustomLabel.bringToFront(self) return clBringToFront(self) end
 function CustomLabel.moveToBack(self) return clMoveToBack(self) end
@@ -6843,7 +7107,7 @@ function CustomLabel.getColorScheme(self, ...) return clGetColorScheme(self, ...
 
 function CustomLabel.addEvent(self, ...) return clAddEvent(self, ...) end
 function CustomLabel.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
-function CustomLabel.getFrame(self, ...) return clGetFrame(self, ...) end
+function CustomLabel.getMainElement(self, ...) return clgetMainElement(self, ...) end
 
 function CustomLabel.addElement(self, ...) return clAddElement(self, ...) end
 function CustomLabel.removeElement(self, ...) return clRemoveElement(self, ...) end
@@ -6934,7 +7198,7 @@ function CustomDialog.create(rwidth, text, buttons, window)
 		dialog:setCloseEnabled(true)
 	end
 
-	dialog.Label = CustomLabel.create(5, 20, w-10, h-38-30, text, false, dialog:getFrame())
+	dialog.Label = CustomLabel.create(5, 20, w-10, h-38-30, text, false, dialog:getMainElement())
 	dialog.Label:setAlign("center", "center")
 
 	dialog.Buttons = {}
@@ -6943,13 +7207,13 @@ function CustomDialog.create(rwidth, text, buttons, window)
 
 		nlen = nlen + butsizes[i]
 
-		dialog.Buttons[i] = CustomButton.create(w-10*i-nlen, h-38, butsizes[i], 28, v, false, dialog:getFrame())
+		dialog.Buttons[i] = CustomButton.create(w-10*i-nlen, h-38, butsizes[i], 28, v, false, dialog:getMainElement())
 		dialog:addElement(dialog.Buttons[i])
 		
 		dialog.Buttons[i]:addEvent("onClientGUIClick", function()
 			
 			dialog:close()
-			triggerEvent("onCustomDialogClick", dialog:getFrame(), v)
+			triggerEvent("onCustomDialogClick", dialog:getMainElement(), v)
 
 			if window then
 				window:showDialog(false)
@@ -7239,8 +7503,8 @@ function CustomLoading.create(x, y, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	Loadings[id].Back = GuiStaticImage.create(x, y, 30, 30, pane, false, parent)
@@ -7289,7 +7553,7 @@ function CustomLoading.create(x, y, relative, parent)
 
 	Loadings[id].Back:setColor("0")
 
-	if comparetypes(oldparent, CustomWindow) or comparetypes(oldparent, CustomScrollPane) then
+	if multiplecompare(oldparent, {CustomWindow, CustomScrollPane, CustomLabel, CustomStaticImage})  then
 		oldparent:addElement(Loadings[id])
 	end
 
@@ -7422,8 +7686,8 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 	end
 
 	local oldparent = parent
-	if compareDefaults(parent) then
-		parent = parent:getFrame()
+	if compareIsAttachable(parent) then
+		parent = parent:getMainElement()
 	end
 
 	TableView[id] = {}
@@ -7487,6 +7751,9 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 	TableView[id].Disabled:setVisible(false)
 
 	TableView[id].TitleScrolls:setHorizontalScrolling(true)
+
+	TableView[id].Font = Fonts.OpenSansRegular
+	TableView[id].FontSize = 9
 
 	-------------------------------------------------------------------------------------
 	--Events
@@ -7866,6 +8133,10 @@ function ctvAddLine(tview, height)
 		tview.Items[id][i] = ""
 
 		tview.Lines[id].Elements[i] = CustomLabel.create(x, 0, v.Width-5, height, "", false, tview.Lines[id].Canvas)
+		
+		if tview.FontSize == -1 then tview.Lines[id].Elements[i]:setSystemFont(tview.Font)
+		else tview.Lines[id].Elements[i]:setFont(tview.Font, tview.FontSize) end
+
 		tview.Lines[id].Elements[i]:setVerticalAlign("center")
 		tview.Lines[id].Elements[i]:setEnabled(false)
 		tview.Lines[id].Elements[i].Cell = true
@@ -7975,11 +8246,18 @@ function ctvAddColumn(tview, title, width)
 	tview.Columns[id].Title = CustomLabel.create(XPos, 0, width, 23, title, false, tview.TitleScrolls)
 	tview.Columns[id].Divider = GuiStaticImage.create(0, 0, 1, 22, pane, false, tview.Columns[id].Title.Label)
 
+	if tview.FontSize == -1 then tview.Columns[id].Title:setSystemFont(tview.Font)
+	else tview.Columns[id].Title:setFont(tview.Font, tview.FontSize) end
+
 	for i, v in pairs(tview.Lines) do
 
 		tview.Items[i][id] = ""
 
 		v.Elements[id] = CustomLabel.create(XPos+5, 0, tview.Columns[id].Width-5, v.Height, "Sas", false, v.Canvas)
+
+		if tview.FontSize == -1 then v.Elements[id]:setSystemFont(tview.Font)
+		else v.Elements[id]:setFont(tview.Font, tview.FontSize) end
+		
 		v.Elements[id]:setVerticalAlign("center")
 		v.Elements[id]:setEnabled(false)
 		v.Elements[id].Elements[i].Cell = true
@@ -8323,9 +8601,64 @@ function ctvSetCellText(tview, line, column, text)
 	end
 end
 
+function ctvSetFont(tview, font, size)
+
+	if not size or not tonumber(size) then size = tview.FontSize end
+
+	tview.Font = font
+	tview.FontSize = size
+
+	for _, v in pairs(tview.Columns) do
+		v.Title:setFont(tview.Font, tview.FontSize)
+	end
+
+	for _, v in pairs(tview.Lines) do
+		for _, el in pairs(v.Elements) do
+			el:setFont(tview.Font, tview.FontSize)
+		end
+	end
+
+end
+
+function ctvSetFontSize(tview, size)
+
+	if not size or not tonumber(size) then size = 9 end
+	tview.FontSize = size
+	
+	for _, v in pairs(tview.Columns) do
+		v.Title:setFont(tview.Font, tview.FontSize)
+	end
+
+	for _, v in pairs(tview.Lines) do
+		for _, el in pairs(v.Elements) do
+			el:setFont(tview.Font, tview.FontSize)
+		end
+	end
+
+end
+
+function ctvSetSystemFont(tview, fontname)
+
+	tview.Font = fontname
+	tview.FontSize = -1
+
+	for _, v in pairs(tview.Columns) do
+		v.Title:setSystemFont(tview.Font)
+	end
+
+	for _, v in pairs(tview.Lines) do
+		for _, el in pairs(v.Elements) do
+			el:setSystemFont(tview.Font)
+		end
+	end
+end
+
 
 -------------------------------------
 --Get Functions
+
+function ctvGetFont(tview) return tview.Font end
+function ctvGetFontSize(tview) return tview.FontSize end
 
 function ctvGetEnabled(tview)
 	return tview.Back:getEnabled()
@@ -8646,6 +8979,9 @@ function CustomTableView.setLineHeight(self, ...) return ctvSetLineHeight(self, 
 function CustomTableView.setColumnWidth(self, ...) return ctvSetColumnWidth(self, ...) end
 function CustomTableView.setColumnTitle(self, ...) return ctvSetColumnTitle(self, ...) end
 function CustomTableView.setCellText(self, ...) return ctvSetCellText(self, ...) end
+function CustomTableView.setFont(self, ...) return ctvSetFont(self, ...) end
+function CustomTableView.setFontSize(self, ...) return ctvSetFontSize(self, ...) end
+function CustomTableView.setSystemFont(self, ...) return ctvSetSystemFont(self, ...) end
 
 function CustomTableView.bringToFront(self, ...) return ctvBringToFront(self, ...) end
 function CustomTableView.moveToBack(self, ...) return ctvMoveToBack(self, ...) end
@@ -8666,10 +9002,149 @@ function CustomTableView.getCellText(self, ...) return ctvGetCellText(self, ...)
 function CustomTableView.getCell(self, ...) return ctvGetCell(self, ...) end
 function CustomTableView.getLinesCount(self, ...) return ctvGetLinesCount(self, ...) end
 function CustomTableView.getColumnsCount(self, ...) return ctvGetColumnsCount(self, ...) end
+function CustomTableView.getFont(self, ...) return ctvGetFont(self, ...) end
+function CustomTableView.getFontSize(self, ...) return ctvGetFontSize(self, ...) end
 
 function CustomTableView.addEvent(self, ...) return ctvAddEvent(self, ...) end
 function CustomTableView.removeEvent(self, ...) return ctvRemoveEvent(self, ...) end
 function CustomTableView.destroy(self, ...) return ctvDestroy(self, ...) end
+
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+---------------------------CustomStaticImage------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+
+CustomImages = {}
+function guiCreateCustomImage(x, y, w, h, location, rel, par)
+
+	local id = #CustomImages+1
+
+	CustomImages[id] = {}
+	CustomImages[id].ColorScheme = DefaultColors
+	CustomImages[id].Elements = {}
+
+	CustomImages[id].Image = GuiStaticImage.create(x, y, w, h, location, rel, par)
+	CustomImages[id].ImageLocation = location
+
+	return CustomImages[id]
+end
+
+---------------------------
+--Main functions
+
+function csiAddElement(simg, element)
+
+	local cnt = #simg.Elements+1
+	simg.Elements[cnt] = element
+
+	if element.ColorScheme then
+		element:setColorScheme(simg.ColorScheme)
+	end
+
+end
+
+function csiAddEvent(simg, event, func)
+
+	local f = function(...)
+		if source == simg.Image then
+			func(...)
+		end
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
+end
+
+function csiRemoveEvent(simg, event, func)
+	removeEventHandler(event, root, func)
+end
+
+function csiDestroy(simg)
+
+	for _, v in pairs(simg.Elements) do
+		if getType(v) then
+			v:destroy()
+		else
+			destroyElement(v)
+		end
+	end
+
+	destroyElement(simg.Image)
+end
+
+---------------------------
+--Set functions
+
+function cgiSetPosition(simg, x, y, rel)
+	if not rel then rel = false end
+	return simg.Image:setPosition(x, y, rel)
+end
+
+function cgiSetSize(simg, w, h, rel)
+	if not rel then rel = false end
+	return simg.Image:setSize(w, h, rel)
+end
+
+function cgiSetImage(simg, image)
+	simg.ImageLocation = image
+	return simg.Image:loadImage(image)
+end
+
+function csiSetColorScheme(simg, scheme)
+	simg.ColorScheme = scheme
+
+	for _, element in pairs(simg.Elements) do
+		if element.ColorScheme then
+			element:setColorScheme(simg.ColorScheme)
+		end
+	end
+end
+
+---------------------------
+--Get functions
+
+function cgiGetPosition(simg, rel) return simg.Image:getPosition(rel or false) end
+function cgiGetSize(simg, rel) return simg.Image:getSize(rel or false) end
+function cgiGetImage(simg) return simg.ImageLocation end
+function csiGetColorScheme(simg) return simg.ColorScheme end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--OOP functions
+
+CustomStaticImage = {}
+CustomStaticImage.__index = CustomStaticImage
+CustomStaticImage.ClassName = "CustomStaticImage"
+
+function CustomStaticImage.create(...)
+	local self = setmetatable(guiCreateCustomImage(...), CustomStaticImage)
+	compareAppend(self, ...)
+	return self
+end
+
+function CustomStaticImage.setPosition(self, ...) return cgiSetPosition(self, ...) end
+function CustomStaticImage.setSize(self, ...) return cgiSetSize(self, ...) end
+function CustomStaticImage.setEnabled(self, ...) return self.Image:setEnabled(...) end
+function CustomStaticImage.setVisible(self, ...) return self.Image:setVisible(...) end
+function CustomStaticImage.setColor(self, ...) return self.Image:setColor(...) end
+function CustomStaticImage.setColorScheme(self, ...) return csiSetColorScheme(self, ...) end
+function CustomStaticImage.setImage(self, ...) return csiSetImage(self, ...) end
+
+function CustomStaticImage.getPosition(self, ...) return cgiGetPosition(self, ...) end
+function CustomStaticImage.getSize(self, ...) return cgiGetSize(self, ...) end
+function CustomStaticImage.getEnabled(self, ...) return self.Image:getEnabled(...) end
+function CustomStaticImage.getVisible(self, ...) return self.Image:getVisible(...) end
+function CustomStaticImage.getColor(self, ...) return self.Image:getColor(...) end
+function CustomStaticImage.getColorScheme(self, ...) return csiGetColorScheme(self, ...) end
+function CustomStaticImage.getImage(self, ...) return csiGetImage(self, ...) end
+function CustomStaticImage.getNativeSize(self, ...) return guiStaticImageGetNativeSize(self) end
+function CustomStaticImage.getMainElement(self, ...) return self.Image end
+
+function CustomStaticImage.addElement(self, ...) return csiAddElement(self, ...) end
+function CustomStaticImage.addEvent(self, ...) return csiAddEvent(self, ...) end
+function CustomStaticImage.removeEvent(self, ...) return csiRemoveEvent(self, ...) end
+function CustomStaticImage.destroy(self, ...) return csiDestroy(self, ...) end
 
 
 --------------------------------------------------------------------------------------------------------------------
