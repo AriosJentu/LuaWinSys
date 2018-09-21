@@ -7405,6 +7405,9 @@ function CustomDialog.setSystemFont(self, fontname)
 	return self:setFont(fontname, -1, true)
 end
 
+function CustomDialog.getFont(self) return self.Font end
+function CustomDialog.getFontSize(self) return self.FontSize end
+
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 ---------------------------Tooltips---------------------------------------------------------------------------------
