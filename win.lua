@@ -7158,255 +7158,281 @@ function CustomLabel.destroy(self, ...) return clDestroy(self, ...) end
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 
+Dialogs = {}
+local LabelForGettingSizes = CustomLabel.create(0, 0, 0, 0, "", false)
+
+function guiCustomDialogCreate(rwidth, text, buttons, window)
+
+	local id = #Dialogs+1
+
+	Dialogs[id] = {}
+
+	local parent = nil
+	if window and getCWType(window) == CustomWindow then
+		parent = window:getDialog()
+		Dialogs[id].Parent = window
+	else
+		Dialogs[id].Parent = nil
+	end
+
+	--------------------------------------------------------------------------------------------------
+
+	Dialogs[id].Text = text
+	Dialogs[id].RWidth = rwidth
+
+	Dialogs[id].Font = Fonts.OpenSansRegular
+	Dialogs[id].FontSize = 9
+
+	Dialogs[id].ButtonsTitles = {}
+	Dialogs[id].ButtonsSizes = {}
+	Dialogs[id].Buttons = {}
+
+	--------------------------------------------------------------------------------------------------
+
+	Dialogs[id].CalcSizes = function()
+
+		LabelForGettingSizes:setFont(Dialogs[id].Font, Dialogs[id].FontSize)
+	
+		local maxw = 0
+		local objects = Dialogs[id].Text:split("\n")
+
+		--Calculating Max Width
+		for _, v in pairs(objects) do
+			LabelForGettingSizes:setText(v)
+			maxw = math.max(maxw, guiLabelGetTextExtent(LabelForGettingSizes.Label)+10)
+		end
+		maxw = maxw + 20
+
+		--Calculating buttons sizes
+		local butmaxw = 0
+		for i, v in pairs(Dialogs[id].ButtonsTitles) do
+
+			LabelForGettingSizes:setText(v)
+			butmaxw = butmaxw + (guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20) + 10
+
+			Dialogs[id].ButtonsSizes[i] = guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20
+		end
+		butmaxw = butmaxw + 5
+
+		local w = math.max(butmaxw, maxw) + 5
+		local h = (guiLabelGetFontHeight(LabelForGettingSizes.Label) + 5)*(#objects+1) + 25 + 30
+
+		w = math.max(rwidth, w)
+
+		local x, y = Width/2 - w/2, Height/2 - h/2
+		if Dialogs[id].Parent then
+			local nw, nh = Dialogs[id].Parent:getSize(false)
+			x, y = nw/2 - w/2, nh/2 - h/2
+		end
+
+		return x, y, w, h
+	end
+
+	Dialogs[id].UpdateButtonsSizes = function(w, h)
+
+		local nlen = 0
+		for i, v in pairs(Dialogs[id].Buttons) do
+
+			nlen = nlen + Dialogs[id].ButtonsSizes[i]
+			v:setPosition(w - 10*i - nlen, h - 38, false)
+			v:setSize(Dialogs[id].ButtonsSizes[i], 28, false)
+		end
+
+	end
+
+	--------------------------------------------------------------------------------------------------
+	--Create buttons texts
+
+	if type(buttons) == type({}) then
+		Dialogs[id].ButtonsTitles = buttons
+	elseif type(buttons) == type("str") or type(buttons) == type(12) then
+		Dialogs[id].ButtonsTitles = {buttons}
+	end
+
+	--------------------------------------------------------------------------------------------------
+	--Creation
+	
+	local x, y, w, h = Dialogs[id].CalcSizes()
+
+	Dialogs[id].Dialog = CustomWindow.create(x, y, w, h, "", false, parent)
+	Dialogs[id].Label = CustomLabel.create(5, 20, w-10, h-38-30, text, false, Dialogs[id].Dialog)
+
+	local nlen = 0
+	for i, v in pairs(Dialogs[id].ButtonsTitles) do
+		nlen = nlen + Dialogs[id].ButtonsSizes[i]
+
+		Dialogs[id].Buttons[i] = CustomButton.create(w - 10*i - nlen, h - 38, Dialogs[id].ButtonsSizes[i], 28, v, false, Dialogs[id].Dialog)
+	end
+
+	--------------------------------------------------------------------------------------------------
+	--Properties
+
+	Dialogs[id].Dialog:setVisible(false)
+
+	if parent then Dialogs[id].Dialog:setMovable(false)
+	else Dialogs[id].Dialog:setCloseEnabled(true) end
+	
+	Dialogs[id].Label:setAlign("center", "center")
+	Dialogs[id].Label:setFont(Dialogs[id].Font, Dialogs[id].FontSize)
+
+	if window then
+		window.DialogList[#window.DialogList+1] = Dialogs[id]
+	end
+
+	for _, v in pairs(Dialogs[id].Buttons) do
+		v:setFont(Dialogs[id].Font, Dialogs[id].FontSize)
+	end
+
+	--------------------------------------------------------------------------------------------------
+	--Events
+
+	Dialogs[id].Events = {}
+	for i, v in pairs(Dialogs[id].ButtonsTitles) do
+		
+		Dialogs[id].Events[i] = {}
+		Dialogs[id].Events[i].Name = "onClientGUIClick"
+		Dialogs[id].Events[i].Function = function()
+			
+			Dialogs[id]:close()
+			triggerEvent("onCustomDialogClick", Dialogs[id].Dialog:getMainElement(), v)
+
+			if Dialogs[id].Parent then
+				Dialogs[id].Parent:showDialog(false)
+			end
+		end
+
+		Dialogs[id].Events[i].Function = Dialogs[id].Buttons[i]:addEvent(Dialogs[id].Events[i].Name, Dialogs[id].Events[i].Function)
+	end
+
+	return Dialogs[id]
+
+end
+
+--------------------------------------------------------------------------------------------------
+--Main Functions
+
+function cdgOpen(diag)
+	if diag.Parent then
+		diag.Parent:showDialog(true)
+	end
+	diag.Dialog:open()
+end
+
+function cdgClose(diag) 
+	if diag.Parent then
+		diag.Parent:showDialog(false)
+	end
+	diag.Dialog:close()
+end
+
+function cdgAddEvent(diag, ...)
+	return diag.Dialog:addEvent(...)
+end
+
+function cdgRemoveEvent(diag, ...)
+	return diag.Dialog:removeEvent(...)
+end
+
+function cdgDestroy(diag)
+
+	for _,v in pairs(diag.Events) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	for _, v in pairs(diag.Buttons) do
+		v:destroy()
+	end
+
+	diag.Label:destroy()
+	diag.Dialog:destroy()
+end
+
+--------------------------------------------------------------------------------------------------
+--Set Functions
+
+function cdgSetColorScheme(diag, ...)
+	return diag.Dialog:setColorScheme(...)
+end
+
+function cdgSetFont(diag, font, size)
+
+	if not size or not tonumber(size) then size = self.FontSize end
+	diag.Font = font
+	diag.FontSize = size
+
+	diag.Label:setFont(diag.Font, diag.FontSize)
+	for _, v in pairs(diag.Buttons) do
+		v:setFont(diag.Font, diag.FontSize)
+	end
+
+	local x, y, w, h = diag.CalcSizes()
+
+	diag.Dialog:setPosition(x, y, false)
+	diag.Dialog:setSize(w, h, false)
+	diag.Label:setSize(w-10, h-38-30)
+	diag.UpdateButtonsSizes(w, h)
+end
+
+function cdgSetFontSize(diag, size)
+	diag:setFont(diag.Font, size)
+end
+
+function cdgSetSystemFont(diag, font)
+
+	diag.Font = font
+	diag.FontSize = -1
+
+	diag.Label:setSystemFont(diag.Font)
+	for _, v in pairs(diag.Buttons) do
+		v:setSystemFont(diag.Font)
+	end
+
+	local x, y, w, h = diag.CalcSizes()
+
+	diag.Dialog:setPosition(x, y, false)
+	diag.Dialog:setSize(w, h, false)
+	diag.Label:setSize(w-10, h-38-30)
+	diag.UpdateButtonsSizes(w, h)
+end
+
+--------------------------------------------------------------------------------------------------
+--Get Functions
+
+function cdgGetFont(diag) return diag.Font end
+function cdgGetFontSize(diag) return diag.FontSize end
+
+function cdgGetColorScheme(diag, ...)
+	return diag.Dialog:getColorScheme(...)
+end
+
+--------------------------------------------------------------------------------------------------
+--OOP Functions
+
 CustomDialog = {}
 CustomDialog.__index = CustomDialog
 CustomDialog.ClassName = "CustomDialog"
 
-Dialogs = {}
-
-local LabelForGettingSizes = CustomLabel.create(0, 0, 0, 0, "", false)
-function CustomDialog.create(rwidth, text, buttons, window)
-
-	local id = #Dialogs+1
-
-	Dialogs[id] = setmetatable({}, CustomDialog)
-
-	Dialogs[id].Text = text
-	Dialogs[id].Font = Fonts.OpenSansRegular
-	Dialogs[id].FontSize = 9
-	LabelForGettingSizes:setFont(Dialogs[id].Font, Dialogs[id].FontSize)
-
-	local w, h
-	local maxw = 0
-
-	local objects = text:split("\n")
-
-	for _, v in pairs(objects) do
-		LabelForGettingSizes:setText(v)
-		maxw = math.max(maxw, guiLabelGetTextExtent(LabelForGettingSizes.Label)+10)
-	end
-	maxw = maxw + 20
-
-	local butmaxw = 0
-	local butsizes = {}
-	if type(buttons) == type(objects) then
-
-		for _, v in pairs(buttons) do
-		
-			LabelForGettingSizes:setText(v)
-			butmaxw = butmaxw + (guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20) + 10
-		
-			butsizes[#butsizes + 1] = guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20
-		
-		end
-		
-		butmaxw = butmaxw + 5
-	
-	elseif type(buttons) == type("string") or type(buttons) == type(123) then
-
-		LabelForGettingSizes:setText(buttons)
-		butmaxw = (guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20) + 10
-		buttons = {buttons}
-		butsizes = {butmaxw-10}
-
-	else
-		buttons = {}
-	end
-
-	Dialogs[id].Buttons = buttons
-	Dialogs[id].ButtonsSizes = butsizes
-	Dialogs[id].RWidth = rwidth
-
-	w = math.max(butmaxw, maxw) + 5
-	w = math.max(rwidth, w)
-	h = (guiLabelGetFontHeight(LabelForGettingSizes.Label) + 5)*(#objects+1) + 25 + 30
-
-
-	local x, y = Width/2 - w/2, Height/2 - h/2
-	if window then
-		local nw, nh = window:getSize(false)
-		x, y = nw/2 - w/2, nh/2 - h/2
-	end
-
-	local parent = nil
-	if window then
-		parent = window.Dialog
-	end
-
-	local dialog = CustomWindow.create(x, y, w, h, "", false, parent)
-	dialog:setVisible(false)
-
-	dialog.Parent = window
-
-	if window then
-		dialog:setMovable(false)
-	else
-		dialog:setCloseEnabled(true)
-	end
-
-	dialog.Label = CustomLabel.create(5, 20, w-10, h-38-30, text, false, dialog:getMainElement())
-	dialog.Label:setAlign("center", "center")
-	dialog.Label:setFont(Dialogs[id].Font, Dialogs[id].FontSize)
-
-	dialog.Buttons = {}
-	local nlen = 0
-	for i, v in pairs(buttons) do
-
-		nlen = nlen + butsizes[i]
-
-		dialog.Buttons[i] = CustomButton.create(w-10*i-nlen, h-38, butsizes[i], 28, v, false, dialog:getMainElement())
-		dialog:addElement(dialog.Buttons[i])
-		
-		dialog.Buttons[i]:addEvent("onClientGUIClick", function()
-			
-			dialog:close()
-			triggerEvent("onCustomDialogClick", dialog:getMainElement(), v)
-
-			if window then
-				window:showDialog(false)
-			end
-
-		end)
-	end
-
-	dialog:addElement(dialog.Label)
-
-	Dialogs[id].Dialog = dialog
-
-	if window then
-		window:addElement(dialog)
-		window.DialogList[#window.DialogList+1] = Dialogs[id]
-	end
-
-	return Dialogs[id]
+function CustomDialog.create(...)
+	local self = setmetatable(guiCustomDialogCreate(...), CustomDialog)
+	return self
 end
 
-function CustomDialog.open(self) 
-	if self.Dialog.Parent then
-		self.Dialog.Parent:showDialog(true)
-	end
-	self.Dialog:open()
-end
+function CustomDialog.setFont(self, ...) return cdgSetFont(self, ...) end
+function CustomDialog.setFontSize(self, ...) return cdgSetFontSize(self, ...) end
+function CustomDialog.setSystemFont(self, ...) return cdgSetSystemFont(self, ...) end
+function CustomDialog.setColorScheme(self, ...) return cdgSetColorScheme(self, ...) end
 
-function CustomDialog.close(self) 
-	if self.Dialog.Parent then
-		self.Dialog.Parent:showDialog(false)
-	end
-	self.Dialog:close()
-end
+function CustomDialog.getFont(self, ...) return cdgSetFont(self, ...) end
+function CustomDialog.getFontSize(self, ...) return cdgSetFontSize(self, ...) end
+function CustomDialog.getColorScheme(self, ...) return cdgGetColorScheme(self, ...) end
 
-function CustomDialog.addEvent(self, ...)
-	return self.Dialog:addEvent(...)
-end
+function CustomDialog.addEvent(self, ...) return cdgAddEvent(self, ...) end
+function CustomDialog.removeEvent(self, ...) return cdgRemoveEvent(self, ...) end
 
-function CustomDialog.removeEvent(self, ...)
-	return self.Dialog:removeEvent(...)
-end
+function CustomDialog.open(self, ...) return cdgOpen(self, ...) end
+function CustomDialog.close(self, ...) return cdgClose(self, ...) end
 
-function CustomDialog.setColorScheme(self, ...)
-	return self.Dialog:setColorScheme(...)
-end
-
-function CustomDialog.getColorScheme(self)
-	return self.Dialog.Window.ColorScheme
-end
-
-function CustomDialog.destroy(self)
-
-	for i, v in pairs(self.Dialog.Buttons) do
-		v:destroy()
-	end
-
-	self.Dialog.Label:destroy()
-	self.Dialog:destroy()
-end
-
-------------------------------------------
-function CustomDialog.setFont(self, font, size, bool)
-
-	if not bool then bool = false end
-
-	if not size or not tonumber(size) then size = self.FontSize end
-	self.Font = font
-	self.FontSize = size
-
-	if bool then 
-		LabelForGettingSizes:setSystemFont(self.Font)
-		self.Dialog.Label:setSystemFont(self.Font)
-	else 
-		LabelForGettingSizes:setFont(self.Font, self.FontSize) 
-		self.Dialog.Label:setFont(self.Font, self.FontSize)
-	end
-
-	---------------------------------------------------
-
-	local w, h
-	local maxw = 0
-
-	local objects = self.Text:split("\n")
-
-	for _, v in pairs(objects) do
-		LabelForGettingSizes:setText(v)
-		maxw = math.max(maxw, guiLabelGetTextExtent(LabelForGettingSizes.Label)+10)
-	end
-	maxw = maxw + 20
-
-	---------------------------------------------------
-
-	local butmaxw = 0
-
-	for i, v in pairs(self.Buttons) do
-	
-		LabelForGettingSizes:setText(v)
-		butmaxw = butmaxw + (guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20) + 10
-	
-		self.ButtonsSizes[i] = guiLabelGetTextExtent(LabelForGettingSizes.Label) + 20
-	end
-	
-	butmaxw = butmaxw + 5
-
-	---------------------------------------------------
-	
-	w = math.max(butmaxw, maxw) + 5
-	w = math.max(self.RWidth, w)
-	h = (guiLabelGetFontHeight(LabelForGettingSizes.Label) + 5)*(#objects+1) + 25 + 30
-
-	local x, y = Width/2 - w/2, Height/2 - h/2
-	if self.Dialog.Parent then
-		local nw, nh = self.Dialog.Parent:getSize(false)
-		x, y = nw/2 - w/2, nh/2 - h/2
-	end
-
-	self.Dialog:setPosition(x, y, false)
-	self.Dialog:setSize(w, h, false)
-	self.Dialog.Label:setSize(w-10, h-38-30, false)
-
-	local nlen = 0
-	for i, v in pairs(self.Buttons) do
-
-		nlen = nlen + self.ButtonsSizes[i]
-
-		self.Dialog.Buttons[i]:setPosition(w-10*i-nlen, h-38, false)
-		self.Dialog.Buttons[i]:setSize(self.ButtonsSizes[i], 28, false)
-		if bool then 
-			self.Dialog.Buttons[i]:setSystemFont(self.Font)
-		else 
-			self.Dialog.Buttons[i]:setFont(self.Font, self.FontSize)
-		end
-	end
-end
-
-function CustomDialog.setFontSize(self, size)
-	if not size or not tonumber(size) then size = 9 end
-	return self:setFont(self.Font, size)
-end
-
-function CustomDialog.setSystemFont(self, fontname)
-	return self:setFont(fontname, -1, true)
-end
-
-function CustomDialog.getFont(self) return self.Font end
-function CustomDialog.getFontSize(self) return self.FontSize end
+function CustomDialog.destroy(self, ...) return cdgDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
