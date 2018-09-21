@@ -1,4 +1,35 @@
 local HPerc = 2.4
+local CHARTAB = {
+	" ", 
+	"\n", 
+	"%.", 
+	",", 
+	"%^", 
+	"'", 
+	'"', 
+	"#", 
+	"/", 
+	"\\", 
+	"%(", 
+	")", 
+	"%[", 
+	"]", 
+	"%{", 
+	"}", 
+	"<", 
+	">", 
+	"=", 
+	"+", 
+	"-",
+	"*",
+	"@",
+	":",
+	";",
+	"?",
+	"~",
+	"`",
+	"|"
+}
 
 function isCWCursorShowing()
 	return isCursorShowing() or isConsoleActive()
@@ -128,6 +159,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 
 	if not multilined then
 		multilined = false
+		text = table.concat(text:split("\n"))
 	end
 
 	--------------------------------------------------------------
@@ -282,13 +314,15 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 		end
 	end
 
+	local holdTimer
 	NewEditBoxes[id].Events.Key = {}
 	NewEditBoxes[id].Events.Key.Name = "onClientKey"
-	NewEditBoxes[id].Events.Key.Function = function(button, por)
+	NewEditBoxes[id].Events.Key.Function = function(button, por, x)
 
 		if NewEditBoxes[id].Active and por and isCWCursorShowing() then
 
 			local shift = getKeyState("lshift") or getKeyState("rshift")
+			local ctrl = getKeyState("lctrl") or getKeyState("rctrl")
 
 			if button == "backspace" then
 
@@ -296,9 +330,25 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 				local start = NewEditBoxes[id].CaretIndex-1
 
 				if NewEditBoxes[id].SelectingCaretIndex == NewEditBoxes[id].CaretIndex then
-					str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex-1)..utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str)
+					local pcaret = 1
+					
+					if ctrl then
+
+						pcaret = utf8.minrfind(utf8.sub(str, 0, NewEditBoxes[id].CaretIndex-1), CHARTAB)
+						
+						if pcaret == nil then 
+							pcaret = NewEditBoxes[id].CaretIndex
+						end
+
+						start = NewEditBoxes[id].CaretIndex-pcaret 
+
+					end 
+
+					str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex-pcaret)..utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str)
 				else
+					
 					start = math.min(NewEditBoxes[id].SelectingCaretIndex, NewEditBoxes[id].CaretIndex)
+					
 					local ends = start + math.abs(NewEditBoxes[id].SelectingCaretIndex - NewEditBoxes[id].CaretIndex) + 1
 					str = utf8.sub(str, 0, start)..utf8.sub(str, ends, #str)
 				end
@@ -313,7 +363,19 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 				local start = NewEditBoxes[id].CaretIndex
 
 				if NewEditBoxes[id].SelectingCaretIndex == NewEditBoxes[id].CaretIndex then
-					str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex)..utf8.sub(str, NewEditBoxes[id].CaretIndex+2, #str)
+					local pcaret = 1
+
+					if ctrl then
+
+						pcaret = utf8.minfind(utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str), CHARTAB)
+						
+						if pcaret == nil then 
+							pcaret = 0
+						end
+
+					end 
+
+					str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex)..utf8.sub(str, NewEditBoxes[id].CaretIndex+1+pcaret, #str)
 				else
 					start = math.min(NewEditBoxes[id].SelectingCaretIndex, NewEditBoxes[id].CaretIndex)
 					local ends = start + math.abs(NewEditBoxes[id].SelectingCaretIndex - NewEditBoxes[id].CaretIndex) + 1
@@ -331,11 +393,35 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 			end
 
 			if button == "arrow_l" then
-				cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].SelectingCaretIndex-1, shift)
+				
+				local pcaret = 1
+					
+				if ctrl then
+					local str = NewEditBoxes[id].Label:getText()
+					pcaret = utf8.minrfind(utf8.sub(str, 0, NewEditBoxes[id].CaretIndex-1), CHARTAB)
+					
+					if pcaret == nil then 
+						pcaret = NewEditBoxes[id].CaretIndex
+					end
+				end 
+
+				cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].SelectingCaretIndex-pcaret, shift)
 			end
 
 			if button == "arrow_r" then
-				cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].SelectingCaretIndex+1, shift)
+
+				local pcaret = 1
+					
+				if ctrl then
+					local str = NewEditBoxes[id].Label:getText()
+					pcaret = utf8.minfind(utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str), CHARTAB)
+					
+					if pcaret == nil then 
+						pcaret = NewEditBoxes[id].CaretIndex
+					end
+				end 
+
+				cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].SelectingCaretIndex+pcaret, shift)
 			end
 
 			if button == "arrow_u" then
@@ -355,6 +441,51 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 				cxpSetCaretIndex(NewEditBoxes[id], caret, shift)
 			end
 
+			if button == "a" and ctrl then
+				local str = NewEditBoxes[id].Label:getText()
+
+				cxpSetCaretIndex(NewEditBoxes[id], 0)
+				cxpSetCaretIndex(NewEditBoxes[id], #str, true)
+			end
+
+			if button == "x" and ctrl then
+		
+				local str = NewEditBoxes[id].Label:getText()
+				if NewEditBoxes[id].SelectingCaretIndex ~= NewEditBoxes[id].CaretIndex then
+					
+					local min, max = math.minmax(NewEditBoxes[id].SelectingCaretIndex, NewEditBoxes[id].CaretIndex)
+					str = utf8.sub(str, 0, min)..utf8.sub(str, max+1, #str)
+
+					NewEditBoxes[id].Label:setText(str)
+					cxpSetCaretIndex(NewEditBoxes[id], min)
+
+				elseif NewEditBoxes[id].MultiLined then
+				
+					local left = math.max(utf8.rfind(utf8.sub(str, 0, NewEditBoxes[id].CaretIndex), "\n") or NewEditBoxes[id].CaretIndex, 0)
+					local right = math.min(utf8.find(utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str), "\n") or #str, #str)
+
+					str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex-left)..utf8.sub(str, NewEditBoxes[id].CaretIndex+right, #str)
+					if left == NewEditBoxes[id].CaretIndex then
+						str = utf8.sub(str, 2, #str)
+						left = NewEditBoxes[id].CaretIndex+1
+					end
+					
+					NewEditBoxes[id].Label:setText(str)
+					cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].CaretIndex-left+1)
+
+				end
+				
+
+			end
+
+			local u = function()
+				if getKeyState(button) then
+					setTimer(function() triggerEvent(NewEditBoxes[id].Events.Key.Name, root, button, getKeyState(button), 12) end, 50, 1)
+				end
+			end
+
+			if x == 12 then u()
+			else setTimer(u, 100, 1) end
 		end
 	end
 	
@@ -514,4 +645,4 @@ sunt in culpa qui officia deserunt
 mollit anim id est laborum.]]
 
 local nmemo = guiCreateCustomEditPanel(100, 300, 250, 200, str, _, _, true)
-local nedit = guiCreateCustomEditPanel(100, 250, 250, 30, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", _, _, false)
+local nedit = guiCreateCustomEditPanel(100, 250, 250, 30, "Lorem\n ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", _, _, false)

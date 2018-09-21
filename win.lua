@@ -106,6 +106,44 @@ function string:split(sep)
 	return tab
 end
 
+function string:rfind(val) return self:reverse():find(val) end
+function utf8.rfind(str, val) return utf8.find(utf8.reverse(str), val) end
+
+function utf8.minfind(str, vals)
+	local a = #str+1
+
+	for _, v in pairs(vals) do
+
+		local b = utf8.find(str, v)
+		
+		if b then
+			a = math.min(a, b)
+		end
+	end
+	return a
+end
+
+function utf8.minrfind(str, vals)
+	local a = #str+1
+
+	for _, v in pairs(vals) do
+
+		local b = utf8.rfind(str, v)
+		
+		if b then
+			a = math.min(a, b)
+		end
+	end
+
+	return a
+end
+
+function math.minmax(...)
+	local min = math.min(...)
+	local max = math.max(...)
+	return min, max
+end
+
 function fromHEXToRGB(color)
 	--this function replace color from HEX, and return R, G and B parameters (from 0 to 255)
 	--Example: fromHEXToRGB("6600FF"); returns 102, 0, 255
@@ -6409,9 +6447,9 @@ function ctpSetFontSize(tabpan, size)
 end
 
 function ctpSetSystemFont(tabpan, font)
+	
 	tabpan.Font = font
 	tabpan.FontSize = -1
-	tabpan.Label:setFont(font)
 
 	for _, v in pairs(tabpan.Tabs) do
 		v.Label:setFont(tabpan.Font)
