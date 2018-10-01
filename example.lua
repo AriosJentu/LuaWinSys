@@ -102,6 +102,7 @@ test_but_clicked3 = CustomButton.create(160, 80, 100, 30, "Clicked", false, demo
 test_tooltip = CustomTooltip.create("Custom Tooltip", test_button, 0)
 test_tooltip:setShowTime(1)
 test_tooltip:setText("I've just changed this text")
+test_tooltip:setSystemFont("default-bold-small")
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Progress bars

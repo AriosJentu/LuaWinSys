@@ -453,12 +453,6 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-
-		parent = parent:getMainElement()
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main part of window
 	Windows[id] = {}
@@ -466,8 +460,8 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Canvas = GuiStaticImage.create(x-2, y-2, w+4, h+4, pane, false, parent)
 	Windows[id].ColorScheme = DefaultColors
 
-	if oldparent and oldparent.ColorScheme ~= nil then
-		Windows[id].ColorScheme = oldparent.ColorScheme
+	if parent and parent.ColorScheme ~= nil then
+		Windows[id].ColorScheme = parent.ColorScheme
 	end
 
 	Windows[id].MaxX = nw
@@ -640,100 +634,104 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Event.Render = {}
 	Windows[id].Event.Render.Name = "onClientRender"
 	Windows[id].Event.Render.Function = function()
-		if Windows[id].Animation == "open" then
-			
-			Windows[id].Canvas:setEnabled(false)
 
-			local _, y = Windows[id].Canvas:getPosition(false)
-			local self_y = Windows[id].Positions.Y
+		if Windows[id].Canvas:getVisible() then
 
-			if y >= self_y+140 then y = y-35
-			elseif y >= self_y+80 then y = y-20
-			elseif y >= self_y+50 then y = y-12
-			elseif y >= self_y+20 then y = y-8
-			elseif y >= self_y+8 then y = y-4
-			elseif y >= self_y+2 then y= y-2
-			elseif y >= self_y-2 then y= y-1
-			end
+			if Windows[id].Animation == "open" then
+				
+				Windows[id].Canvas:setEnabled(false)
 
-			if y <= self_y-2 then y = self_y-2 end
+				local _, y = Windows[id].Canvas:getPosition(false)
+				local self_y = Windows[id].Positions.Y
 
-			Windows[id].Canvas:setPosition(Windows[id].Positions.X-2, y, false)
-			if y == self_y-2 then			
-				Windows[id].Animation = "none"
-				Windows[id].Canvas:setEnabled(Windows[id].Enabled)
-			end
+				if y >= self_y+140 then y = y-35
+				elseif y >= self_y+80 then y = y-20
+				elseif y >= self_y+50 then y = y-12
+				elseif y >= self_y+20 then y = y-8
+				elseif y >= self_y+8 then y = y-4
+				elseif y >= self_y+2 then y= y-2
+				elseif y >= self_y-2 then y= y-1
+				end
 
-		elseif Windows[id].Animation == "close" then
-			
-			Windows[id].Canvas:setEnabled(false)
+				if y <= self_y-2 then y = self_y-2 end
 
-			local _, y = Windows[id].Canvas:getPosition(false)
-			local self_y = Windows[id].Positions.Y
+				Windows[id].Canvas:setPosition(Windows[id].Positions.X-2, y, false)
+				if y == self_y-2 then			
+					Windows[id].Animation = "none"
+					Windows[id].Canvas:setEnabled(Windows[id].Enabled)
+				end
 
-			if y >= self_y+150 then y = y+35
-			elseif y >= self_y+80 then y = y+20
-			elseif y >= self_y+50 then y = y+12
-			elseif y >= self_y+20 then y = y+8
-			elseif y >= self_y+8 then y = y+4
-			elseif y >= self_y+2 then y= y+2
-			elseif y >= self_y-2 then y= y+1
-			end
+			elseif Windows[id].Animation == "close" then
+				
+				Windows[id].Canvas:setEnabled(false)
 
-			if y >= Windows[id].MaxY then y = Windows[id].MaxY end
+				local _, y = Windows[id].Canvas:getPosition(false)
+				local self_y = Windows[id].Positions.Y
 
-			Windows[id].Canvas:setPosition(Windows[id].Positions.X-2, y, false)
-			if y == Windows[id].MaxY then
-				Windows[id].Canvas:setVisible(false)
-				Windows[id].Canvas:setEnabled(Windows[id].Enabled)
-				Windows[id].Animation = "none"
-			end
+				if y >= self_y+150 then y = y+35
+				elseif y >= self_y+80 then y = y+20
+				elseif y >= self_y+50 then y = y+12
+				elseif y >= self_y+20 then y = y+8
+				elseif y >= self_y+8 then y = y+4
+				elseif y >= self_y+2 then y= y+2
+				elseif y >= self_y-2 then y= y+1
+				end
 
-		end
+				if y >= Windows[id].MaxY then y = Windows[id].MaxY end
 
-		if Windows[id].DialogAnimation == 2 then
-
-			local alpha = fromPropertyToHEX(Windows[id].Dialog)
-			alpha = tonumber(alpha:sub(1, 2), 16)
-
-			if alpha == 120 then
-
-				Windows[id].DialogAnimation = 0
-			
-			else
-
-				alpha = alpha + 4
-
-				if alpha >= 120 then alpha = 120 end
-				local color = string.format("%.2x000000", alpha)
-				Windows[id].Dialog:setColor(color)
+				Windows[id].Canvas:setPosition(Windows[id].Positions.X-2, y, false)
+				if y == Windows[id].MaxY then
+					Windows[id].Canvas:setVisible(false)
+					Windows[id].Canvas:setEnabled(Windows[id].Enabled)
+					Windows[id].Animation = "none"
+				end
 
 			end
 
-		elseif Windows[id].DialogAnimation == 1 then
-			
-			local alpha = fromPropertyToHEX(Windows[id].Dialog)
-			alpha = tonumber(alpha:sub(1, 2), 16)
+			if Windows[id].DialogAnimation == 2 then
 
-			if alpha == 0 then
+				local alpha = fromPropertyToHEX(Windows[id].Dialog)
+				alpha = tonumber(alpha:sub(1, 2), 16)
 
-				Windows[id].DialogAnimation = 0
-				Windows[id].Dialog:setVisible(false)
-				Windows[id].Dialog:setProperty("AlwaysOnTop", "False")
-				Windows[id].Top:setProperty("AlwaysOnTop", "True")
-				Windows[id].Frame:bringToFront()
-				triggerEvent("onClientGUIMouseUp", Windows[id].Dialog)
+				if alpha == 120 then
 
-			else
+					Windows[id].DialogAnimation = 0
+				
+				else
 
-				alpha = alpha - 4
+					alpha = alpha + 4
 
-				if alpha <= 0 then alpha = 0 end
-				local color = string.format("%.2x000000", alpha)
-				Windows[id].Dialog:setColor(color)
+					if alpha >= 120 then alpha = 120 end
+					local color = string.format("%.2x000000", alpha)
+					Windows[id].Dialog:setColor(color)
+
+				end
+
+			elseif Windows[id].DialogAnimation == 1 then
+				
+				local alpha = fromPropertyToHEX(Windows[id].Dialog)
+				alpha = tonumber(alpha:sub(1, 2), 16)
+
+				if alpha == 0 then
+
+					Windows[id].DialogAnimation = 0
+					Windows[id].Dialog:setVisible(false)
+					Windows[id].Dialog:setProperty("AlwaysOnTop", "False")
+					Windows[id].Top:setProperty("AlwaysOnTop", "True")
+					Windows[id].Frame:bringToFront()
+					triggerEvent("onClientGUIMouseUp", Windows[id].Dialog)
+
+				else
+
+					alpha = alpha - 4
+
+					if alpha <= 0 then alpha = 0 end
+					local color = string.format("%.2x000000", alpha)
+					Windows[id].Dialog:setColor(color)
+
+				end
 
 			end
-
 		end
 	end
 
@@ -851,59 +849,62 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Event.CursorMove.Name = "onClientCursorMove"
 	Windows[id].Event.CursorMove.Function = function(_, _, cx, cy)
 
-		if Windows[id].Animation == "move" then
-			local ax, ay = Windows[id].MoveCursorPositions.X, Windows[id].MoveCursorPositions.Y
-			Windows[id].Canvas:setPosition(cx-ax, cy-ay, false)
+		if Windows[id].Animation ~= "none" then
 
-			triggerEvent("onClientGUIMove", Windows[id].Canvas)
+			if Windows[id].Animation == "move" then
+				local ax, ay = Windows[id].MoveCursorPositions.X, Windows[id].MoveCursorPositions.Y
+				Windows[id].Canvas:setPosition(cx-ax, cy-ay, false)
 
-			return
-		end
+				triggerEvent("onClientGUIMove", Windows[id].Canvas)
 
-		if Windows[id].Animation == "size" then
-
-			local x, y = Windows[id].ResizingCalc.X, Windows[id].ResizingCalc.Y
-			local w, h = Windows[id].ResizingCalc.W, Windows[id].ResizingCalc.H
-			local ax, ay = Windows[id].SizeCursorPositions.X, Windows[id].SizeCursorPositions.Y
-
-			local nx, ny, nw, nh = x, y, w, h
-
-			local t = Windows[id].ResizeType
-			local coordxedit = 0
-			local coordyedit = 0
-
-			if t == 8 or t == 5 or t == 3 then
-				nw = w+(cx-ax)
+				return
 			end
 
-			if t == 8 or t == 7 or t == 6 then
-				nh = h+(cy-ay)
+			if Windows[id].Animation == "size" then
+
+				local x, y = Windows[id].ResizingCalc.X, Windows[id].ResizingCalc.Y
+				local w, h = Windows[id].ResizingCalc.W, Windows[id].ResizingCalc.H
+				local ax, ay = Windows[id].SizeCursorPositions.X, Windows[id].SizeCursorPositions.Y
+
+				local nx, ny, nw, nh = x, y, w, h
+
+				local t = Windows[id].ResizeType
+				local coordxedit = 0
+				local coordyedit = 0
+
+				if t == 8 or t == 5 or t == 3 then
+					nw = w+(cx-ax)
+				end
+
+				if t == 8 or t == 7 or t == 6 then
+					nh = h+(cy-ay)
+				end
+
+				if t == 1 or t == 2 or t == 3 then
+					ny = y+(cy-ay)
+					nh = h-(cy-ay)
+					coordyedit = 1
+				end
+
+				if t == 1 or t == 4 or t == 6 then
+					nx = x+(cx-ax)
+					nw = w-(cx-ax)
+					coordxedit = 1
+				end
+
+				if nw < Windows[id].MinimalSizes.W then nx = x + (w-Windows[id].MinimalSizes.W)*coordxedit end
+				if nw > Windows[id].MaximalSizes.W then nx = x + (w-Windows[id].MinimalSizes.W)*coordxedit end
+
+				if nh < Windows[id].MinimalSizes.H then ny = y + (h-Windows[id].MinimalSizes.H)*coordyedit end
+				if nh > Windows[id].MaximalSizes.H then ny = y + (h-Windows[id].MinimalSizes.H)*coordyedit end
+
+				Windows[id]:setPosition(nx, ny, false)
+				Windows[id]:setSize(nw, nh, false)
+
+				BackForMouse:setVisible(true)
+
+				triggerEvent("onClientGUISize", Windows[id].Canvas)
 			end
-
-			if t == 1 or t == 2 or t == 3 then
-				ny = y+(cy-ay)
-				nh = h-(cy-ay)
-				coordyedit = 1
-			end
-
-			if t == 1 or t == 4 or t == 6 then
-				nx = x+(cx-ax)
-				nw = w-(cx-ax)
-				coordxedit = 1
-			end
-
-			if nw < Windows[id].MinimalSizes.W then nx = x + (w-Windows[id].MinimalSizes.W)*coordxedit end
-			if nw > Windows[id].MaximalSizes.W then nx = x + (w-Windows[id].MinimalSizes.W)*coordxedit end
-
-			if nh < Windows[id].MinimalSizes.H then ny = y + (h-Windows[id].MinimalSizes.H)*coordyedit end
-			if nh > Windows[id].MaximalSizes.H then ny = y + (h-Windows[id].MinimalSizes.H)*coordyedit end
-
-			Windows[id]:setPosition(nx, ny, false)
-			Windows[id]:setSize(nw, nh, false)
-
-			BackForMouse:setVisible(true)
-
-			triggerEvent("onClientGUISize", Windows[id].Canvas)
 		end
 	end
 
@@ -1489,19 +1490,14 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Creating
 
 	ScrollPanels[id] = {}
 	ScrollPanels[id].ColorScheme = DefaultColors
 
-	if oldparent and oldparent.ColorScheme ~= nil then
-		ScrollPanels[id].ColorScheme = oldparent.ColorScheme
+	if parent and parent.ColorScheme ~= nil then
+		ScrollPanels[id].ColorScheme = parent.ColorScheme
 	end
 
 	ScrollPanels[id].Canvas = GuiStaticImage.create(x, y, w, h, pane, false, parent)
@@ -1588,25 +1584,27 @@ function guiCreateCustomScrollPane(x, y, w, h, relative, parent)
 	ScrollPanels[id].Event.CursorMove.Name = "onClientCursorMove"	
 	ScrollPanels[id].Event.CursorMove.Function = function(_, _, x, y)
 
-		if ScrollPanels[id].IsScrolling then
-			
-			local ax, ay = ScrollPanels[id].MoveCursorPositions.X, ScrollPanels[id].MoveCursorPositions.Y
+		if ScrollPanels[id].Canvas:getVisible() then
+			if ScrollPanels[id].IsScrolling then
+				
+				local ax, ay = ScrollPanels[id].MoveCursorPositions.X, ScrollPanels[id].MoveCursorPositions.Y
 
-			local w, h = ScrollPanels[id].Scroller:getSize(false)
-			local aw, ah = ScrollPanels[id].Canvas:getSize(false)
+				local w, h = ScrollPanels[id].Scroller:getSize(false)
+				local aw, ah = ScrollPanels[id].Canvas:getSize(false)
 
-			local posX, posY = x-ax, y-ay
+				local posX, posY = x-ax, y-ay
 
-			if posX > 0 then posX = 0 end
-			if posY > 0 then posY = 0 end
-			if posX < aw-w then posX = aw-w end
-			if posY < ah-h then posY = ah-h end
+				if posX > 0 then posX = 0 end
+				if posY > 0 then posY = 0 end
+				if posX < aw-w then posX = aw-w end
+				if posY < ah-h then posY = ah-h end
 
-			ScrollPanels[id].Scroller:setPosition(posX, posY, false)
+				ScrollPanels[id].Scroller:setPosition(posX, posY, false)
 
-			triggerEvent("onCustomScrollPaneScrolled", ScrollPanels[id].Scroller, ScrollPanels[id]:getVerticalScrollPosition(), ScrollPanels[id]:getHorizontalScrollPosition())
-			triggerEvent("onClientGUIScroll", ScrollPanels[id].Scroller, ScrollPanels[id])
+				triggerEvent("onCustomScrollPaneScrolled", ScrollPanels[id].Scroller, ScrollPanels[id]:getVerticalScrollPosition(), ScrollPanels[id]:getHorizontalScrollPosition())
+				triggerEvent("onClientGUIScroll", ScrollPanels[id].Scroller, ScrollPanels[id])
 
+			end
 		end
 
 	end
@@ -2176,11 +2174,6 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main part of button
 	Buttons[id] = {}
@@ -2188,8 +2181,8 @@ function guiCreateCustomButton(x, y, w, h, text, relative, parent)
 	Buttons[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
 	Buttons[id].ColorScheme = DefaultColors
 
-	if oldparent and oldparent.ColorScheme ~= nil then
-		Buttons[id].ColorScheme = oldparent.ColorScheme
+	if parent and parent.ColorScheme ~= nil then
+		Buttons[id].ColorScheme = parent.ColorScheme
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -2684,11 +2677,6 @@ function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
@@ -2696,8 +2684,8 @@ function guiCreateCustomProgressBar(x, y, w, h, relative, parent)
 	ProgressBars[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
 	ProgressBars[id].ColorScheme = DefaultColors
 
-	if oldparent and oldparent.ColorScheme ~= nil then
-		ProgressBars[id].ColorScheme = oldparent.ColorScheme
+	if parent and parent.ColorScheme ~= nil then
+		ProgressBars[id].ColorScheme = parent.ColorScheme
 	end
 
 	ProgressBars[id].Vertical = GuiStaticImage.create(1, 0, w, h+2, pane, false, ProgressBars[id].Canvas)
@@ -3025,11 +3013,6 @@ function guiCreateCustomScrollBar(x, y, w, h, relative, parent)
 		sx, sy = 0, 1
 	end
 
-
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
@@ -3173,46 +3156,48 @@ function guiCreateCustomScrollBar(x, y, w, h, relative, parent)
 	ScrollBars[id].Event.CursorMove.Name = "onClientCursorMove"
 	ScrollBars[id].Event.CursorMove.Function = function(_, _, x, y)
 
-		if ScrollBars[id].ScrollEnabled then
-				
-			local difX = ScrollBars[id].LocalPosition.DX-x
-			local difY = ScrollBars[id].LocalPosition.DY-y
-			local sx, sy = ScrollBars[id].LocalPosition.X, ScrollBars[id].LocalPosition.Y
-			local ax, ay = sx, sy
-			local slen = ScrollBars[id].ScrollLength
+		if ScrollBars[id].Canvas:getVisible() then
+			if ScrollBars[id].ScrollEnabled then
+					
+				local difX = ScrollBars[id].LocalPosition.DX-x
+				local difY = ScrollBars[id].LocalPosition.DY-y
+				local sx, sy = ScrollBars[id].LocalPosition.X, ScrollBars[id].LocalPosition.Y
+				local ax, ay = sx, sy
+				local slen = ScrollBars[id].ScrollLength
 
-			local swidth, sheight = ScrollBars[id].Main:getSize(false)
-			if not ScrollBars[id].IsVertical then
-				sx = sx-difX
-				ax = sx
+				local swidth, sheight = ScrollBars[id].Main:getSize(false)
+				if not ScrollBars[id].IsVertical then
+					sx = sx-difX
+					ax = sx
 
-				if sx < 0 then sx = 0 end
-				if sx > swidth-slen then sx = swidth-slen end
+					if sx < 0 then sx = 0 end
+					if sx > swidth-slen then sx = swidth-slen end
 
-				ScrollBars[id].Scroll = 100*(sx/(swidth-slen))
-			else
-				sy = sy-difY
-				ay = sy
+					ScrollBars[id].Scroll = 100*(sx/(swidth-slen))
+				else
+					sy = sy-difY
+					ay = sy
 
-				if sy < 0 then sy = 0 end
-				if sy > sheight-slen then sy = sheight-slen end
+					if sy < 0 then sy = 0 end
+					if sy > sheight-slen then sy = sheight-slen end
 
-				ScrollBars[id].Scroll = 100*(sy/(sheight-slen))
+					ScrollBars[id].Scroll = 100*(sy/(sheight-slen))
+				end
+
+				ScrollBars[id].LocalPosition.X = ax
+				ScrollBars[id].LocalPosition.DX = x
+				ScrollBars[id].PhysicalPosition.X = sx
+
+				ScrollBars[id].LocalPosition.Y = ay
+				ScrollBars[id].LocalPosition.DY = y
+				ScrollBars[id].PhysicalPosition.Y = sy
+
+				ScrollBars[id].Edges:setPosition(sx, sy, false)
+
+				triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Scroll)
+				triggerEvent("onClientGUIScroll", ScrollBars[id].Canvas, ScrollBars[id])
+
 			end
-
-			ScrollBars[id].LocalPosition.X = ax
-			ScrollBars[id].LocalPosition.DX = x
-			ScrollBars[id].PhysicalPosition.X = sx
-
-			ScrollBars[id].LocalPosition.Y = ay
-			ScrollBars[id].LocalPosition.DY = y
-			ScrollBars[id].PhysicalPosition.Y = sy
-
-			ScrollBars[id].Edges:setPosition(sx, sy, false)
-
-			triggerEvent("onCustomScrollBarScrolled", ScrollBars[id].Canvas, ScrollBars[id].Scroll)
-			triggerEvent("onClientGUIScroll", ScrollBars[id].Canvas, ScrollBars[id])
-
 		end
 	end
 
@@ -3609,11 +3594,6 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
@@ -3624,8 +3604,8 @@ function guiCreateCustomEdit(x, y, w, h, text, relative, parent, objtype)
 
 	EditBoxes[id].Canvas = GuiStaticImage.create(x, y, w, h, pane, false, parent)
 
-	if oldparent and oldparent.ColorScheme ~= nil then
-		EditBoxes[id].ColorScheme = oldparent.ColorScheme
+	if parent and parent.ColorScheme ~= nil then
+		EditBoxes[id].ColorScheme = parent.ColorScheme
 	end
 
 	if objtype == "memo" then
@@ -4601,11 +4581,6 @@ function guiCreateCustomCheckBox(x, y, w, h, text, relative, parent)
 
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
@@ -4618,8 +4593,8 @@ function guiCreateCustomCheckBox(x, y, w, h, text, relative, parent)
 
 	CheckBoxes[id].Entrail = GuiStaticImage.create(0, 0, 20, 20, Images.Round, false, CheckBoxes[id].Main)
 
-	if oldparent and oldparent.ColorScheme ~= nil then
-		CheckBoxes[id].ColorScheme = oldparent.ColorScheme
+	if parent and parent.ColorScheme ~= nil then
+		CheckBoxes[id].ColorScheme = parent.ColorScheme
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------------------
@@ -4648,8 +4623,8 @@ function guiCreateCustomCheckBox(x, y, w, h, text, relative, parent)
 	CheckBoxes[id].Animation = 0 -- 1 - open, 2 - close
 	CheckBoxes[id].OnTableView = false
 
-	if comparetypes(oldparent, CustomLabel) then
-		if oldparent.Cell then
+	if comparetypes(parent, CustomLabel) then
+		if parent.Cell then
 			CheckBoxes[id].OnTableView = true
 		end
 	end
@@ -4709,110 +4684,111 @@ function guiCreateCustomCheckBox(x, y, w, h, text, relative, parent)
 	CheckBoxes[id].Event.Render.Name = "onClientRender"
 	CheckBoxes[id].Event.Render.Function = function()
 
-		if CheckBoxes[id].Animation == 1 then
-			local x = CheckBoxes[id].Entrail:getPosition(false)
+		if CheckBoxes[id].Canvas:getVisible() then
+			if CheckBoxes[id].Animation == 1 then
+				local x = CheckBoxes[id].Entrail:getPosition(false)
 
-			x = x+8
-			if x > 20 then x = 20 end
-			CheckBoxes[id].Entrail:setPosition(x, 0, false)
+				x = x+8
+				if x > 20 then x = 20 end
+				CheckBoxes[id].Entrail:setPosition(x, 0, false)
 
-			CheckBoxes[id].LocalPosition.X = x
-			CheckBoxes[id].LocalPosition.DX = x
-			CheckBoxes[id].PhysicalPosition.X = x
+				CheckBoxes[id].LocalPosition.X = x
+				CheckBoxes[id].LocalPosition.DX = x
+				CheckBoxes[id].PhysicalPosition.X = x
 
-			local sx = CheckBoxes[id].Entrail:getPosition(false)
-			local swidth, sheight, slen = 40, 25, 20
-			local max_dif = swidth-slen
+				local sx = CheckBoxes[id].Entrail:getPosition(false)
+				local swidth, sheight, slen = 40, 25, 20
+				local max_dif = swidth-slen
 
-			if CheckBoxes[id].Canvas:getEnabled() then
-				local r, g, b = fromHEXToRGB(CheckBoxes[id].ColorScheme.RedLight)
-				local ar, ag, ab = fromHEXToRGB(CheckBoxes[id].ColorScheme.GreenLight)
+				if CheckBoxes[id].Canvas:getEnabled() then
+					local r, g, b = fromHEXToRGB(CheckBoxes[id].ColorScheme.RedLight)
+					local ar, ag, ab = fromHEXToRGB(CheckBoxes[id].ColorScheme.GreenLight)
 
-				local onePercR = sx*math.abs(r-ar)/max_dif
-				if r > ar then r = r-onePercR else r = r+onePercR end
+					local onePercR = sx*math.abs(r-ar)/max_dif
+					if r > ar then r = r-onePercR else r = r+onePercR end
 
-				local onePercG = sx*math.abs(g-ag)/max_dif
-				if g > ag then g = g-onePercG else g = g+onePercG end
+					local onePercG = sx*math.abs(g-ag)/max_dif
+					if g > ag then g = g-onePercG else g = g+onePercG end
 
-				local onePercB = sx*math.abs(b-ab)/max_dif
-				if b > ab then b = b-onePercB else b = b+onePercB end
+					local onePercB = sx*math.abs(b-ab)/max_dif
+					if b > ab then b = b-onePercB else b = b+onePercB end
 
-				local topCol = fromRGBToHEX(r, g, b)
+					local topCol = fromRGBToHEX(r, g, b)
 
-				r, g, b = fromHEXToRGB(CheckBoxes[id].ColorScheme.Red)
-				ar, ag, ab = fromHEXToRGB(CheckBoxes[id].ColorScheme.Green)
+					r, g, b = fromHEXToRGB(CheckBoxes[id].ColorScheme.Red)
+					ar, ag, ab = fromHEXToRGB(CheckBoxes[id].ColorScheme.Green)
 
-				onePercR = sx*math.abs(r-ar)/max_dif
-				if r > ar then r = r-onePercR else r = r+onePercR end
+					onePercR = sx*math.abs(r-ar)/max_dif
+					if r > ar then r = r-onePercR else r = r+onePercR end
 
-				onePercG = sx*math.abs(g-ag)/max_dif
-				if g > ag then g = g-onePercG else g = g+onePercG end
+					onePercG = sx*math.abs(g-ag)/max_dif
+					if g > ag then g = g-onePercG else g = g+onePercG end
 
-				onePercB = sx*math.abs(b-ab)/max_dif
-				if b > ab then b = b-onePercB else b = b+onePercB end
+					onePercB = sx*math.abs(b-ab)/max_dif
+					if b > ab then b = b-onePercB else b = b+onePercB end
 
-				local botCol = fromRGBToHEX(r, g, b)
+					local botCol = fromRGBToHEX(r, g, b)
 
-				CheckBoxes[id].Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", topCol, topCol, botCol, botCol))
-			end
+					CheckBoxes[id].Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", topCol, topCol, botCol, botCol))
+				end
 
-			if x == 30 then
-				CheckBoxes[id].Animation = 0
-			end
+				if x == 30 then
+					CheckBoxes[id].Animation = 0
+				end
 
-		elseif CheckBoxes[id].Animation == 2 then
-			
-			local x = CheckBoxes[id].Entrail:getPosition(false)
+			elseif CheckBoxes[id].Animation == 2 then
+				
+				local x = CheckBoxes[id].Entrail:getPosition(false)
 
-			x = x-8
-			if x < 0 then x = 0 end
-			CheckBoxes[id].Entrail:setPosition(x, 0, false)
+				x = x-8
+				if x < 0 then x = 0 end
+				CheckBoxes[id].Entrail:setPosition(x, 0, false)
 
-			CheckBoxes[id].LocalPosition.X = x
-			CheckBoxes[id].LocalPosition.DX = x
-			CheckBoxes[id].PhysicalPosition.X = x
+				CheckBoxes[id].LocalPosition.X = x
+				CheckBoxes[id].LocalPosition.DX = x
+				CheckBoxes[id].PhysicalPosition.X = x
 
-			local sx = CheckBoxes[id].Entrail:getPosition(false)
-			local swidth, sheight, slen = 40, 25, 20
-			local max_dif = swidth-slen
+				local sx = CheckBoxes[id].Entrail:getPosition(false)
+				local swidth, sheight, slen = 40, 25, 20
+				local max_dif = swidth-slen
 
-			if CheckBoxes[id].Canvas:getEnabled() then
-				local r, g, b = fromHEXToRGB(CheckBoxes[id].ColorScheme.RedLight)
-				local ar, ag, ab = fromHEXToRGB(CheckBoxes[id].ColorScheme.GreenLight)
+				if CheckBoxes[id].Canvas:getEnabled() then
+					local r, g, b = fromHEXToRGB(CheckBoxes[id].ColorScheme.RedLight)
+					local ar, ag, ab = fromHEXToRGB(CheckBoxes[id].ColorScheme.GreenLight)
 
-				local onePercR = sx*math.abs(r-ar)/max_dif
-				if r > ar then r = r-onePercR else r = r+onePercR end
+					local onePercR = sx*math.abs(r-ar)/max_dif
+					if r > ar then r = r-onePercR else r = r+onePercR end
 
-				local onePercG = sx*math.abs(g-ag)/max_dif
-				if g > ag then g = g-onePercG else g = g+onePercG end
+					local onePercG = sx*math.abs(g-ag)/max_dif
+					if g > ag then g = g-onePercG else g = g+onePercG end
 
-				local onePercB = sx*math.abs(b-ab)/max_dif
-				if b > ab then b = b-onePercB else b = b+onePercB end
+					local onePercB = sx*math.abs(b-ab)/max_dif
+					if b > ab then b = b-onePercB else b = b+onePercB end
 
-				local topCol = fromRGBToHEX(r, g, b)
+					local topCol = fromRGBToHEX(r, g, b)
 
-				r, g, b = fromHEXToRGB(CheckBoxes[id].ColorScheme.Red)
-				ar, ag, ab = fromHEXToRGB(CheckBoxes[id].ColorScheme.Green)
+					r, g, b = fromHEXToRGB(CheckBoxes[id].ColorScheme.Red)
+					ar, ag, ab = fromHEXToRGB(CheckBoxes[id].ColorScheme.Green)
 
-				onePercR = sx*math.abs(r-ar)/max_dif
-				if r > ar then r = r-onePercR else r = r+onePercR end
+					onePercR = sx*math.abs(r-ar)/max_dif
+					if r > ar then r = r-onePercR else r = r+onePercR end
 
-				onePercG = sx*math.abs(g-ag)/max_dif
-				if g > ag then g = g-onePercG else g = g+onePercG end
+					onePercG = sx*math.abs(g-ag)/max_dif
+					if g > ag then g = g-onePercG else g = g+onePercG end
 
-				onePercB = sx*math.abs(b-ab)/max_dif
-				if b > ab then b = b-onePercB else b = b+onePercB end
+					onePercB = sx*math.abs(b-ab)/max_dif
+					if b > ab then b = b-onePercB else b = b+onePercB end
 
-				local botCol = fromRGBToHEX(r, g, b)
+					local botCol = fromRGBToHEX(r, g, b)
 
-				CheckBoxes[id].Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", topCol, topCol, botCol, botCol))
-			end
+					CheckBoxes[id].Entrail:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", topCol, topCol, botCol, botCol))
+				end
 
-			if x == 0 then
-				CheckBoxes[id].Animation = 0
+				if x == 0 then
+					CheckBoxes[id].Animation = 0
+				end
 			end
 		end
-
 	end
 
 
@@ -5197,11 +5173,6 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
@@ -5209,8 +5180,8 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	ComboBoxes[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
 	ComboBoxes[id].ColorScheme = DefaultColors
 
-	if oldparent and oldparent.ColorScheme ~= nil then
-		ComboBoxes[id].ColorScheme = oldparent.ColorScheme
+	if parent and parent.ColorScheme ~= nil then
+		ComboBoxes[id].ColorScheme = parent.ColorScheme
 	end
 
 	ComboBoxes[id].Vertical = GuiStaticImage.create(1, 0, w, h+2, pane, false, ComboBoxes[id].Canvas)
@@ -5413,40 +5384,45 @@ function guiCreateCustomComboBox(x, y, w, h, text, relative, parent)
 	ComboBoxes[id].Event.Render.Name = "onClientRender"
 	ComboBoxes[id].Event.Render.Function = function()
 
-		if ComboBoxes[id].Animation == 1 then
+		if ComboBoxes[id].Canvas:getVisible() then
+			if ComboBoxes[id].Animation == 1 then
 
-			local mheight = math.min(ComboBoxes[id].Elements*30 + 1, ComboBoxes[id].Height)
-			local w, h = ComboBoxes[id].List.Main:getSize(false)
-			h = h+(mheight/8)
+				local mheight = math.min(ComboBoxes[id].Elements*30 + 1, ComboBoxes[id].Height)
+				local w, h = ComboBoxes[id].List.Main:getSize(false)
+				h = h+(mheight/8)
+				
+				if h >= mheight then h = mheight end
+				ComboBoxes[id].setComboSize(h)
+				
+				if h == mheight then
+					ComboBoxes[id].Animation = 0
+				end
 			
-			if h >= mheight then h = mheight end
-			ComboBoxes[id].setComboSize(h)
-			
-			if h == mheight then
-				ComboBoxes[id].Animation = 0
-			end
-		
-		elseif ComboBoxes[id].Animation == 2 then
+			elseif ComboBoxes[id].Animation == 2 then
 
-			local mheight = math.min(ComboBoxes[id].Elements*30 + 1, ComboBoxes[id].Height)
-			local w, h = ComboBoxes[id].List.Main:getSize(false)
-			h = h-(mheight/8)
-		
-			if h <= 1 then h = 1 end
-			ComboBoxes[id].setComboSize(h)
-		
-			if h == 1 then
-				ComboBoxes[id].Animation = 0
-				ComboBoxes[id].List.Canvas:setVisible(false)
+				local mheight = math.min(ComboBoxes[id].Elements*30 + 1, ComboBoxes[id].Height)
+				local w, h = ComboBoxes[id].List.Main:getSize(false)
+				h = h-(mheight/8)
+			
+				if h <= 1 then h = 1 end
+				ComboBoxes[id].setComboSize(h)
+			
+				if h == 1 then
+					ComboBoxes[id].Animation = 0
+					ComboBoxes[id].List.Canvas:setVisible(false)
+				end
+			
 			end
-		
 		end
 
-		if ComboBoxes[id].Opened then
+		if ComboBoxes[id].List.Canvas:getVisible() then
 
-			local x, y = guiGetOnScreenPosition(ComboBoxes[id].Canvas)
-			ComboBoxes[id].List.Canvas:setPosition(x, y, false)
+			if ComboBoxes[id].Opened then
 
+				local x, y = guiGetOnScreenPosition(ComboBoxes[id].Canvas)
+				ComboBoxes[id].List.Canvas:setPosition(x, y, false)
+
+			end
 		end
 	end
 
@@ -5968,19 +5944,14 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 		
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------------------
 	--Main
 
 	TabPanels[id] = {}
 	TabPanels[id].ColorScheme = DefaultColors
 
-	if oldparent and oldparent.ColorScheme ~= nil then
-		TabPanels[id].ColorScheme = oldparent.ColorScheme
+	if parent and parent.ColorScheme ~= nil then
+		TabPanels[id].ColorScheme = parent.ColorScheme
 	end
 
 	TabPanels[id].Canvas = GuiStaticImage.create(x-1, y-1, w+2, h+2, pane, false, parent)
@@ -6057,48 +6028,50 @@ function guiCreateCustomTabPanel(x, y, w, h, relative, parent)
 	TabPanels[id].Event.Render.Name = "onClientRender"
 	TabPanels[id].Event.Render.Function = function()
 
-		if TabPanels[id].Animation == 1 then
+		if TabPanels[id].Canvas:getVisible() then
+			if TabPanels[id].Animation == 1 then
 
-			if TabPanels[id].AnimObjects.to == nil then
-				TabPanels[id].Animation = 0
-				return
-			end
+				if TabPanels[id].AnimObjects.to == nil then
+					TabPanels[id].Animation = 0
+					return
+				end
 
-			local w = TabPanels[id].Main:getSize(false)
-			local x = TabPanels[id].AnimObjects.to.Entrail:getPosition(false)
-			x = x-(w/8)
+				local w = TabPanels[id].Main:getSize(false)
+				local x = TabPanels[id].AnimObjects.to.Entrail:getPosition(false)
+				x = x-(w/8)
 
-			if x < 0 then x = 0 end
-			TabPanels[id].AnimObjects.to.Entrail:setPosition(x, 23, false)
-			if TabPanels[id].AnimObjects.from ~= nil then
-				TabPanels[id].AnimObjects.from.Entrail:setPosition(x-w, 23, false)
-			end
-
-			if x == 0 then
-				TabPanels[id].Animation = 0
+				if x < 0 then x = 0 end
+				TabPanels[id].AnimObjects.to.Entrail:setPosition(x, 23, false)
 				if TabPanels[id].AnimObjects.from ~= nil then
+					TabPanels[id].AnimObjects.from.Entrail:setPosition(x-w, 23, false)
+				end
+
+				if x == 0 then
+					TabPanels[id].Animation = 0
+					if TabPanels[id].AnimObjects.from ~= nil then
+						TabPanels[id].AnimObjects.from.Entrail:setVisible(false)
+					end
+				end
+
+			elseif TabPanels[id].Animation == 2 then
+
+				if not TabPanels[id].AnimObjects.from then
+					TabPanels[id].Animation = 0
+					return
+				end
+
+				local w = TabPanels[id].Main:getSize(false)
+				local x = TabPanels[id].AnimObjects.from.Entrail:getPosition(false)
+				x = x+(w/8)
+
+				if x > w then x = w end
+				TabPanels[id].AnimObjects.to.Entrail:setPosition(x-w, 23, false)
+				TabPanels[id].AnimObjects.from.Entrail:setPosition(x, 23, false)
+
+				if x == w then
+					TabPanels[id].Animation = 0
 					TabPanels[id].AnimObjects.from.Entrail:setVisible(false)
 				end
-			end
-
-		elseif TabPanels[id].Animation == 2 then
-
-			if not TabPanels[id].AnimObjects.from then
-				TabPanels[id].Animation = 0
-				return
-			end
-
-			local w = TabPanels[id].Main:getSize(false)
-			local x = TabPanels[id].AnimObjects.from.Entrail:getPosition(false)
-			x = x+(w/8)
-
-			if x > w then x = w end
-			TabPanels[id].AnimObjects.to.Entrail:setPosition(x-w, 23, false)
-			TabPanels[id].AnimObjects.from.Entrail:setPosition(x, 23, false)
-
-			if x == w then
-				TabPanels[id].Animation = 0
-				TabPanels[id].AnimObjects.from.Entrail:setVisible(false)
 			end
 		end
 	end
@@ -7356,7 +7329,7 @@ end
 
 function cdgSetFont(diag, font, size)
 
-	if not size or not tonumber(size) then size = self.FontSize end
+	if not size or not tonumber(size) then size = diag.FontSize end
 	diag.Font = font
 	diag.FontSize = size
 
@@ -7446,41 +7419,67 @@ CustomTooltip.ClassName = "CustomTooltip"
 
 Tooltips = {}
 
-function CustomTooltip.create(text, element, timetoshow)
-
+function guiCreateCustomTooltip(text, element, timetoshow)
+	
 	local id = #Tooltips+1
 
-	Tooltips[id] = setmetatable({}, CustomTooltip)
-
-	Tooltips[id].Font = Fonts.OpenSansRegular
-	Tooltips[id].FontSize = 9
-	LabelForGettingSizes:setFont(Tooltips[id].Font, Tooltips[id].FontSize)
+	Tooltips[id] = {}
 
 	if not timetoshow or not tonumber(timetoshow) or timetoshow < 0 then
 		timetoshow = 1
 	end
+	
+	---------------------------------------------------------------------------
+	--Calculations
 
-	local objects = text:split("\n")
-	local wdth = 0
+	Tooltips[id].Calculate = function(txt, system)
 
-	for _, v in pairs(objects) do
-		LabelForGettingSizes:setText(v)
-		wdth = math.max(wdth, guiLabelGetTextExtent(LabelForGettingSizes.Label))
+		if not system then
+			LabelForGettingSizes:setFont(Tooltips[id].Font, Tooltips[id].FontSize)
+		else
+			LabelForGettingSizes:setSystemFont(Tooltips[id].Font)
+		end
+
+		local objects = txt:split("\n")
+		local wdth = 0
+
+		--Calculate max width
+		for _, v in pairs(objects) do
+			LabelForGettingSizes:setText(v)
+			wdth = math.max(wdth, guiLabelGetTextExtent(LabelForGettingSizes.Label))
+		end
+
+		--Calculate max height
+		local hght = (guiLabelGetFontHeight(LabelForGettingSizes.Label)+2)*(#objects)
+
+		wdth = wdth+4
+		hght = hght+4
+
+		return wdth, hght
 	end
 
-	local hght = (guiLabelGetFontHeight(LabelForGettingSizes.Label)+2)*(#objects)
+	---------------------------------------------------------------------------
+	--Widget Properties
 
+	Tooltips[id].Font = Fonts.OpenSansRegular
+	Tooltips[id].FontSize = 9
 	Tooltips[id].ShowTime = timetoshow
+	Tooltips[id].Text = text
 
-	wdth = wdth+4
-	hght = hght+4
+	local tipw, tiph = Tooltips[id].Calculate(text)
+	Tooltips[id].Height = tiph
 
-	Tooltips[id].Back = GuiStaticImage.create(0, 0, wdth+6, hght+6, pane, false)
-	Tooltips[id].Shad1 = GuiStaticImage.create(0, 1, wdth+6, hght+4, pane, false, Tooltips[id].Back)
-	Tooltips[id].Shad2 = GuiStaticImage.create(1, 0, wdth+4, hght+6, pane, false, Tooltips[id].Back)
-	Tooltips[id].Main = GuiStaticImage.create(1, 1, wdth+4, hght+4, pane, false, Tooltips[id].Back)
-	Tooltips[id].Label = CustomLabel.create(2, 2, wdth, hght, text, false, Tooltips[id].Main)
+	---------------------------------------------------------------------------
+	--Creation
 
+	Tooltips[id].Back = GuiStaticImage.create(0, 0, tipw+6, tiph+6, pane, false)
+	Tooltips[id].Shad1 = GuiStaticImage.create(0, 1, tipw+6, tiph+4, pane, false, Tooltips[id].Back)
+	Tooltips[id].Shad2 = GuiStaticImage.create(1, 0, tipw+4, tiph+6, pane, false, Tooltips[id].Back)
+	Tooltips[id].Main = GuiStaticImage.create(1, 1, tipw+4, tiph+4, pane, false, Tooltips[id].Back)
+	Tooltips[id].Label = CustomLabel.create(2, 2, tipw, tiph, text, false, Tooltips[id].Main)
+
+	---------------------------------------------------------------------------
+	--GUI Properties
 
 	Tooltips[id].Back:setColor("0")
 	Tooltips[id].Shad1:setColor("44000000")
@@ -7488,10 +7487,17 @@ function CustomTooltip.create(text, element, timetoshow)
 	Tooltips[id].Back:setProperty("AlwaysOnTop", "True")
 	Tooltips[id].Back:setEnabled(false)
 	Tooltips[id].Back:setVisible(false)
+	Tooltips[id].Label:setVerticalAlign("center")
+
+	---------------------------------------------------------------------------
+	--For events
 
 	local isEntered = false
 	local tooltiptimer
 	local animation = 0 --1 to open, 2 to close
+
+	---------------------------------------------------------------------------
+	--Function to show
 
 	local function show()
 
@@ -7510,6 +7516,9 @@ function CustomTooltip.create(text, element, timetoshow)
 
 	end
 
+	---------------------------------------------------------------------------
+	--Events
+
 	local BFMState = BackForMouse:getVisible()
 
 	Tooltips[id].Event = {}
@@ -7519,7 +7528,7 @@ function CustomTooltip.create(text, element, timetoshow)
 	Tooltips[id].Event.MouseEnter.Function = function(ax, ay)
 
 		isEntered = true
-		Tooltips[id].Back:setPosition(ax+1, ay-hght-6, false)
+		Tooltips[id].Back:setPosition(ax+1, ay-Tooltips[id].Height-6, false)
 		
 		BFMState = BackForMouse:getVisible()
 		BackForMouse:setVisible(true)
@@ -7551,7 +7560,7 @@ function CustomTooltip.create(text, element, timetoshow)
 	Tooltips[id].Event.CursorMove.Function = function(_, _, ax, ay)
 
 		if isEntered then
-			Tooltips[id].Back:setPosition(ax+1, ay-hght-6, false)
+			Tooltips[id].Back:setPosition(ax+1, ay-Tooltips[id].Height-6, false)
 		end
 
 	end
@@ -7561,28 +7570,32 @@ function CustomTooltip.create(text, element, timetoshow)
 	Tooltips[id].Event.Render.Name = "onClientRender"
 	Tooltips[id].Event.Render.Function = function()
 
-		if animation == 1 then
+		if Tooltips[id].Back:getVisible() then
+			if animation == 1 then
 
-			if Tooltips[id].Back:getAlpha() >= 1 then
-				Tooltips[id].Back:setAlpha(1)
-				animation = 0
+				if Tooltips[id].Back:getAlpha() >= 1 then
+					Tooltips[id].Back:setAlpha(1)
+					animation = 0
+				end
+
+				Tooltips[id].Back:setAlpha(Tooltips[id].Back:getAlpha() + 0.15)
+
+			elseif animation == 2 then
+
+				if Tooltips[id].Back:getAlpha() <= 0 then
+					Tooltips[id].Back:setAlpha(0)
+					animation = 0
+				end
+
+				Tooltips[id].Back:setAlpha(Tooltips[id].Back:getAlpha() - 0.15)
+
 			end
-
-			Tooltips[id].Back:setAlpha(Tooltips[id].Back:getAlpha() + 0.15)
-
-		elseif animation == 2 then
-
-			if Tooltips[id].Back:getAlpha() <= 0 then
-				Tooltips[id].Back:setAlpha(0)
-				animation = 0
-			end
-
-			Tooltips[id].Back:setAlpha(Tooltips[id].Back:getAlpha() - 0.15)
-
 		end
 
 	end
 
+	---------------------------------------------------------------------------
+	--Handling
 
 	Tooltips[id].Event.MouseEnter.Function = element:addEvent(Tooltips[id].Event.MouseEnter.Name, Tooltips[id].Event.MouseEnter.Function)
 
@@ -7593,51 +7606,122 @@ function CustomTooltip.create(text, element, timetoshow)
 	return Tooltips[id]
 end
 
-function CustomTooltip.setShowTime(self, time)
-	self.ShowTime = time
-end
+---------------------------------------------------------------------------
+--Set Functions
 
-function CustomTooltip.getShowTime(self)
-	return self.ShowTime
-end
+function cttSetShowTime(tooltip, time)
 
-function CustomTooltip.setText(self, text)
-	
-	local objects = text:split("\n")
-	local wdth = 0
-
-	for _, v in pairs(objects) do
-		LabelForGettingSizes:setText(v)
-		wdth = math.max(wdth, guiLabelGetTextExtent(LabelForGettingSizes.Label))
+	if not time or not tonumber(time) or time < 0 then
+		time = 1
 	end
 
-	local hght = (guiLabelGetFontHeight(LabelForGettingSizes.Label)+2)*(#objects)
-
-	wdth = wdth+4
-	hght = hght+4
-
-	self.Back:setSize(wdth+6, hght+6, false)
-	self.Shad1:setSize(wdth+6, hght+4, false)
-	self.Shad2:setSize(wdth+4, hght+6, false)
-	self.Main:setSize(wdth+4, hght+4, false)
-	self.Label:setSize(wdth, hght)
-	self.Label:setText(text)
+	tooltip.ShowTime = time
 end
 
-function CustomTooltip.getText(self)
-	return self.Label:getText()
+function cttSetText(tooltip, text)
+
+	local w, h = tooltip.Calculate(text)
+	tooltip.Height = h
+
+	tooltip.Back:setSize(w+6, h+6, false)
+	tooltip.Shad1:setSize(w+6, h+4, false)
+	tooltip.Shad2:setSize(w+4, h+6, false)
+	tooltip.Main:setSize(w+4, h+4, false)
+	tooltip.Label:setSize(w, h)
+
+	tooltip.Label:setText(text)
+	tooltip.Text = text
+
 end
 
-function CustomTooltip.destroy(self)
+function cttSetFont(tooltip, font, size)
 
-	for _, v in pairs(self.Event) do
+	if not size or not tonumber(size) then size = tooltip.FontSize end
+	tooltip.Font = font
+	tooltip.FontSize = size
+
+	tooltip.Label:setFont(tooltip.Font, tooltip.FontSize)
+
+	local w, h = tooltip.Calculate(tooltip.Text)
+	tooltip.Height = h
+
+	tooltip.Back:setSize(w+6, h+6, false)
+	tooltip.Shad1:setSize(w+6, h+4, false)
+	tooltip.Shad2:setSize(w+4, h+6, false)
+	tooltip.Main:setSize(w+4, h+4, false)
+	tooltip.Label:setSize(w, h)
+end
+
+function cttSetFontSize(tooltip, size)
+	return cttSetFont(tooltip, tooltip.Font, size)
+end
+
+function cttSetSystemFont(tooltip, font)
+
+	tooltip.Font = font
+	tooltip.FontSize = -1
+
+	tooltip.Label:setSystemFont(tooltip.Font)
+
+	local w, h = tooltip.Calculate(tooltip.Text, true)
+	tooltip.Height = h
+
+	tooltip.Back:setSize(w+6, h+6, false)
+	tooltip.Shad1:setSize(w+6, h+4, false)
+	tooltip.Shad2:setSize(w+4, h+6, false)
+	tooltip.Main:setSize(w+4, h+4, false)
+	tooltip.Label:setSize(w, h)
+
+end
+
+---------------------------------------------------------------------------
+--Get Functions
+
+function cttGetShowTime(tooltip)
+	return tooltip.ShowTime
+end
+
+function cttGetText(tooltip)
+	return tooltip.Text
+end
+
+function cttGetFont(tooltip) return tooltip.Font end
+function cttGetFontSize(tooltip) return tooltip.FontSize end
+
+---------------------------------------------------------------------------
+--Event Functions
+
+function cttDestroy(tooltip)
+
+	for _, v in pairs(tooltip.Event) do
 		removeEventHandler(v.Name, root, v.Function)
 	end
 
-	self.Label:destroy()
-	destroyElement(self.Back)
+	tooltip.Label:destroy()
+	destroyElement(tooltip.Back)
 
 end
+
+---------------------------------------------------------------------------
+--OOP Functions
+
+function CustomTooltip.create(...)
+	local self = setmetatable(guiCreateCustomTooltip(...), CustomTooltip)
+	return self
+end
+
+function CustomTooltip.setShowTime(self, ...) return cttSetShowTime(self, ...) end
+function CustomTooltip.setText(self, ...) return cttSetText(self, ...) end
+function CustomTooltip.setFont(self, ...) return cttSetFont(self, ...) end
+function CustomTooltip.setFontSize(self, ...) return cttSetFontSize(self, ...) end
+function CustomTooltip.setSystemFont(self, ...) return cttSetSystemFont(self, ...) end
+
+function CustomTooltip.getShowTime(self, ...) return cttGetShowTime(self, ...) end
+function CustomTooltip.getText(self, ...) return cttGetText(self, ...) end
+function CustomTooltip.getFont(self, ...) return cttGetFont(self, ...) end
+function CustomTooltip.getFontSize(self, ...) return cttGetFontSize(self, ...) end
+
+function CustomTooltip.destroy(self, ...) return cttDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -7650,51 +7734,65 @@ CustomLoading.__index = CustomLoading
 CustomLoading.ClassName = "CustomLoading"
 
 Loadings = {}
-function CustomLoading.create(x, y, relative, parent)
 
-	local id = #Loadings+1
-	Loadings[id] = setmetatable({}, CustomLoading)
+function guiCustomLoadingCreate(x, y, relative, parent)
+
+	---------------------------------------------------------------------------
+	--Checking
 
 	if relative then
-
 		w, h = Width, Height
-
-		if parent then
-			w, h = parent:getSize(false)
-		end
+		
+		if parent then w, h = parent:getSize(false) end
 
 		x, y = x*w, y*h
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
-	Loadings[id].Back = GuiStaticImage.create(x, y, 30, 30, pane, false, parent)
+	local id = #Loadings+1
+	Loadings[id] = {}
+	
+	---------------------------------------------------------------------------
+	--Properties
+	
+	local angle = 0 							--Rotation angle (local variable)
+	Loadings[id].Circles = {}
 	Loadings[id].ColorScheme = DefaultColors
 	Loadings[id].Progress = 0
 	Loadings[id].Animated = true
-	Loadings[id].Element = Loadings[id].Back
-
-	if oldparent and oldparent.ColorScheme ~= nil then
-		Loadings[id].ColorScheme = oldparent.ColorScheme
+	
+	if parent and parent.ColorScheme ~= nil then
+		Loadings[id].ColorScheme = parent.ColorScheme
 	end
-
-	Loadings[id].Circles = {}
 
 	local color = "FFAAAAAA"
 	if Loadings[id].ColorScheme.DarkTheme then
 		color = "FFEEEEEE"
 	end
 	
+	---------------------------------------------------------------------------
+	--Creating
+
+	Loadings[id].Back = CustomStaticImage.create(x, y, 30, 30, pane, false, parent)
+
 	for i = 0, 330, 30 do	
-		Loadings[id].Circles[#Loadings[id].Circles+1] = GuiStaticImage.create(15 + 10*math.cos(math.rad(i)) - 1, 15 + 10*math.sin(math.rad(i)) - 1, 3, 3, Images.Loading, false, Loadings[id].Back)
-		Loadings[id].Circles[#Loadings[id].Circles]:setColor(color)
-		Loadings[id].Circles[#Loadings[id].Circles]:setEnabled(false)
+		local sid = #Loadings[id].Circles+1
+		Loadings[id].Circles[sid] = GuiStaticImage.create(15 + 10*math.cos(math.rad(i)) - 1, 15 + 10*math.sin(math.rad(i)) - 1, 3, 3, Images.Loading, false, Loadings[id].Back)
 	end
 
-	local angle = 0
+	Loadings[id].Element = Loadings[id].Back
+
+	---------------------------------------------------------------------------
+	--GUI Properties
+
+	Loadings[id].Back:setColor("0")
+
+	for i, v in pairs(Loadings[id].Circles) do
+		v:setColor(color)
+		v:setEnabled(false)
+	end
+
+	---------------------------------------------------------------------------
+	--Events
 
 	Loadings[id].Event = {}
 
@@ -7702,116 +7800,119 @@ function CustomLoading.create(x, y, relative, parent)
 	Loadings[id].Event.Render.Name = "onClientRender"
 	Loadings[id].Event.Render.Function = function()
 
-		if Loadings[id].Back:getVisible() and Loadings[id].Animated then
-			angle = angle+4
-			if angle >= 360 then angle = 0 end
+		if Loadings[id].Back:getVisible() then
+			if Loadings[id].Animated then
+				angle = angle+4
+				if angle >= 360 then angle = 0 end
 
-			for i, v in pairs(Loadings[id].Circles) do
-
-				v:setPosition(15 + 10*math.cos(math.rad( (i-1)*30 - angle )) - 1, 15 + 10*math.sin(math.rad( (i-1)*30 - angle )) - 1, false)
+				for i, v in pairs(Loadings[id].Circles) do
+					v:setPosition(15 + 10*math.cos(math.rad( (i-1)*30 - angle )) - 1, 15 + 10*math.sin(math.rad( (i-1)*30 - angle )) - 1, false)
+				end
 			end
 		end
 	end
 
+	---------------------------------------------------------------------------
+	--Handling
+
 	addEventHandler(Loadings[id].Event.Render.Name, root, Loadings[id].Event.Render.Function)
-
-	Loadings[id].Back:setColor("0")
-
-	if multiplecompare(oldparent, {CustomWindow, CustomScrollPane, CustomLabel, CustomStaticImage})  then
-		oldparent:addElement(Loadings[id])
-	end
 
 	return Loadings[id]
 end
 
-function CustomLoading.setProgress(self, percentage)
 
-	if percentage < 0 then 
-		percentage = 0
-	elseif percentage > 100 then 
-		percentage = 100 
-	end
+---------------------------------------------------------------------------
+--Set Functions
 
-	self.Progress = percentage
+function clgSetProgress(loading, percentage)
+
+	if percentage < 0 then percentage = 0
+	elseif percentage > 100 then percentage = 100 end
+
+	loading.Progress = percentage
 
 	for i = 0, 330, 30 do
 
 		local color = "FFAAAAAA"
-		if self.ColorScheme.DarkTheme then
+		if loading.ColorScheme.DarkTheme then
 			color = "FFEEEEEE"
 		end
 		
 		if 360-(i+1) <= percentage*3.6 then
-			color = "FF"..self.ColorScheme.Main
+			color = "FF"..loading.ColorScheme.Main
 		end
 
-		self.Circles[math.floor(i/30)+1]:setColor(color)
+		loading.Circles[math.floor(i/30)+1]:setColor(color)
 	end
-
 end
 
-function CustomLoading.setPosition(self, x, y, relative)
-	self.Back:setPosition(x, y, relative)
-end
+function clgSetAnimated(loading, bool)
 
-function CustomLoading.setEnabled(self, bool)
-	self.Back:setEnabled(bool)
-end
-
-function CustomLoading.setAnimated(self, bool)
-	self.Animated = bool
+	loading.Animated = bool
 
 	for i = 1, 12 do	
-		self.Circles[i]:setPosition(15 + 10*math.cos(math.rad( (i-1)*30 )) - 1, 15 + 10*math.sin(math.rad( (i-1)*30 )) - 1, false)
+		loading.Circles[i]:setPosition(15 + 10*math.cos(math.rad( (i-1)*30 )) - 1, 15 + 10*math.sin(math.rad( (i-1)*30 )) - 1, false)
 	end
 end
 
-function CustomLoading.setVisible(self, bool)
-	self.Back:setVisible(bool)
+function clgSetPosition(loading, x, y, rel) return loading.Back:setPosition(x, y, rel) end
+function clgSetEnabled(loading, bool) return loading.Back:setEnabled(bool) end
+function clgSetVisible(loading, bool) return loading.Back:setVisible(bool) end
+
+function clgSetColorScheme(loading, scheme)
+	loading.ColorScheme = scheme
+	clgSetProgress(loading, loading.Progress)
 end
 
-function CustomLoading.setColorScheme(self, scheme)
-	self.ColorScheme = scheme
-	self:setProgress(self:getProgress())
-end
+---------------------------------------------------------------------------
+--Get Functions
 
+function clgGetProgress(loading) return loading.Progress end
+function clgGetAnimated(loading) return loading.Animated end
+function clgGetPosition(loading, rel) return loading.Back:getPosition(rel) end
+function clgGetEnabled(loading) return loading.Back:getEnabled() end
+function clgGetVisible(loading) return loading.Back:getVisible() end
+function clgGetColorScheme(loading) return loading.ColorScheme end
 
-function CustomLoading.getProgress(self)
-	return self.Progress
-end
+---------------------------------------------------------------------------
+--Event Functions
 
-function CustomLoading.getPosition(self, relative)
-	return self.Back:getPosition(relative or false)
-end
+function clgDestroy(loading)
 
-function CustomLoading.getVisible(self)
-	return self.Back:getVisible()
-end
-
-function CustomLoading.getEnabled(self)
-	return self.Back:getEnabled()
-end
-
-function CustomLoading.getAnimated(self)
-	return self.Animated
-end
-
-function CustomLoading.bringToFront(self) self.Back:bringToFront() end
-function CustomLoading.moveToBack(self) self.Back:moveToBack()end
-
-function CustomLoading.getColorScheme(self)
-	return self.ColorScheme
-end
-
-function CustomLoading.destroy(self)
-
-	for _, v in pairs(self.Event) do
+	for _, v in pairs(loading.Event) do
 		removeEventHandler(v.Name, root, v.Function)
 	end
-
-	destroyElement(self.Back)
-
+	loading.Back:destroy()
 end
+
+---------------------------------------------------------------------------
+--OOP Functions
+
+function CustomLoading.create(...)
+	local self = setmetatable(guiCustomLoadingCreate(...), CustomLoading)
+	compareAppend(self, ...)
+
+	return self
+end
+
+function CustomLoading.setProgress(self, ...) return clgSetProgress(self, ...) end
+function CustomLoading.setAnimated(self, ...) return clgSetAnimated(self, ...) end
+function CustomLoading.setPosition(self, ...) return clgSetPosition(self, ...) end
+function CustomLoading.setEnabled(self, ...) return clgSetEnabled(self, ...) end
+function CustomLoading.setVisible(self, ...) return clgSetVisible(self, ...) end
+function CustomLoading.setColorScheme(self, ...) return clgSetColorScheme(self, ...) end
+
+function CustomLoading.bringToFront(self) self.Back:bringToFront() end
+function CustomLoading.moveToBack(self) self.Back:moveToBack() end
+
+function CustomLoading.getProgress(self, ...) return clgGetProgress(self, ...) end
+function CustomLoading.getAnimated(self, ...) return clgGetAnimated(self, ...) end
+function CustomLoading.getPosition(self, ...) return clgGetPosition(self, ...) end
+function CustomLoading.getEnabled(self, ...) return clgGetEnabled(self, ...) end
+function CustomLoading.getVisible(self, ...) return clgGetVisible(self, ...) end
+function CustomLoading.getColorScheme(self, ...) return clgGetColorScheme(self, ...) end
+
+function CustomLoading.destroy(self, ...) return clgDestroy(self, ...) end
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -7849,11 +7950,6 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 
 	end
 
-	local oldparent = parent
-	if compareIsAttachable(parent) then
-		parent = parent:getMainElement()
-	end
-
 	TableView[id] = {}
 
 	TableView[id].ColorScheme = DefaultColors
@@ -7864,8 +7960,8 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 	TableView[id].Indent = 5
 	TableView[id].Width = 0
 
-	if oldparent and oldparent.ColorScheme ~= nil then
-		TableView[id].ColorScheme = oldparent.ColorScheme
+	if parent and parent.ColorScheme ~= nil then
+		TableView[id].ColorScheme = parent.ColorScheme
 	end
 
 

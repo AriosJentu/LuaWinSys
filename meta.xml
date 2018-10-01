@@ -5,35 +5,6 @@
 	<script src="win.lua" type="client"/>
 	<script src="edits.lua" type="client"/>
 	<script src="example.lua" type="client"/>
-	<script src="test.lua" type="client"/>
-	
-	<!-- Editor Files >	
-	<script src="editor/utilities.lua" type="shared"/>
-	<script src="editor/gui.lua" type="client"/>
-	<script src="editor/tools.lua" type="client"/>
-	<script src="editor/objects.lua" type="client"/>
-
-	<script src="editor/window.lua" type="client"/>
-	<script src="editor/spane.lua" type="client"/>
-	<script src="editor/button.lua" type="client"/>
-	<script src="editor/progress.lua" type="client"/>
-	<script src="editor/sbar.lua" type="client"/>
-	<script src="editor/edit.lua" type="client"/>
-	<script src="editor/memo.lua" type="client"/>
-	<script src="editor/spin.lua" type="client"/>
-	<script src="editor/check.lua" type="client"/>
-	<script src="editor/combo.lua" type="client"/>
-	<script src="editor/tabp.lua" type="client"/>
-	<script src="editor/label.lua" type="client"/>
-	<script src="editor/tabview.lua" type="client"/>
-	<script src="editor/dialog.lua" type="client"/>
-	<script src="editor/tooltip.lua" type="client"/>
-	<script src="editor/loading.lua" type="client"/>
-
-	<script src="editor/properties.lua" type="client"/>
-	<script src="editor/draw.lua" type="client"/>
-
-	<script src="luaeditor.lua" type="client"/-->
 
 	<file src="images/pane.png"/>
 	<file src="images/cross.png"/>

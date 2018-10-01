@@ -1,3 +1,11 @@
+local clipboard = ""
+sclip = setClipboard
+function setClipboard(text)
+	clipboard = text
+	return sclip(text)
+end
+function getClipboard() return clipboard end
+
 local HPerc = 2.4
 local CHARTAB = {
 	" ", 
@@ -51,7 +59,7 @@ function getCharCoordsFromAbsoluteCoords(edit, x, y)
 	end
 
 	--Calculating font height and text
-	local h = guiLabelGetFontHeight(edit.Label.Label)
+	local h = edit.FontHeight
 	local text = edit.Label:getText()
 
 	--Getting lines count
@@ -98,7 +106,7 @@ function getCharCoordsFromCaretIndex(edit, caret)
 
 	local text = edit.Label:getText()
 	local lines = text:split("\n")
-	local h = guiLabelGetFontHeight(edit.Label.Label)
+	local h = edit.FontHeight
 
 	local lcaret = caret
 	local line = 1
@@ -191,8 +199,12 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 
 	--------------------------------------------------------------
 
+	NewEditBoxes[id].FontHeight = guiLabelGetFontHeight(NewEditBoxes[id].Label.Label)
+
+	--------------------------------------------------------------
+
 	local nw = guiLabelGetTextExtent(NewEditBoxes[id].Label.Label)
-	local nh = guiLabelGetFontHeight(NewEditBoxes[id].Label.Label)
+	local nh = NewEditBoxes[id].FontHeight
 	local sh = h
 
 	if NewEditBoxes[id].MultiLined then
@@ -242,17 +254,20 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 
 	NewEditBoxes[id].Events = {}
 
+	local doubleClicked = false
 	NewEditBoxes[id].Events.ClickScroller = {}
 	NewEditBoxes[id].Events.ClickScroller.Name = "onClientGUIClick"
 	NewEditBoxes[id].Events.ClickScroller.Function = function(_, _, x, y)
 
-		NewEditBoxes[id].Active = true
+		if not doubleClicked then
+			NewEditBoxes[id].Active = true
 
-		local ax, ay = guiGetOnScreenPosition(NewEditBoxes[id].Label.Label)
-		local _, _, caret = getCharCoordsFromAbsoluteCoords(NewEditBoxes[id], x-ax, y-ay)
+			local ax, ay = guiGetOnScreenPosition(NewEditBoxes[id].Label.Label)
+			local _, _, caret = getCharCoordsFromAbsoluteCoords(NewEditBoxes[id], x-ax, y-ay)
 
-		cxpSetCaretIndex(NewEditBoxes[id], caret)
-		NewEditBoxes[id].SelectionCaret:setVisible(false)
+			cxpSetCaretIndex(NewEditBoxes[id], caret)
+			NewEditBoxes[id].SelectionCaret:setVisible(false)
+		end
 	end
 
 	NewEditBoxes[id].Events.MouseDown = {}
@@ -288,8 +303,31 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].Events.Click = {}
 	NewEditBoxes[id].Events.Click.Name = "onClientGUIClick"
 	NewEditBoxes[id].Events.Click.Function = function()
-		NewEditBoxes[id].Active = false
-		NewEditBoxes[id].Caret:setVisible(false)
+		if not doubleClicked then
+			NewEditBoxes[id].Active = false
+			NewEditBoxes[id].Caret:setVisible(false)
+		end
+	end
+
+	NewEditBoxes[id].Events.DoubleClickScroller = {}
+	NewEditBoxes[id].Events.DoubleClickScroller.Name = "onClientGUIDoubleClick"
+	NewEditBoxes[id].Events.DoubleClickScroller.Function = function(_, _, x, y)
+
+		NewEditBoxes[id].Active = true
+
+		local ax, ay = guiGetOnScreenPosition(NewEditBoxes[id].Label.Label)
+		local _, _, caret = getCharCoordsFromAbsoluteCoords(NewEditBoxes[id], x-ax, y-ay)
+
+		local str = NewEditBoxes[id].Label:getText()
+		local lpcaret = utf8.minrfind(utf8.sub(str, 0, caret), CHARTAB)
+		local rpcaret = utf8.minfind(utf8.sub(str, caret+1, #str), CHARTAB)
+
+		cxpSetCaretIndex(NewEditBoxes[id], caret-lpcaret+1)
+		cxpSetCaretIndex(NewEditBoxes[id], caret+rpcaret-1, true)
+
+		doubleClicked = true
+		setTimer(function() doubleClicked = false end, 300, 1)
+
 	end
 
 	NewEditBoxes[id].Events.Char = {}
@@ -310,7 +348,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 			end
 
 			NewEditBoxes[id].Label:setText(str)
-			cxpSetCaretIndex(NewEditBoxes[id], start+1)
+			cxpSetCaretIndex(NewEditBoxes[id], start+button:len())
 		end
 	end
 
@@ -398,10 +436,10 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 					
 				if ctrl then
 					local str = NewEditBoxes[id].Label:getText()
-					pcaret = utf8.minrfind(utf8.sub(str, 0, NewEditBoxes[id].CaretIndex-1), CHARTAB)
+					pcaret = utf8.minrfind(utf8.sub(str, 0, NewEditBoxes[id].SelectingCaretIndex-1), CHARTAB)
 					
 					if pcaret == nil then 
-						pcaret = NewEditBoxes[id].CaretIndex
+						pcaret = NewEditBoxes[id].SelectingCaretIndex
 					end
 				end 
 
@@ -414,10 +452,10 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 					
 				if ctrl then
 					local str = NewEditBoxes[id].Label:getText()
-					pcaret = utf8.minfind(utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str), CHARTAB)
+					pcaret = utf8.minfind(utf8.sub(str, NewEditBoxes[id].SelectingCaretIndex+1, #str), CHARTAB)
 					
-					if pcaret == nil then 
-						pcaret = NewEditBoxes[id].CaretIndex
+					if pcaret == nil then
+						pcaret = NewEditBoxes[id].SelectingCaretIndex
 					end
 				end 
 
@@ -474,9 +512,34 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 					cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].CaretIndex-left+1)
 
 				end
-				
 
 			end
+
+			if button == "c" and ctrl then
+
+				local str = NewEditBoxes[id].Label:getText()
+				if NewEditBoxes[id].SelectingCaretIndex ~= NewEditBoxes[id].CaretIndex then
+
+					local min, max = math.minmax(NewEditBoxes[id].SelectingCaretIndex, NewEditBoxes[id].CaretIndex)
+					local save = utf8.sub(str, min+1, max)
+					setClipboard(save)
+
+				elseif NewEditBoxes[id].MultiLined then
+				
+					local left = math.max(utf8.rfind(utf8.sub(str, 0, NewEditBoxes[id].CaretIndex), "\n") or NewEditBoxes[id].CaretIndex+2, 2)-2
+					local right = math.min(utf8.find(utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str), "\n") or #str+1, #str+1)-1
+					
+					local save = utf8.sub(str, NewEditBoxes[id].CaretIndex-left, NewEditBoxes[id].CaretIndex+right)
+					setClipboard(save)
+
+				end
+			end			
+
+			if button == "v" and ctrl then
+				NewEditBoxes[id].Events.Char.Function(getClipboard())
+			end	
+
+
 
 			local u = function()
 				if getKeyState(button) then
@@ -490,6 +553,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	end
 	
 	addEventHandler(NewEditBoxes[id].Events.Click.Name, root, NewEditBoxes[id].Events.Click.Function)
+	NewEditBoxes[id].Events.DoubleClickScroller.Function = NewEditBoxes[id].Scroller:addEvent(NewEditBoxes[id].Events.DoubleClickScroller.Name, NewEditBoxes[id].Events.DoubleClickScroller.Function)
 	NewEditBoxes[id].Events.ClickScroller.Function = NewEditBoxes[id].Scroller:addEvent(NewEditBoxes[id].Events.ClickScroller.Name, NewEditBoxes[id].Events.ClickScroller.Function)
 	addEventHandler(NewEditBoxes[id].Events.Char.Name, root, NewEditBoxes[id].Events.Char.Function)
 	addEventHandler(NewEditBoxes[id].Events.Key.Name, root, NewEditBoxes[id].Events.Key.Function)
