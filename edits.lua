@@ -29,7 +29,7 @@ local CHARTAB = {
 	"=", 
 	"+", 
 	"-",
-	"*",
+	--"*",
 	"@",
 	":",
 	";",
@@ -176,16 +176,21 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].ColorScheme = DefaultColors
 	NewEditBoxes[id].Active = false
 	NewEditBoxes[id].IsSelecting = false
+	NewEditBoxes[id].ReadOnly = false
+	NewEditBoxes[id].Colored = false
+	NewEditBoxes[id].Text = text
 
 	NewEditBoxes[id].CaretIndex = 0
 	NewEditBoxes[id].SelectingCaretIndex = 0
 	
 	NewEditBoxes[id].MultiLined = multilined
+	NewEditBoxes[id].Masked = false
 
 	--------------------------------------------------------------
 
 	NewEditBoxes[id].Canvas = GuiStaticImage.create(x, y, w, h, pane, false, parent)
-	NewEditBoxes[id].Scroller = CustomScrollPane.create(0, 0, w, h, false, NewEditBoxes[id].Canvas)
+	NewEditBoxes[id].Background = GuiStaticImage.create(1, 1, w-2, h-2, pane, false, NewEditBoxes[id].Canvas)
+	NewEditBoxes[id].Scroller = CustomScrollPane.create(1, 1, w-2, h-2, false, NewEditBoxes[id].Canvas)
 	NewEditBoxes[id].HelpLabel = CustomLabel.create(0, 0, 0, 0, "", false, NewEditBoxes[id].Canvas)
 
 	NewEditBoxes[id].Caret = GuiStaticImage.create(0, 0, 2, h, pane, false, NewEditBoxes[id].Scroller)
@@ -194,6 +199,11 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].SelectorTop = GuiStaticImage.create(0, 0, 1, h, pane, false, NewEditBoxes[id].Scroller)
 	NewEditBoxes[id].SelectorMid = GuiStaticImage.create(0, 0, w, h, pane, false, NewEditBoxes[id].Scroller)
 	NewEditBoxes[id].SelectorBot = GuiStaticImage.create(0, 0, 1, h, pane, false, NewEditBoxes[id].Scroller)
+
+	NewEditBoxes[id].BorderTop 		= GuiStaticImage.create(1, 0, w-2, 1, pane, false, NewEditBoxes[id].Canvas)
+	NewEditBoxes[id].BorderBottom 	= GuiStaticImage.create(1, h-1, w-2, 1, pane, false, NewEditBoxes[id].Canvas)
+	NewEditBoxes[id].BorderLeft		= GuiStaticImage.create(0, 1, 1, h-2, pane, false, NewEditBoxes[id].Canvas)
+	NewEditBoxes[id].BorderRight	= GuiStaticImage.create(w-1, 1, 1, h-2, pane, false, NewEditBoxes[id].Canvas)
 
 	NewEditBoxes[id].Label = CustomLabel.create(2, 2,  w-4, h-4, text, false, NewEditBoxes[id].Scroller)
 
@@ -215,6 +225,8 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 		NewEditBoxes[id].HelpLabel:setPosition(2, (h-nh)/2 - 2, false)		
 	end
 
+	NewEditBoxes[id].Background:setEnabled(false)
+
 	NewEditBoxes[id].Label:setSize(nw, sh)	
 	NewEditBoxes[id].Caret:setSize(2, nh, false)	
 	NewEditBoxes[id].Caret:setPosition(0, (h-nh)/2, false)
@@ -226,8 +238,12 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].Scroller:setScrollingWithCursor(false)
 	NewEditBoxes[id].Scroller:setHorizontalScrolling(not NewEditBoxes[id].MultiLined)
 
-	NewEditBoxes[id].Canvas:setColor("FF444444")
-	NewEditBoxes[id].Label:setColor("EEEEEE")
+	local col, bcol, rcol = "EEEEEE", "666666", "444444"
+	if not NewEditBoxes[id].ColorScheme.DarkTheme then col, bcol, rcol = rcol, rcol, col end
+
+	NewEditBoxes[id].Canvas:setColor("0")
+	NewEditBoxes[id].Background:setColor("FF"..rcol)
+	NewEditBoxes[id].Label:setColor(col)
 	NewEditBoxes[id].Label:setEnabled(false)
 
 	NewEditBoxes[id].Caret:setVisible(false)
@@ -249,6 +265,11 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].SelectorTop:setColor("FF"..NewEditBoxes[id].ColorScheme.Main)
 	NewEditBoxes[id].SelectorMid:setColor("FF"..NewEditBoxes[id].ColorScheme.Main)
 	NewEditBoxes[id].SelectorBot:setColor("FF"..NewEditBoxes[id].ColorScheme.Main)
+
+	NewEditBoxes[id].BorderTop:setColor("FF"..bcol)
+	NewEditBoxes[id].BorderBottom:setColor("FF"..bcol)
+	NewEditBoxes[id].BorderLeft:setColor("FF"..bcol)
+	NewEditBoxes[id].BorderRight:setColor("FF"..bcol)
 
 	--------------------------------------------------------------
 
@@ -300,6 +321,13 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 		end
 	end
 
+	NewEditBoxes[id].Events.ClickDown = {}
+	NewEditBoxes[id].Events.ClickDown.Name = "onClientGUIMouseDown"
+	NewEditBoxes[id].Events.ClickDown.Function = function()
+		NewEditBoxes[id].Active = false
+		NewEditBoxes[id].Caret:setVisible(false)
+	end
+
 	NewEditBoxes[id].Events.Click = {}
 	NewEditBoxes[id].Events.Click.Name = "onClientGUIClick"
 	NewEditBoxes[id].Events.Click.Function = function()
@@ -334,21 +362,37 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	NewEditBoxes[id].Events.Char.Name = "onClientCharacter"
 	NewEditBoxes[id].Events.Char.Function = function(button)
 
-		if NewEditBoxes[id].Active and isCWCursorShowing() then
+		if NewEditBoxes[id].Active and isCWCursorShowing() and not NewEditBoxes[id].ReadOnly then
+
+			local sbutton = button
+			if NewEditBoxes[id].Masked then 
+				sbutton = ""
+				for i = 1, #button do
+					sbutton = sbutton.."*"
+				end
+			end
 			
 			local str = NewEditBoxes[id].Label:getText()
+			local nstr = NewEditBoxes[id].Text
 			local start = NewEditBoxes[id].CaretIndex
 		
 			if NewEditBoxes[id].SelectingCaretIndex == NewEditBoxes[id].CaretIndex then
-				str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex)..button..utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str) 
+
+				str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex)..sbutton..utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str) 
+				nstr = utf8.sub(nstr, 0, NewEditBoxes[id].CaretIndex)..button..utf8.sub(nstr, NewEditBoxes[id].CaretIndex+1, #nstr)
+
 			else
+
 				start = math.min(NewEditBoxes[id].SelectingCaretIndex, NewEditBoxes[id].CaretIndex)
 				local ends = start + math.abs(NewEditBoxes[id].SelectingCaretIndex - NewEditBoxes[id].CaretIndex) + 1
-				str = utf8.sub(str, 0, start)..button..utf8.sub(str, ends, #str)
+
+				str = utf8.sub(str, 0, start)..sbutton..utf8.sub(str, ends, #str)
+				nstr = utf8.sub(nstr, 0, start)..button..utf8.sub(nstr, ends, #nstr)
 			end
 
 			NewEditBoxes[id].Label:setText(str)
-			cxpSetCaretIndex(NewEditBoxes[id], start+button:len())
+			NewEditBoxes[id].Text = nstr
+			cxpSetCaretIndex(NewEditBoxes[id], start+sbutton:len())
 		end
 	end
 
@@ -362,9 +406,10 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 			local shift = getKeyState("lshift") or getKeyState("rshift")
 			local ctrl = getKeyState("lctrl") or getKeyState("rctrl")
 
-			if button == "backspace" then
+			if button == "backspace" and not NewEditBoxes[id].ReadOnly then
 
 				local str = NewEditBoxes[id].Label:getText()
+				local nstr = NewEditBoxes[id].Text
 				local start = NewEditBoxes[id].CaretIndex-1
 
 				if NewEditBoxes[id].SelectingCaretIndex == NewEditBoxes[id].CaretIndex then
@@ -383,21 +428,25 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 					end 
 
 					str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex-pcaret)..utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str)
+					nstr = utf8.sub(nstr, 0, NewEditBoxes[id].CaretIndex-pcaret)..utf8.sub(nstr, NewEditBoxes[id].CaretIndex+1, #nstr)
 				else
 					
 					start = math.min(NewEditBoxes[id].SelectingCaretIndex, NewEditBoxes[id].CaretIndex)
-					
 					local ends = start + math.abs(NewEditBoxes[id].SelectingCaretIndex - NewEditBoxes[id].CaretIndex) + 1
+
 					str = utf8.sub(str, 0, start)..utf8.sub(str, ends, #str)
+					nstr = utf8.sub(nstr, 0, start)..utf8.sub(nstr, ends, #nstr)
 				end
 
 				NewEditBoxes[id].Label:setText(str)
+				NewEditBoxes[id].Text = nstr
 				cxpSetCaretIndex(NewEditBoxes[id], start)
 			end
 
-			if button == "delete" then
+			if button == "delete" and not NewEditBoxes[id].ReadOnly then
 
 				local str = NewEditBoxes[id].Label:getText()
+				local nstr = NewEditBoxes[id].Text
 				local start = NewEditBoxes[id].CaretIndex
 
 				if NewEditBoxes[id].SelectingCaretIndex == NewEditBoxes[id].CaretIndex then
@@ -414,17 +463,21 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 					end 
 
 					str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex)..utf8.sub(str, NewEditBoxes[id].CaretIndex+1+pcaret, #str)
+					nstr = utf8.sub(nstr, 0, NewEditBoxes[id].CaretIndex)..utf8.sub(nstr, NewEditBoxes[id].CaretIndex+1+pcaret, #nstr)
 				else
 					start = math.min(NewEditBoxes[id].SelectingCaretIndex, NewEditBoxes[id].CaretIndex)
 					local ends = start + math.abs(NewEditBoxes[id].SelectingCaretIndex - NewEditBoxes[id].CaretIndex) + 1
+
 					str = utf8.sub(str, 0, start)..utf8.sub(str, ends, #str)
+					nstr = utf8.sub(nstr, 0, start)..utf8.sub(nstr, ends, #nstr)
 				end
 				
 				NewEditBoxes[id].Label:setText(str)
+				NewEditBoxes[id].Text = nstr
 				cxpSetCaretIndex(NewEditBoxes[id], start)
 			end
 
-			if button == "enter" then
+			if button == "enter" and not NewEditBoxes[id].ReadOnly then
 				if NewEditBoxes[id].MultiLined then
 					NewEditBoxes[id].Events.Char.Function("\n")
 				end
@@ -486,15 +539,19 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 				cxpSetCaretIndex(NewEditBoxes[id], #str, true)
 			end
 
-			if button == "x" and ctrl then
+			if button == "x" and ctrl and not NewEditBoxes[id].ReadOnly then
 		
 				local str = NewEditBoxes[id].Label:getText()
+				local nstr = NewEditBoxes[id].Text
+
 				if NewEditBoxes[id].SelectingCaretIndex ~= NewEditBoxes[id].CaretIndex then
 					
 					local min, max = math.minmax(NewEditBoxes[id].SelectingCaretIndex, NewEditBoxes[id].CaretIndex)
 					str = utf8.sub(str, 0, min)..utf8.sub(str, max+1, #str)
+					nstr = utf8.sub(nstr, 0, min)..utf8.sub(nstr, max+1, #nstr)
 
 					NewEditBoxes[id].Label:setText(str)
+					NewEditBoxes[id].Text = nstr
 					cxpSetCaretIndex(NewEditBoxes[id], min)
 
 				elseif NewEditBoxes[id].MultiLined then
@@ -503,12 +560,18 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 					local right = math.min(utf8.find(utf8.sub(str, NewEditBoxes[id].CaretIndex+1, #str), "\n") or #str, #str)
 
 					str = utf8.sub(str, 0, NewEditBoxes[id].CaretIndex-left)..utf8.sub(str, NewEditBoxes[id].CaretIndex+right, #str)
+					nstr = utf8.sub(nstr, 0, NewEditBoxes[id].CaretIndex-left)..utf8.sub(nstr, NewEditBoxes[id].CaretIndex+right, #nstr)
+
 					if left == NewEditBoxes[id].CaretIndex then
+						
 						str = utf8.sub(str, 2, #str)
+						nstr = utf8.sub(nstr, 2, #nstr)
+
 						left = NewEditBoxes[id].CaretIndex+1
 					end
 					
 					NewEditBoxes[id].Label:setText(str)
+					NewEditBoxes[id].Text = nstr
 					cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].CaretIndex-left+1)
 
 				end
@@ -517,7 +580,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 
 			if button == "c" and ctrl then
 
-				local str = NewEditBoxes[id].Label:getText()
+				local str = NewEditBoxes[id].Text
 				if NewEditBoxes[id].SelectingCaretIndex ~= NewEditBoxes[id].CaretIndex then
 
 					local min, max = math.minmax(NewEditBoxes[id].SelectingCaretIndex, NewEditBoxes[id].CaretIndex)
@@ -535,7 +598,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 				end
 			end			
 
-			if button == "v" and ctrl then
+			if button == "v" and ctrl and not NewEditBoxes[id].ReadOnly then
 				NewEditBoxes[id].Events.Char.Function(getClipboard())
 			end	
 
@@ -552,6 +615,7 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 		end
 	end
 	
+	addEventHandler(NewEditBoxes[id].Events.ClickDown.Name, root, NewEditBoxes[id].Events.ClickDown.Function)
 	addEventHandler(NewEditBoxes[id].Events.Click.Name, root, NewEditBoxes[id].Events.Click.Function)
 	NewEditBoxes[id].Events.DoubleClickScroller.Function = NewEditBoxes[id].Scroller:addEvent(NewEditBoxes[id].Events.DoubleClickScroller.Name, NewEditBoxes[id].Events.DoubleClickScroller.Function)
 	NewEditBoxes[id].Events.ClickScroller.Function = NewEditBoxes[id].Scroller:addEvent(NewEditBoxes[id].Events.ClickScroller.Name, NewEditBoxes[id].Events.ClickScroller.Function)
@@ -569,6 +633,9 @@ end
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Set Functions
 
 function cxpSetCaretIndex(edit, caret, selection)
 
@@ -676,6 +743,255 @@ function cxpRecalc(edit)
 	edit.Scroller:update()
 end
 
+function cxpSetPosition(edit, x, y, rel)
+
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = edit.Canvas.parent or nil
+
+		if parent then
+			sw, sh = parent:getSize(false)
+		end
+
+		x = x*sw
+		y = y*sh
+
+	end
+
+	edit.Canvas:setPosition(x, y, false)
+end
+
+function cxpSetSize(edit, w, h, rel)
+
+	if rel then
+
+		local sw, sh = Width, Height
+		local parent = edit.Canvas.parent or nil
+
+		if parent then
+			sw, sh = parent:getSize(false)
+		end
+
+		w = w*sw
+		h = h*sh
+
+	end
+
+	edit.Background:setSize(w-2, h-2, false)
+
+	edit.BorderTop:setSize(w-2, 1, false)
+	edit.BorderLeft:setSize(1, h-2, false)
+
+	edit.BorderBottom:setSize(w-2, 1, false)
+	edit.BorderBottom:setPosition(1, h-1, false)
+
+	edit.BorderRight:setSize(1, h-2, false)
+	edit.BorderRight:setPosition(w-1, 1, false)
+
+	edit.Canvas:setSize(w, h, false)
+	edit.Scroller:setSize(w-2, h-2, false)
+
+end
+
+function cxpSetVisible(edit, bool) edit.Canvas:setVisible(bool or false) end
+
+function cxpSetReadOnly(edit, bool)
+
+	edit.ReadOnly = bool or false
+
+	if bool then
+		edit.Label:setColor(edit.ColorScheme.DarkMain)
+	else
+		
+		local col = "EEEEEE"
+		if not edit.ColorScheme.DarkTheme then col = "444444" end
+		if edit.Colored then col = edit.Colored end
+
+		if not edit.Canvas:getEnabled() then 
+
+			col = "AAAAAA"
+			if not edit.ColorScheme.DarkTheme then col = "777777" end
+
+		end
+
+		edit.Label:setColor(col)
+	
+	end
+
+	local col, rcol = "666666", "444444"
+	if not edit.ColorScheme.DarkTheme then col, rcol = "444444", "EEEEEE" end
+
+	edit.BorderTop:setColor("FF"..col)
+	edit.BorderBottom:setColor("FF"..col)
+	edit.BorderLeft:setColor("FF"..col)
+	edit.BorderRight:setColor("FF"..col)
+	edit.Background:setColor("FF"..rcol)
+
+end
+
+function cxpSetColor(edit, color)
+	
+	if not color or not tonumber(color, 16) or color:len() ~= 6 then
+		color = false
+	end
+
+	edit.Colored = color
+
+	cxpSetReadOnly(edit, edit.ReadOnly)
+end
+
+function cxpSetEnabled(edit, bool) 
+	edit.Canvas:setEnabled(bool or false) 
+	cxpSetReadOnly(edit, edit.ReadOnly)
+end
+
+function cxpSetColorScheme(edit, scheme)
+	edit.ColorScheme = scheme
+	
+	edit.Caret:setColor("FF"..edit.ColorScheme.Main)
+	edit.SelectionCaret:setColor("FF"..edit.ColorScheme.Main)
+
+	local col = edit.ColorScheme.Main
+	if not edit.ColorScheme.DarkTheme then col = edit.ColorScheme.LightMain end 
+
+	edit.SelectorTop:setColor("FF"..col)
+	edit.SelectorMid:setColor("FF"..col)
+	edit.SelectorBot:setColor("FF"..col)
+
+	cxpSetReadOnly(edit, edit.ReadOnly)
+end
+
+function cxpSetText(edit, text)
+
+	local s = ""
+	if edit.Masked then
+		for i = 1, #text do
+			s = s.."*"
+		end
+	else
+		s = text
+	end
+
+	edit.Label:setText(s)
+	edit.Text = text
+	cxpRecalc(edit)
+end
+
+function cxpSetMasked(edit, bool)
+	if not edit.MultiLined then
+		edit.Masked = bool or false
+
+		local s = ""
+		if edit.Masked then
+			for i = 1, #edit.Label:getText() do
+				s = s.."*"
+			end
+		else 
+			s = edit.Text
+		end
+
+		edit.Label:setText(s)
+	end
+end
+
+function cxpSetBordersEnabled(edit, bool)
+	
+	if not bool then bool = false
+	else bool = true end
+
+	edit.BorderTop:setVisible(bool)
+	edit.BorderBottom:setVisible(bool)
+	edit.BorderLeft:setVisible(bool)
+	edit.BorderRight:setVisible(bool)
+
+end
+
+function cxpSetBackgroundEnabled(edit, bool)
+	
+	if not bool then bool = false
+	else bool = true end
+
+	edit.Background:setVisible(bool)
+
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Layering functions
+
+function cxpBringToFront(edit)
+	edit.Canvas:bringToFront()
+end
+
+function cxpMoveToBack(edit)
+	edit.Canvas:moveToBack()
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--Get Functions
+
+function cxpGetPosition(edit, bool) return edit.Canvas:getPosition(bool or false) end
+function cxpGetSize(edit, bool) return edit.Canvas:getSize(bool or false) end
+function cxpGetVisible(edit) return edit.Canvas:getVisible() end
+function cxpGetEnabled(edit) return edit.Canvas:getEnabled() end
+function cxpGetColor(edit) return edit.Colored end
+function cxpGetCaretIndex(edit) return edit.SelectingCaretIndex end
+function cxpGetSelectionStart(edit) return math.min(edit.SelectingCaretIndex, edit.CaretIndex) end
+function cxpGetSelectionEnd(edit) return math.max(edit.SelectingCaretIndex, edit.CaretIndex) end
+function cxpGetSelectionLength(edit) return math.abs(edit.SelectingCaretIndex-edit.CaretIndex) end
+function cxpGetText(edit) return edit.Text end
+function cxpIsMasked(edit) return edit.Masked end
+function cxpIsReadOnly(edit) return edit.ReadOnly end
+function cxpIsBackgroundEnabled(edit) return edit.Background:getVisible() end
+function cxpIsBordersEnabled(edit) return edit.BorderTop:getVisible() end
+function cxpGetColorScheme(edit) return edit.ColorScheme end
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+--OOP Functions
+
+CustomTextBox = {}
+CustomTextBox.__index = CustomTextBox
+CustomTextBox.ClassName = "CustomTextBox"
+
+function CustomTextBox.create(...)
+
+	local self = setmetatable(guiCreateCustomEditPanel(...), CustomTextBox)
+	compareAppend(self, ...)
+	return self
+end
+
+function CustomTextBox.setEnabled(self, ...) return cxpSetEnabled(self, ...) end
+function CustomTextBox.setVisible(self, ...) return cxpSetVisible(self, ...) end
+function CustomTextBox.setSize(self, ...) return cxpSetSize(self, ...) end
+function CustomTextBox.setPosition(self, ...) return cxpSetPosition(self, ...) end
+function CustomTextBox.setText(self, ...) return cxpSetText(self, ...) end
+function CustomTextBox.setColor(self, ...) return cxpSetColor(self, ...) end
+function CustomTextBox.setColorScheme(self, ...) return cxpSetColorScheme(self, ...) end
+function CustomTextBox.setCaretIndex(self, ...) return cxpSetCaretIndex(self, ...) end
+function CustomTextBox.setReadOnly(self, ...) return cxpSetReadOnly(self, ...) end
+function CustomTextBox.setMasked(self, ...) return cxpSetMasked(self, ...) end
+function CustomTextBox.setBordersEnabled(self, ...) return cxpSetBordersEnabled(self, ...) end
+function CustomTextBox.setBackgroundEnabled(self, ...) return cxpSetBackgroundEnabled(self, ...) end
+
+function CustomTextBox.bringToFront(self) return cxpBringToFront(self) end
+function CustomTextBox.moveToBack(self) return cxpMoveToBack(self) end
+
+function CustomTextBox.getEnabled(self, ...) return cxpGetEnabled(self, ...) end
+function CustomTextBox.getVisible(self, ...) return cxpGetVisible(self, ...) end
+function CustomTextBox.getSize(self, ...) return cxpGetSize(self, ...) end
+function CustomTextBox.getPosition(self, ...) return cxpGetPosition(self, ...) end
+function CustomTextBox.getText(self, ...) return cxpGetText(self, ...) end
+function CustomTextBox.getColor(self, ...) return cxpGetColor(self, ...) end
+function CustomTextBox.getColorScheme(self, ...) return cxpGetColorScheme(self, ...) end
+function CustomTextBox.getCaretIndex(self, ...) return cxpGetCaretIndex(self, ...) end
+function CustomTextBox.getCaretSelectionStart(self, ...) return cxpGetCaretSelectionStart(self, ...) end
+function CustomTextBox.getCaretSelectionEnd(self, ...) return cxpGetCaretSelectionEnd(self, ...) end
+function CustomTextBox.getCaretSelectionLength(self, ...) return cxpGetCaretSelectionLength(self, ...) end
+function CustomTextBox.isReadOnly(self, ...) return cxpIsReadOnly(self, ...) end
+function CustomTextBox.isMasked(self, ...) return cxpIsMasked(self, ...) end
+function CustomTextBox.isBordersEnabled(self, ...) return cxpIsBordersEnabled(self, ...) end
+function CustomTextBox.isBackgroundEnabled(self, ...) return cxpIsBackgroundEnabled(self, ...) end
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -710,3 +1026,12 @@ mollit anim id est laborum.]]
 
 local nmemo = guiCreateCustomEditPanel(100, 300, 250, 200, str, _, _, true)
 local nedit = guiCreateCustomEditPanel(100, 250, 250, 30, "Lorem\n ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", _, _, false)
+
+cxpSetColorScheme(nmemo, Themes.Dark.Purple)
+cxpSetText(nmemo, "HELLO")
+cxpSetBackgroundEnabled(nedit, false)
+cxpSetBordersEnabled(nmemo, false)
+
+bindKey("f2", "down", function()
+	cxpSetMasked(nedit, not nedit.Masked)
+end)

@@ -356,7 +356,7 @@ test_grid:setCellText(test_line, cleared_column, "Cell")
 test_grid:setCellText(1, 1, "First")
 test_grid:setCellText(test_grid:getLinesCount(), scrolled_column, "Last")
 
-test_grid:removeLine(1)
+test_grid:removeLine(2)
 
 ---------------------------------------
 
