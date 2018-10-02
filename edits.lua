@@ -226,6 +226,10 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	end
 
 	NewEditBoxes[id].Background:setEnabled(false)
+	NewEditBoxes[id].BorderTop:setEnabled(false)
+	NewEditBoxes[id].BorderBottom:setEnabled(false)
+	NewEditBoxes[id].BorderLeft:setEnabled(false)
+	NewEditBoxes[id].BorderRight:setEnabled(false)
 
 	NewEditBoxes[id].Label:setSize(nw, sh)	
 	NewEditBoxes[id].Caret:setSize(2, nh, false)	
@@ -241,8 +245,9 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	local col, bcol, rcol = "EEEEEE", "666666", "444444"
 	if not NewEditBoxes[id].ColorScheme.DarkTheme then col, bcol, rcol = rcol, rcol, col end
 
-	NewEditBoxes[id].Canvas:setColor("0")
 	NewEditBoxes[id].Background:setColor("FF"..rcol)
+
+	NewEditBoxes[id].Canvas:setColor("0")
 	NewEditBoxes[id].Label:setColor(col)
 	NewEditBoxes[id].Label:setEnabled(false)
 
@@ -393,6 +398,8 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 			NewEditBoxes[id].Label:setText(str)
 			NewEditBoxes[id].Text = nstr
 			cxpSetCaretIndex(NewEditBoxes[id], start+sbutton:len())
+
+			triggerEvent("onClientGUIChanged", NewEditBoxes[id].Canvas)
 		end
 	end
 
@@ -441,6 +448,8 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 				NewEditBoxes[id].Label:setText(str)
 				NewEditBoxes[id].Text = nstr
 				cxpSetCaretIndex(NewEditBoxes[id], start)
+
+				triggerEvent("onClientGUIChanged", NewEditBoxes[id].Canvas)
 			end
 
 			if button == "delete" and not NewEditBoxes[id].ReadOnly then
@@ -475,6 +484,8 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 				NewEditBoxes[id].Label:setText(str)
 				NewEditBoxes[id].Text = nstr
 				cxpSetCaretIndex(NewEditBoxes[id], start)
+
+				triggerEvent("onClientGUIChanged", NewEditBoxes[id].Canvas)
 			end
 
 			if button == "enter" and not NewEditBoxes[id].ReadOnly then
@@ -554,6 +565,8 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 					NewEditBoxes[id].Text = nstr
 					cxpSetCaretIndex(NewEditBoxes[id], min)
 
+					triggerEvent("onClientGUIChanged", NewEditBoxes[id].Canvas)
+
 				elseif NewEditBoxes[id].MultiLined then
 				
 					local left = math.max(utf8.rfind(utf8.sub(str, 0, NewEditBoxes[id].CaretIndex), "\n") or NewEditBoxes[id].CaretIndex, 0)
@@ -573,6 +586,8 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 					NewEditBoxes[id].Label:setText(str)
 					NewEditBoxes[id].Text = nstr
 					cxpSetCaretIndex(NewEditBoxes[id], NewEditBoxes[id].CaretIndex-left+1)
+
+					triggerEvent("onClientGUIChanged", NewEditBoxes[id].Canvas)
 
 				end
 
@@ -876,6 +891,8 @@ function cxpSetText(edit, text)
 	edit.Label:setText(s)
 	edit.Text = text
 	cxpRecalc(edit)
+
+	triggerEvent("onClientGUIChanged", edit.Canvas)
 end
 
 function cxpSetMasked(edit, bool)
@@ -914,6 +931,32 @@ function cxpSetBackgroundEnabled(edit, bool)
 
 	edit.Background:setVisible(bool)
 
+end
+
+function cxpDestroy(edit)
+
+	for _, v in pairs(edit.Events) do
+		removeEventHandler(v.Name, root, v.Function)
+	end
+
+	edit.Label:destroy()
+	edit.HelpLabel:destroy()
+	edit.Scroller:destroy()
+	destroyElement(edit.Canvas)
+
+end
+
+function cxpAddEvent(edit, event, func)
+
+	local f = function(...)
+		if source == edit.Canvas or source == edit.Label.Label or source == edit.HelpLabel.Label or source == edit.Scroller.Scroller then
+			func(...)
+		end
+	end
+
+	addEventHandler(event, root, f)
+
+	return f
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -991,6 +1034,10 @@ function CustomTextBox.isReadOnly(self, ...) return cxpIsReadOnly(self, ...) end
 function CustomTextBox.isMasked(self, ...) return cxpIsMasked(self, ...) end
 function CustomTextBox.isBordersEnabled(self, ...) return cxpIsBordersEnabled(self, ...) end
 function CustomTextBox.isBackgroundEnabled(self, ...) return cxpIsBackgroundEnabled(self, ...) end
+
+function CustomTextBox.addEvent(self, ...) return cxpAddEvent(self, ...) end
+function CustomTextBox.removeEvent(self, ...) return cwRemoveEvent(self, ...) end
+function CustomTextBox.destroy(self, ...) return cxpDestroy(self, ...) end
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
