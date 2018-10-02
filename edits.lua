@@ -879,6 +879,10 @@ end
 
 function cxpSetText(edit, text)
 
+	if not edit.MultiLined then
+		text = table.concat(text:split("\n"))
+	end
+
 	local s = ""
 	if edit.Masked then
 		for i = 1, #text do
@@ -996,10 +1000,19 @@ CustomTextBox = {}
 CustomTextBox.__index = CustomTextBox
 CustomTextBox.ClassName = "CustomTextBox"
 
-function CustomTextBox.create(...)
+CustomMemoBox = {}
+CustomMemoBox.__index = CustomTextBox
 
-	local self = setmetatable(guiCreateCustomEditPanel(...), CustomTextBox)
-	compareAppend(self, ...)
+function CustomTextBox.create(x, y, w, h, title, rel, par, mlined)
+
+	local self = setmetatable(guiCreateCustomEditPanel(x, y, w, h, title, rel, par, mlined), CustomTextBox)
+	compareAppend(self, par)
+	return self
+end
+
+function CustomMemoBox.create(x, y, w, h, title, rel, par)
+	local self = setmetatable(CustomTextBox.create(x, y, w, h, title, rel, par, true), CustomMemoBox)
+	self.ClassName = "CustomMemoBox"
 	return self
 end
 
@@ -1071,14 +1084,15 @@ occaecat cupidatat non proident,
 sunt in culpa qui officia deserunt 
 mollit anim id est laborum.]]
 
-local nmemo = guiCreateCustomEditPanel(100, 300, 250, 200, str, _, _, true)
-local nedit = guiCreateCustomEditPanel(100, 250, 250, 30, "Lorem\n ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", _, _, false)
+local nmemo = CustomMemoBox.create(100, 300, 250, 200, str)
+local nedit = CustomTextBox.create(100, 250, 250, 30, "Lorem\n ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")
 
-cxpSetColorScheme(nmemo, Themes.Dark.Purple)
-cxpSetText(nmemo, "HELLO")
-cxpSetBackgroundEnabled(nedit, false)
-cxpSetBordersEnabled(nmemo, false)
+nmemo:setColorScheme(Themes.Dark.Purple)
+nmemo:setText("HELLO")
+
+nedit:setBackgroundEnabled(false)
+nmemo:setBordersEnabled(false)
 
 bindKey("f2", "down", function()
-	cxpSetMasked(nedit, not nedit.Masked)
+	nedit:setMasked(not nedit:isMasked())
 end)
