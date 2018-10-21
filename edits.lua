@@ -946,8 +946,12 @@ function cxpDestroy(edit)
 	edit.Label:destroy()
 	edit.HelpLabel:destroy()
 	edit.Scroller:destroy()
-	destroyElement(edit.Canvas)
 
+	if isElement(edit.Canvas) then
+		destroyElement(edit.Canvas)
+	end
+	edit = nil
+	
 end
 
 function cxpAddEvent(edit, event, func)

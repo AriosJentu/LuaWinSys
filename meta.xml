@@ -3,7 +3,6 @@
 
 	<!-- Libraries -->
 	<script src="win.lua" type="client"/>
-	<script src="edits.lua" type="client"/>
 	<script src="example.lua" type="client"/>
 
 	<file src="images/pane.png"/>
