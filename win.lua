@@ -1363,7 +1363,7 @@ function cwDestroy(window)
 	end
 
 	for _, v in pairs(window.SchemeElements) do
-		if getType(v) then
+		if getCWType(v) then
 			v:destroy()
 		else
 			destroyElement(v)
@@ -2067,7 +2067,7 @@ function cspDestroy(spane)
 	end
 
 	for i, v in pairs(spane.Elements) do
-		if getType(v) then
+		if getCWType(v) then
 			v:destroy()
 		else
 			destroyElement(v)
@@ -9324,7 +9324,7 @@ end
 function csiDestroy(simg)
 
 	for _, v in pairs(simg.Elements) do
-		if getType(v) then
+		if getCWType(v) then
 			v:destroy()
 		else
 			destroyElement(v)
