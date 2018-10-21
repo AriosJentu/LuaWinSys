@@ -103,7 +103,9 @@ function getCWType(object)
 		CustomCheckBox, 
 		CustomTableView, 
 		CustomTabPanel,
-		CustomStaticImage
+		CustomStaticImage,
+		CustomTextBox,
+		CustomMemoBox
 	}) then
 		return getmetatable(object)
 	else
@@ -129,7 +131,9 @@ function isCWElement(object)
 		CustomCheckBox, 
 		CustomTableView, 
 		CustomTabPanel,
-		CustomStaticImage
+		CustomStaticImage,
+		CustomTextBox,
+		CustomMemoBox
 	}) 
 end
 
@@ -1412,7 +1416,7 @@ function cwDestroy(window)
 	for _, v in pairs(window.SchemeElements) do
 		if isCWElement(v) then
 			v:destroy()
-		else
+		elseif isElement(v) then
 			destroyElement(v)
 		end
 	end
@@ -2119,7 +2123,7 @@ function cspDestroy(spane)
 	for i, v in pairs(spane.Elements) do
 		if isCWElement(v) then
 			v:destroy()
-		else
+		elseif isElement(v) then
 			destroyElement(v)
 		end
 	end
@@ -9408,7 +9412,7 @@ function csiDestroy(simg)
 	for _, v in pairs(simg.Elements) do
 		if isCWElement(v) then
 			v:destroy()
-		else
+		elseif isElement(v) then
 			destroyElement(v)
 		end
 	end
