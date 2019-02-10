@@ -22,49 +22,57 @@ themes = {
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Windows
-demo_window = CustomWindow.create(100, 100, 750, 580, "Widgets List", false)
+demo_window = CustomWindow.create(40, 20, 750, 580, "Widgets List", false)
 demo_window:setVisible(false)
 demo_window:setCloseEnabled(true)
---demo_window:showBar("left", 165)
 demo_window:setSideBarLength(165)
 demo_window:setSideBarPosition("left")
---bindKey("b", "up", function() demo_window:open() end)
 
-
-demo_window_l = CustomWindow.create(1000, 100, 300, 200, "Disabled Window", false)
+demo_window_l = CustomWindow.create(840, 20, 200, 200, "Disabled Window", false)
 demo_window_l:setVisible(false)
---bindKey("n", "up", function() demo_window_l:open() end)
 
-demo_window_m = CustomWindow.create(1000, 350, 300, 300, "Not Movable Window", false)
+demo_window_m = CustomWindow.create(840, 280, 200, 300, "Not Movable Window", false)
 demo_window_m:setVisible(false)
 demo_window_m:setCloseEnabled(true)
 demo_window_m:setMovable(false)
 demo_window_m:showBar("top", 65)
---bindKey("m", "up", function() demo_window_m:open() end)
 
 demo_window_n = CustomWindow.create(5, 80, 90, 50, "Parented", false, demo_window_l)
 demo_window_n:setCloseEnabled(true)
 demo_window_n:showBar("right", 30)
 demo_window_l:setEnabled(false)
+demo_window_l:bringToFront()
+
+demo_window_s = CustomWindow.create(1080, 20, 150, 150, "ScrollPane test", false)
+demo_window_s:setVisible(false)
+demo_window_s:setCloseEnabled(true)
+demo_window_s:setSizable(true)
+demo_window_s:setMinimalSize(150, 150)
+demo_window_s:setMaximalSize(350, 420) 
+
+demo_window:bringToFront()
 
 addCommandHandler("demowidgets", function()
 	if demo_window_l:getVisible() then
 		demo_window:close()
 		demo_window_l:close()
 		demo_window_m:close()
+		demo_window_s:close()
 		showCursor(false)
 	else
 		demo_window:open()
 		demo_window_l:open()
 		demo_window_m:open()
+		demo_window_s:open()
 		showCursor(true)
 	end
 end)
 
 demo_window:addEvent("onCustomWindowClose", function()
-	if not demo_window_m:getVisible() then
-		showCursor(false)
-	end
+	demo_window_l:close()
+	demo_window_m:close()
+	demo_window_s:close()
+	showCursor(false)
 end)
 
 demo_window_m:addEvent("onCustomWindowClose", function()
@@ -89,15 +97,17 @@ test_imgtxt.Image:setProperty("ImageColours", "tl:FF62D262 tr:FF62D262 bl:FF62D2
 test_but_locked = CustomButton.create(10, 180, 100, 40, "Disabled", false, demo_window)
 test_but_locked:setEnabled(false)
 
-test_but_locked2 = CustomButton.create(100, 60, 100, 40, "Disabled", false, demo_window_l)
+test_but_locked2 = CustomButton.create(50, 60, 100, 40, "Disabled", false, demo_window_l)
 test_but_locked2:setEnabled(false)
+test_but_locked2:moveToBack()
 
-test_but_clicked2 = CustomButton.create(100, 110, 100, 40, "Clicked", false, demo_window_l)
+test_but_clicked2 = CustomButton.create(50, 110, 100, 40, "Clicked", false, demo_window_l)
+test_but_clicked2:moveToBack()
 
-test_but_locked3 = CustomButton.create(40, 80, 100, 30, "Disabled", false, demo_window_m)
+test_but_locked3 = CustomButton.create(20, 80, 70, 30, "Disabled", false, demo_window_m)
 test_but_locked3:setEnabled(false)
 
-test_but_clicked3 = CustomButton.create(160, 80, 100, 30, "Clicked", false, demo_window_m)
+test_but_clicked3 = CustomButton.create(110, 80, 70, 30, "Clicked", false, demo_window_m)
 
 test_tooltip = CustomTooltip.create("Custom Tooltip", test_button, 0)
 test_tooltip:setShowTime(1)
@@ -162,7 +172,7 @@ test_edit_l = CustomEdit.create(170, 70, 250, 30, "EditBox Disabled", false, dem
 test_edit_m = CustomEdit.create(170, 110, 250, 30, "EditBox Masked", false, demo_window)
 test_edit_r = CustomEdit.create(170, 150, 250, 30, "EditBox ReadOnly", false, demo_window)
 
-test_edit_nm = CustomEdit.create(10, 30, 280, 30, "EditBox on Side Panel", false, demo_window_m)
+test_edit_nm = CustomEdit.create(10, 30, 180, 30, "EditBox on Side Panel", false, demo_window_m)
 test_edit_nm:putOnSide(true)
 
 test_memo = CustomMemo.create(170, 190, 250, 200, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", false, demo_window)
@@ -325,7 +335,7 @@ test_loading = CustomLoading.create(590, 50, false, demo_window)
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --Grid Lists
 
-test_grid = CustomTableView.create(5, 125, 290, 170, false, demo_window_m)
+test_grid = CustomTableView.create(5, 125, 190, 170, false, demo_window_m)
 
 cleared_column = test_grid:addColumn()
 short_column = test_grid:addColumn("Short")
@@ -361,11 +371,8 @@ test_grid:removeLine(2)
 ---------------------------------------
 
 demo_dialog = CustomDialog.create(100, "Dialog, what attached\nto Demo Window Frame\nMultiline Automatic", {"OK", "Cancel", "Buttons", "Three", "Another"}, demo_window)
+print("This dialog", demo_dialog.Dialog, demo_dialog.ColorScheme, demo_dialog.Dialog.ColorScheme)
 demo_dialog_l = CustomDialog.create(200, "Local Dialog")
-
---[[demo_window:setColorScheme(Themes.Dark.Red)
-demo_window_l:setColorScheme(BlueColorsDark)
-demo_window_m:setColorScheme(BlueColorsDark)]]
 
 indx = 1
 
@@ -450,6 +457,7 @@ test_combo:addEvent("onCustomComboBoxSelectItem", function()
 	demo_window:setColorScheme(CurrentTheme)
 	demo_window_l:setColorScheme(CurrentTheme)
 	demo_window_m:setColorScheme(CurrentTheme)
+	demo_window_s:setColorScheme(CurrentTheme)
 
 	image1:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main)) 
 	image2:setProperty("ImageColours", string.format("tl:FF%s tr:FF%s bl:FF%s br:FF%s", CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main, CurrentTheme.Main)) 
@@ -488,3 +496,19 @@ test_but_clicked3:addEvent("onClientGUIClick", function()
 end)
 
 test_tab_d:clearTabs()
+
+---------------------------------------------------------------------------
+
+demo_spane = CustomScrollPane.create(20, 0, 130, 150, false, demo_window_s)
+buts = {}
+for i = 0, 10 do
+	buts[i] = CustomButton.create(10, 20+40*i, 110, 30, "Hello "..tostring(i), false, demo_spane)	
+end
+
+demo_window_s:addEvent("onClientGUISize", function()
+	local w, h = demo_window_s:getSize()
+	demo_spane:setSize(w-20, h)
+	for i, v in pairs(buts) do
+		v:setSize(w-40, 30)
+	end
+end)

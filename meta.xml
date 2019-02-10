@@ -2,9 +2,11 @@
 <info author="AriosJentu" name="GUI Interfaces System" version="0" type="script"/>
 
 	<!-- Libraries -->
-	<script src="win.lua" type="client"/>
-	<script src="example.lua" type="client"/>
-
+	<!--
+		<script src="win.lua" type="client"/>
+		<script src="example.lua" type="client"/>
+	-->
+	
 	<file src="images/pane.png"/>
 	<file src="images/cross.png"/>
 	<file src="images/point.png"/>

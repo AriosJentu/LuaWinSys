@@ -555,7 +555,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Frame = GuiStaticImage.create(2, 2, w, h, pane, false, Windows[id].Canvas)
 
 	--Dialog shadow
-	Windows[id].Dialog = GuiStaticImage.create(0, 0, 1, 1, pane, true, Windows[id].Frame)
+	Windows[id].DialogImage = CustomStaticImage.create(0, 0, 1, 1, pane, true, Windows[id].Frame)
 	
 	--Title
 	Windows[id].Top = GuiStaticImage.create(0, 0, w, 22, pane, false, Windows[id].Frame)
@@ -605,7 +605,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Close:setColor("0")
 	Windows[id].CloseMain:setColor("0")
 	Windows[id].CloseAlter:setColor("0")
-	Windows[id].Dialog:setColor("0")
+	Windows[id].DialogImage:setColor("0")
 	Windows[id].Cross:setColor(txtcol)
 	Windows[id].CrossAlter:setColor(whitecol)
 	Windows[id].SideBlock:setColor("FF"..Windows[id].ColorScheme.SubMain)
@@ -628,7 +628,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 	Windows[id].Close:setVisible(false)
 	Windows[id].Cross:setEnabled(false)
-	Windows[id].Dialog:setVisible(false)
+	Windows[id].DialogImage:setVisible(false)
 	Windows[id].SideBlock:setEnabled(false)
 	Windows[id].CloseMain:setEnabled(false)
 	Windows[id].CloseMain:setVisible(false)
@@ -662,11 +662,11 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].ShowDialog = function(bool)
 
 		Windows[id].DialogAnimation = bool and 2 or 1
-		Windows[id].Dialog:setProperty("AlwaysOnTop", "True")
+		Windows[id].DialogImage.Image:setProperty("AlwaysOnTop", "True")
 		Windows[id].Top:setProperty("AlwaysOnTop", "False")
-		Windows[id].Dialog:setVisible(true)
+		Windows[id].DialogImage:setVisible(true)
 		Windows[id].Frame:bringToFront()
-		Windows[id].Dialog:bringToFront()
+		Windows[id].DialogImage:bringToFront()
 
 		if bool == false then
 			for _, v in pairs(Windows[id].DialogList) do
@@ -741,7 +741,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 			if Windows[id].DialogAnimation == 2 then
 
-				local alpha = fromPropertyToHEX(Windows[id].Dialog)
+				local alpha = fromPropertyToHEX(Windows[id].DialogImage.Image)
 				alpha = tonumber(alpha:sub(1, 2), 16)
 
 				if alpha == 120 then
@@ -754,23 +754,23 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 					if alpha >= 120 then alpha = 120 end
 					local color = string.format("%.2x000000", alpha)
-					Windows[id].Dialog:setColor(color)
+					Windows[id].DialogImage:setColor(color)
 
 				end
 
 			elseif Windows[id].DialogAnimation == 1 then
 				
-				local alpha = fromPropertyToHEX(Windows[id].Dialog)
+				local alpha = fromPropertyToHEX(Windows[id].DialogImage.Image)
 				alpha = tonumber(alpha:sub(1, 2), 16)
 
 				if alpha == 0 then
 
 					Windows[id].DialogAnimation = 0
-					Windows[id].Dialog:setVisible(false)
-					Windows[id].Dialog:setProperty("AlwaysOnTop", "False")
+					Windows[id].DialogImage:setVisible(false)
+					Windows[id].DialogImage.Image:setProperty("AlwaysOnTop", "False")
 					Windows[id].Top:setProperty("AlwaysOnTop", "True")
 					Windows[id].Frame:bringToFront()
-					triggerEvent("onClientGUIMouseUp", Windows[id].Dialog)
+					triggerEvent("onClientGUIMouseUp", Windows[id].DialogImage.Image)
 
 				else
 
@@ -778,7 +778,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 					if alpha <= 0 then alpha = 0 end
 					local color = string.format("%.2x000000", alpha)
-					Windows[id].Dialog:setColor(color)
+					Windows[id].DialogImage:setColor(color)
 
 				end
 
@@ -796,7 +796,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 			triggerEvent("onCustomWindowClose", Windows[id].Canvas, Windows[id].Canvas)
 		end
 
-		if source == Windows[id].Dialog then
+		if source == Windows[id].DialogImage.Image then
 			Windows[id].ShowDialog(false)
 		end
 	end
@@ -842,7 +842,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 
 		BFMState = BackForMouse:getVisible()
 
-		if Windows[id].Movable and button == "left" and (source == Windows[id].Top or source == Windows[id].Dialog) then
+		if Windows[id].Movable and button == "left" and (source == Windows[id].Top or source == Windows[id].DialogImage.Image) then
 			
 			Windows[id].Animation = "move"
 			
@@ -879,7 +879,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 	Windows[id].Event.MouseUp.Name = "onClientGUIMouseUp"
 	Windows[id].Event.MouseUp.Function = function()
 		
-		if source == Windows[id].Top or source == Windows[id].Dialog or Windows[id].Animation == "size" then
+		if source == Windows[id].Top or source == Windows[id].DialogImage.Image or Windows[id].Animation == "size" then
 			Windows[id].Animation = "none"
 			Windows[id].MoveCursorPositions = {X = 0, Y = 0}
 			Windows[id].SizeCursorPositions = {X = 0, Y = 0}
@@ -907,6 +907,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 				Windows[id].Canvas:setPosition(cx-ax, cy-ay, false)
 
 				triggerEvent("onClientGUIMove", Windows[id].Canvas)
+				triggerEvent("onCustomWindowMove", Windows[id].Canvas)
 
 				return
 			end
@@ -955,6 +956,7 @@ function guiCreateCustomWindow(x, y, w, h, title, relative, parent)
 				BackForMouse:setVisible(true)
 
 				triggerEvent("onClientGUISize", Windows[id].Canvas)
+				triggerEvent("onCustomWindowSize", Windows[id].Canvas)
 			end
 		end
 	end
@@ -1292,7 +1294,7 @@ function cwGetMinimalSize(window) return cwGetMinimalWidth(window), cwGetMinimal
 
 function cwGetMaximalWidth(window) return window.MaximalSizes.W end
 function cwGetMaximalHeight(window)	return window.MaximalSizes.H end
-function cwSetMaximalSize(window) return cwGetMaximalWidth(window), cwGetMaximalHeight(window) end
+function cwGetMaximalSize(window) return cwGetMaximalWidth(window), cwGetMaximalHeight(window) end
 
 ---
 
@@ -1305,7 +1307,7 @@ function cwGetHeader(window)
 end
 
 function cwGetDialog(window)
-	return window.Dialog
+	return window.DialogImage
 end
 
 
@@ -1354,13 +1356,13 @@ function cwSetColorScheme(window, scheme)
 	window.Frame:setColor(frmcol)
 	window.Cross:setColor(txtcol)
 	window.Title:setColor(fromHEXToRGB(TextColor))
+	window.DialogImage:setColorScheme(scheme)
 
 	for _, v in ipairs(window.SchemeElements) do
 
 		if v.ColorScheme then
 			v:setColorScheme(scheme)
 		end
-
 	end
 
 end
@@ -1393,7 +1395,7 @@ end
 function cwAddEvent(window, event, func)
 	
 	local f = function(...)
-		if source == window.Frame or source == window.Canvas or source == window.Top or source == window.Dialog then
+		if source == window.Frame or source == window.Canvas or source == window.Top or source == window.DialogImage.Image then
 			func(...)
 		end
 	end
@@ -7368,6 +7370,9 @@ function cdgOpen(diag)
 	if diag.Parent then
 		diag.Parent:showDialog(true)
 	end
+	for _, v in pairs(diag.Buttons) do
+		v:setEnabled(true)
+	end
 	diag.Dialog:open()
 end
 
@@ -7404,7 +7409,7 @@ end
 --Set Functions
 
 function cdgSetColorScheme(diag, ...)
-	return diag.Dialog:setColorScheme(...)
+	diag.Dialog:setColorScheme(...)
 end
 
 function cdgSetFont(diag, font, size)
@@ -9496,6 +9501,9 @@ function CustomStaticImage.addEvent(self, ...) return csiAddEvent(self, ...) end
 function CustomStaticImage.removeEvent(self, ...) return csiRemoveEvent(self, ...) end
 function CustomStaticImage.destroy(self, ...) return csiDestroy(self, ...) end
 
+function CustomStaticImage.bringToFront(self, ...) return self.Image:bringToFront() end
+function CustomStaticImage.moveToBack(self, ...) return self.Image:moveToBack() end
+
 
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -9680,7 +9688,6 @@ function guiCreateCustomEditPanel(x, y, w, h, text, rel, parent, multilined)
 	if NewEditBoxes[id].MultiLined then
 		sh = (nh+HPerc)*#text:split("\n")
 	else
-		--print("HERE", (h-nh)/2 - 2, h, nh)
 		NewEditBoxes[id].Label:setPosition(2, (h-nh)/2 - 2, false)		
 		NewEditBoxes[id].HelpLabel:setPosition(2, (h-nh)/2 - 2, false)		
 	end
@@ -10530,6 +10537,8 @@ addEvent("onCustomScrollBarScrolled", true)
 addEvent("onCustomScrollPaneScrolled", true)
 addEvent("onCustomDialogClick", true)
 addEvent("onCustomWindowClose", true)
+addEvent("onCustomWindowMove", true)
+addEvent("onCustomWindowSize", true)
 addEvent("onCustomCheckBoxChecked", true)
 addEvent("onCustomComboBoxSelectItem", true)
 addEvent("onCustomTabPanelChangeTab", true)
