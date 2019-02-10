@@ -371,7 +371,6 @@ test_grid:removeLine(2)
 ---------------------------------------
 
 demo_dialog = CustomDialog.create(100, "Dialog, what attached\nto Demo Window Frame\nMultiline Automatic", {"OK", "Cancel", "Buttons", "Three", "Another"}, demo_window)
-print("This dialog", demo_dialog.Dialog, demo_dialog.ColorScheme, demo_dialog.Dialog.ColorScheme)
 demo_dialog_l = CustomDialog.create(200, "Local Dialog")
 
 indx = 1
