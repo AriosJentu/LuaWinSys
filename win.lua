@@ -8047,6 +8047,7 @@ function guiCreateCustomTableView(x, y, w, h, relative, parent)
 	TableView[id].Selected = 0
 	TableView[id].Indent = 5
 	TableView[id].Width = 0
+	TableView[id].ShadowEnabled = true
 
 	if parent and parent.ColorScheme ~= nil then
 		TableView[id].ColorScheme = parent.ColorScheme
@@ -8694,7 +8695,17 @@ function ctvSetPosition(tview, x, y, rel)
 
 	end
 
-	tview.Back:setPosition(x-1, y-1, false)
+	if tview.ShadowEnabled then
+		tview.Back:setPosition(x-1, y-1, false)
+		tview.ShadowVert:setSize(w, h+2, false)
+		tview.ShadowHorz:setSize(w+2, h, false)
+		tview.Canvas:setPosition(1, 1, false)
+	else 
+		tview.Back:setPosition(x, y, false)
+		tview.ShadowVert:setSize(0, 0, false)
+		tview.ShadowHorz:setSize(0, 0, false)
+		tview.Canvas:setPosition(0, 0, false)
+	end
 
 end
 
@@ -8716,9 +8727,17 @@ function ctvSetSize(tview, w, h, rel)
 
 	local c = tview.TitleBlock:getVisible() and 1 or 0
 
-	tview.Back:setSize(w+2, h+2, false)
-	tview.ShadowVert:setSize(w, h+2, false)
-	tview.ShadowHorz:setSize(w+2, h, false)
+	if tview.ShadowEnabled then
+		tview.Back:setSize(w+2, h+2, false)
+		tview.ShadowVert:setSize(w, h+2, false)
+		tview.ShadowHorz:setSize(w+2, h, false)
+		tview.Canvas:setPosition(1, 1, false)
+	else
+		tview.Back:setSize(w, h, false)
+		tview.ShadowVert:setSize(0, 0, false)
+		tview.ShadowHorz:setSize(0, 0, false)
+		tview.Canvas:setPosition(0, 0, false)
+	end
 
 	tview.Canvas:setSize(w, h, false)
 	tview.TitleBlock:setSize(w, 23, false)
@@ -8728,6 +8747,12 @@ function ctvSetSize(tview, w, h, rel)
 	tview.TitleScrolls:setSize(w, 23, false)
 
 	ctvUpdate(tview)
+end
+
+function ctvSetShadowsEnabled(tview, bool)
+	tview.ShadowEnabled = bool
+	local w, h = tview.Canvas:getSize(false)
+	ctvSetSize(tview, w, h, false)
 end
 
 function ctvSetEnabled(tview, bool)
@@ -9033,6 +9058,10 @@ function ctvGetSize(tview, rel)
 	end
 end
 
+function ctvGetShadowsEnabled(tview)
+	return tview.ShadowEnabled
+end
+
 function ctvGetRealSize(tview, rel)
 	return tview.Back:getSize(rel or false)
 end	
@@ -9333,6 +9362,7 @@ function CustomTableView.setCellText(self, ...) return ctvSetCellText(self, ...)
 function CustomTableView.setFont(self, ...) return ctvSetFont(self, ...) end
 function CustomTableView.setFontSize(self, ...) return ctvSetFontSize(self, ...) end
 function CustomTableView.setSystemFont(self, ...) return ctvSetSystemFont(self, ...) end
+function CustomTableView.setShadowsEnabled(self, ...) return ctvSetShadowsEnabled(self, ...) end
 
 function CustomTableView.bringToFront(self, ...) return ctvBringToFront(self, ...) end
 function CustomTableView.moveToBack(self, ...) return ctvMoveToBack(self, ...) end
@@ -9355,6 +9385,7 @@ function CustomTableView.getLinesCount(self, ...) return ctvGetLinesCount(self, 
 function CustomTableView.getColumnsCount(self, ...) return ctvGetColumnsCount(self, ...) end
 function CustomTableView.getFont(self, ...) return ctvGetFont(self, ...) end
 function CustomTableView.getFontSize(self, ...) return ctvGetFontSize(self, ...) end
+function CustomTableView.getShadowsEnabled(self, ...) return ctvGetShadowsEnabled(self, ...) end
 
 function CustomTableView.addEvent(self, ...) return ctvAddEvent(self, ...) end
 function CustomTableView.removeEvent(self, ...) return ctvRemoveEvent(self, ...) end
@@ -9377,6 +9408,7 @@ function guiCreateCustomImage(x, y, w, h, location, rel, par)
 
 	CustomImages[id].Image = GuiStaticImage.create(x, y, w, h, location, rel, par)
 	CustomImages[id].ImageLocation = location
+	CustomImages[id].IsSchematical = false
 
 	return CustomImages[id]
 end
@@ -9455,6 +9487,17 @@ function csiSetColorScheme(simg, scheme)
 			element:setColorScheme(simg.ColorScheme)
 		end
 	end
+
+	if simg.IsSchematical then
+		simg.Image:setColor("FF"..simg.ColorScheme.SubMain)
+	end
+end
+
+function csiSetSchematicalColor(simg, bool)
+	simg.IsSchematical = bool and true or false
+	if simg.IsSchematical then
+		simg.Image:setColor("FF"..simg.ColorScheme.SubMain)
+	end
 end
 
 ---------------------------
@@ -9464,6 +9507,7 @@ function csiGetPosition(simg, rel) return simg.Image:getPosition(rel or false) e
 function csiGetSize(simg, rel) return simg.Image:getSize(rel or false) end
 function csiGetImage(simg) return simg.ImageLocation end
 function csiGetColorScheme(simg) return simg.ColorScheme end
+function csiIsSchematicalColor(simg) return simg.IsSchematical end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --OOP functions
@@ -9485,6 +9529,7 @@ function CustomStaticImage.setVisible(self, ...) return self.Image:setVisible(..
 function CustomStaticImage.setColor(self, ...) return self.Image:setColor(...) end
 function CustomStaticImage.setColorScheme(self, ...) return csiSetColorScheme(self, ...) end
 function CustomStaticImage.setImage(self, ...) return csiSetImage(self, ...) end
+function CustomStaticImage.setSchematicalColor(self, ...) return csiSetSchematicalColor(self, ...) end
 
 function CustomStaticImage.getPosition(self, ...) return csiGetPosition(self, ...) end
 function CustomStaticImage.getSize(self, ...) return csiGetSize(self, ...) end
@@ -9495,6 +9540,7 @@ function CustomStaticImage.getColorScheme(self, ...) return csiGetColorScheme(se
 function CustomStaticImage.getImage(self, ...) return csiGetImage(self, ...) end
 function CustomStaticImage.getNativeSize(self, ...) return guiStaticImageGetNativeSize(self) end
 function CustomStaticImage.getMainElement(self, ...) return self.Image end
+function CustomStaticImage.isSchematicalColor(self, ...) return csiIsSchematicalColor(self, ...) end
 
 function CustomStaticImage.addElement(self, ...) return csiAddElement(self, ...) end
 function CustomStaticImage.addEvent(self, ...) return csiAddEvent(self, ...) end
