@@ -9432,17 +9432,17 @@ end
 ---------------------------
 --Set functions
 
-function cgiSetPosition(simg, x, y, rel)
+function csiSetPosition(simg, x, y, rel)
 	if not rel then rel = false end
 	return simg.Image:setPosition(x, y, rel)
 end
 
-function cgiSetSize(simg, w, h, rel)
+function csiSetSize(simg, w, h, rel)
 	if not rel then rel = false end
 	return simg.Image:setSize(w, h, rel)
 end
 
-function cgiSetImage(simg, image)
+function csiSetImage(simg, image)
 	simg.ImageLocation = image
 	return simg.Image:loadImage(image)
 end
@@ -9460,9 +9460,9 @@ end
 ---------------------------
 --Get functions
 
-function cgiGetPosition(simg, rel) return simg.Image:getPosition(rel or false) end
-function cgiGetSize(simg, rel) return simg.Image:getSize(rel or false) end
-function cgiGetImage(simg) return simg.ImageLocation end
+function csiGetPosition(simg, rel) return simg.Image:getPosition(rel or false) end
+function csiGetSize(simg, rel) return simg.Image:getSize(rel or false) end
+function csiGetImage(simg) return simg.ImageLocation end
 function csiGetColorScheme(simg) return simg.ColorScheme end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -9478,16 +9478,16 @@ function CustomStaticImage.create(...)
 	return self
 end
 
-function CustomStaticImage.setPosition(self, ...) return cgiSetPosition(self, ...) end
-function CustomStaticImage.setSize(self, ...) return cgiSetSize(self, ...) end
+function CustomStaticImage.setPosition(self, ...) return csiSetPosition(self, ...) end
+function CustomStaticImage.setSize(self, ...) return csiSetSize(self, ...) end
 function CustomStaticImage.setEnabled(self, ...) return self.Image:setEnabled(...) end
 function CustomStaticImage.setVisible(self, ...) return self.Image:setVisible(...) end
 function CustomStaticImage.setColor(self, ...) return self.Image:setColor(...) end
 function CustomStaticImage.setColorScheme(self, ...) return csiSetColorScheme(self, ...) end
 function CustomStaticImage.setImage(self, ...) return csiSetImage(self, ...) end
 
-function CustomStaticImage.getPosition(self, ...) return cgiGetPosition(self, ...) end
-function CustomStaticImage.getSize(self, ...) return cgiGetSize(self, ...) end
+function CustomStaticImage.getPosition(self, ...) return csiGetPosition(self, ...) end
+function CustomStaticImage.getSize(self, ...) return csiGetSize(self, ...) end
 function CustomStaticImage.getEnabled(self, ...) return self.Image:getEnabled(...) end
 function CustomStaticImage.getVisible(self, ...) return self.Image:getVisible(...) end
 function CustomStaticImage.getColor(self, ...) return self.Image:getColor(...) end
